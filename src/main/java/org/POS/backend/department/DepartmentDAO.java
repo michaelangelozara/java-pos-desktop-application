@@ -1,9 +1,13 @@
 package org.POS.backend.department;
 
 import org.POS.backend.configuration.HibernateUtil;
+import org.hibernate.Hibernate;
 import org.hibernate.ResourceClosedException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+
+import java.time.LocalDate;
+import java.util.List;
 
 public class DepartmentDAO {
 
@@ -47,7 +51,9 @@ public class DepartmentDAO {
             Department department = session.createQuery("SELECT d FROM Department d WHERE d.id =: departmentId", Department.class)
                     .setParameter("departmentId", departmentId)
                             .getSingleResult();
-            session.remove(department);
+            department.setDeletedAt(LocalDate.now());
+            department.setDeleted(true);
+            session.merge(department);
             // Commit transaction
             session.getTransaction().commit();
         }catch (Exception e){
@@ -63,10 +69,26 @@ public class DepartmentDAO {
             Department department = session.createQuery("SELECT d FROM Department d WHERE d.id =: departmentId", Department.class)
                     .setParameter("departmentId", departmentId)
                     .getSingleResult();
-
+            Hibernate.initialize(department.getUsers());
             // Commit transaction
             session.getTransaction().commit();
             return department;
+        }catch (Exception e){
+            System.out.println("Error fetching department: " + e.getMessage());
+            throw new ResourceClosedException("Department not found");
+        }
+    }
+
+    public List<Department> getAllValidDepartment(){
+        try(Session session = sessionFactory.openSession()){
+            // Begin transaction
+            session.beginTransaction();
+
+            List<Department> departments = session.createQuery("SELECT d FROM Department d WHERE d.isDeleted = FALSE", Department.class)
+                    .getResultList();
+            // Commit transaction
+            session.getTransaction().commit();
+            return departments;
         }catch (Exception e){
             System.out.println("Error fetching department: " + e.getMessage());
             throw new ResourceClosedException("Department not found");

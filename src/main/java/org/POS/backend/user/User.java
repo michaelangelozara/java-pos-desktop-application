@@ -52,7 +52,14 @@ public class User {
 
     private String address;
 
+    @Enumerated(EnumType.STRING)
     private UserStatus status;
+
+    @Column(name = "is_deleted")
+    private boolean isDeleted;
+
+    @Column(name = "deleted_at")
+    private LocalDate deletedAt;
 
     @Column(columnDefinition = "TEXT")
     private String profilePicture;

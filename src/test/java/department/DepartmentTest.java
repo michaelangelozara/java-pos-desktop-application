@@ -12,7 +12,11 @@ public class DepartmentTest {
     @Test
     void add(){
         DepartmentService departmentService = new DepartmentService();
-        AddDepartmentRequestDto dto = new AddDepartmentRequestDto("Information Technology", DepartmentStatus.ACTIVE, "No note");
+        AddDepartmentRequestDto dto = new AddDepartmentRequestDto(
+                "Human Resource",
+                DepartmentStatus.ACTIVE,
+                "No note"
+        );
 
         departmentService.add(dto);
     }
@@ -24,10 +28,23 @@ public class DepartmentTest {
         departmentService.update(dto);
     }
 
-
     @Test
     void delete(){
         DepartmentService departmentService = new DepartmentService();
         departmentService.delete(1);
+    }
+
+    @Test
+    void getValidDepartment(){
+        DepartmentService departmentService = new DepartmentService();
+        System.out.println(departmentService.getDepartmentById(1));
+    }
+
+    @Test
+    void getAllValidDepartment(){
+        DepartmentService departmentService = new DepartmentService();
+        departmentService.getAllValidDepartment().forEach(d -> {
+            System.out.println(d.name());
+        });
     }
 }

@@ -1,6 +1,10 @@
 package org.POS.backend.user;
 
+import org.POS.backend.department.DepartmentDAO;
 import org.POS.backend.department.DepartmentService;
+import org.POS.backend.exception.ResourceNotFoundException;
+
+import java.util.List;
 
 public class UserService {
 
@@ -8,19 +12,43 @@ public class UserService {
 
     private DepartmentService departmentService;
 
+    private DepartmentDAO departmentDAO;
+
     private UserMapper userMapper;
 
     public UserService(){
         this.userDAO = new UserDAO();
         this.userMapper = new UserMapper();
         this.departmentService = new DepartmentService();
+        this.departmentDAO = new DepartmentDAO();
     }
 
     public void add(AddUserRequestDto dto){
-        var department = this.departmentService.getDepartmentById(dto.departmentId());
+        var department = this.departmentDAO.getDepartmentById(dto.departmentId());
         var user = this.userMapper.toUser(dto, department);
         this.userDAO.add(user);
     }
 
-//    public void
+    public void updateUser(UpdateUserRequestDto dto){
+        var department = this.departmentDAO.getDepartmentById(dto.departmentId());
+        var updatedUser = this.userMapper.toUpdatedUser(dto, department);
+        this.userDAO.update(updatedUser);
+    }
+
+    public void delete(int userId){
+        this.userDAO.delete(userId);
+    }
+
+    public List<UserResponseDto> getAllValidUsers() throws ResourceNotFoundException {
+        List<User> users = this.userDAO.getAllValidUsers();
+        return this.userMapper.userResponseDtoList(users);
+    }
+
+    public UserResponseDto getValidUserById(int userId){
+        var user = this.userDAO.getUserById(userId);
+        if(user != null)
+            return this.userMapper.toUserResponseDto(user);
+
+        return null;
+    }
 }

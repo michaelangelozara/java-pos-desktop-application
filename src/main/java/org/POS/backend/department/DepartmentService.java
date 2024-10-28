@@ -1,5 +1,7 @@
 package org.POS.backend.department;
 
+import java.util.List;
+
 public class DepartmentService {
 
     private DepartmentDAO departmentDAO;
@@ -25,9 +27,16 @@ public class DepartmentService {
         this.departmentDAO.delete(departmentId);
     }
 
-    public Department getDepartmentById(int departmentId){
-        return this.departmentDAO.getDepartmentById(departmentId);
+    public DepartmentResponseDto getDepartmentById(int departmentId){
+        var department = this.departmentDAO.getDepartmentById(departmentId);
+        if(department != null)
+            return this.departmentMapper.toDepartmentResponseDto(department);
+        return null;
     }
 
+    public List<DepartmentResponseDto> getAllValidDepartment(){
+        List<Department> departments = this.departmentDAO.getAllValidDepartment();
+        return this.departmentMapper.departmentResponseDtoList(departments);
+    }
 
 }

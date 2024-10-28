@@ -1,4 +1,4 @@
-package org.POS.backend.product;
+package org.POS.backend.brand;
 
 import org.POS.backend.configuration.HibernateUtil;
 import org.hibernate.Session;
@@ -7,19 +7,20 @@ import org.hibernate.SessionFactory;
 import java.time.LocalDate;
 import java.util.List;
 
-public class ProductDAO {
+public class BrandDAO {
+
 
     private SessionFactory sessionFactory;
 
-    public ProductDAO() {
+    public BrandDAO() {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public void add(Product product){
+    public void add(Brand brand){
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            session.persist(product);
+            session.persist(brand);
 
             session.getTransaction().commit();
         }catch (Exception e){
@@ -27,11 +28,11 @@ public class ProductDAO {
         }
     }
 
-    public void update(Product product){
+    public void update(Brand brand){
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            session.merge(product);
+            session.merge(brand);
 
             session.getTransaction().commit();
         }catch (Exception e){
@@ -39,16 +40,16 @@ public class ProductDAO {
         }
     }
 
-    public boolean delete(int productId){
+    public boolean delete(int brandId){
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            Product product = session.createQuery("SELECT p FROM Product p WHERE p.id = :productId AND p.isDeleted = FALSE", Product.class)
-                            .setParameter("productId", productId)
+            Brand brand = session.createQuery("SELECT b FROM Brand b WHERE b.id = :brandId AND b.isDeleted = FALSE", Brand.class)
+                            .setParameter("brandId", brandId)
                                     .getSingleResult();
-            product.setDeletedAt(LocalDate.now());
-            product.setDeleted(true);
-            session.merge(product);
+            brand.setDeleted(true);
+            brand.setDeletedAt(LocalDate.now());
+            session.merge(brand);
 
             session.getTransaction().commit();
             return true;
@@ -58,32 +59,15 @@ public class ProductDAO {
         return false;
     }
 
-    public Product getValidProduct(int productId){
+    public List<Brand> getAllValidBrands(){
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            Product product = session.createQuery("SELECT p FROM Product p WHERE p.id = :productId AND p.isDeleted = FALSE", Product.class)
-                            .setParameter("productId", productId)
-                                    .getSingleResult();
-
-            session.getTransaction().commit();
-            return product;
-        }catch (Exception e){
-            System.out.println(e.getMessage());
-        }
-
-        return null;
-    }
-
-    public List<Product> getAllValidProducts(){
-        try (Session session = sessionFactory.openSession()){
-            session.beginTransaction();
-
-            List<Product> products = session.createQuery("SELECT p FROM Product p WHERE p.isDeleted = FALSE", Product.class)
+            List<Brand> brands = session.createQuery("SELECT b FROM Brand b WHERE b.isDeleted = FALSE", Brand.class)
                     .getResultList();
 
             session.getTransaction().commit();
-            return products;
+            return brands;
         }catch (Exception e){
             System.out.println(e.getMessage());
         }
@@ -91,5 +75,20 @@ public class ProductDAO {
         return null;
     }
 
+    public Brand getValidBrand(int brandId){
+        try (Session session = sessionFactory.openSession()){
+            session.beginTransaction();
 
+            Brand brand = session.createQuery("SELECT b FROM Brand b WHERE b.id = :brandId AND b.isDeleted = FALSE", Brand.class)
+                    .setParameter("brandId", brandId)
+                    .getSingleResult();
+
+            session.getTransaction().commit();
+            return brand;
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+
+        return null;
+    }
 }

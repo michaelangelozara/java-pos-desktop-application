@@ -25,6 +25,9 @@ public class Brand {
 
     private LocalDate deletedAt;
 
+    @Enumerated(EnumType.STRING)
+    private BrandStatus status;
+
     @ManyToOne
     @JoinColumn(name = "subcategory_id")
     private Subcategory subcategory;
