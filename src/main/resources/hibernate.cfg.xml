@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 5.3//EN"
+        "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+        <property name="hibernate.hbm2ddl.auto">update</property>
+        <property name="dialect">org.hibernate.dialect.MySQLDialect</property>
+        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/pos_zeusled_db</property>
+        <property name="hibernate.connection.username">root</property>
+        <property name="hibernate.connection.password">root</property>
+        <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+        <property name="hibernate.format_sql">true</property>
+        <property name="hibernate.show_sql">true</property>
+
+        <mapping class="org.POS.backend.user.User"/>
+        <mapping class="org.POS.backend.department.Department"/>
+        <mapping class="org.POS.backend.brand.Brand"/>
+        <mapping class="org.POS.backend.category.Category"/>
+        <mapping class="org.POS.backend.person.Person"/>
+        <mapping class="org.POS.backend.product.Product"/>
+        <mapping class="org.POS.backend.subcategory.Subcategory"/>
+    </session-factory>
+</hibernate-configuration>
