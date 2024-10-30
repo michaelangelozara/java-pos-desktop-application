@@ -92,4 +92,20 @@ public class UserDAO {
         return null;
     }
 
+    public User authenticateUserByUsernameAndPassword(String username, String password){
+        try (Session session = sessionFactory.openSession()){
+            session.beginTransaction();
+            User loggedInUser = session.createQuery("SELECT u FROM User u WHERE u.username = :username AND u.password = :password AND u.isDeleted = FALSE", User.class)
+                            .setParameter("username", username)
+                                    .setParameter("password", password)
+                                            .getSingleResult();
+            session.getTransaction().commit();
+            return loggedInUser;
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+
+        return null;
+    }
+
 }

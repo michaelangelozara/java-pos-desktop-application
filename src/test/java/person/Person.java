@@ -1,9 +1,6 @@
 package person;
 
-import org.POS.backend.person.AddPersonRequestDto;
-import org.POS.backend.person.PersonService;
-import org.POS.backend.person.PersonStatus;
-import org.POS.backend.person.UpdatePersonRequestDto;
+import org.POS.backend.person.*;
 import org.junit.jupiter.api.Test;
 
 public class Person {
@@ -17,6 +14,7 @@ public class Person {
                 "09090909090",
                 "NedNets Inc.",
                 "KIGG-xZIZ-112",
+                PersonType.CLIENT,
                 "New York",
                 "JSISSHJLO267<L",
                 PersonStatus.ACTIVE
@@ -35,6 +33,7 @@ public class Person {
                 "09090909090",
                 "ICTSO Inc.",
                 "KKA-ZUIZ-1",
+                PersonType.SUPPLIER,
                 "Los Angeles Chicago",
                 "HBJNKM<L",
                 PersonStatus.ACTIVE

@@ -6,6 +6,7 @@ public record AddPersonRequestDto(
         String contactNumber,
         String companyName,
         String taxRegistration,
+        PersonType personType,
         String address,
         String image,
         PersonStatus status

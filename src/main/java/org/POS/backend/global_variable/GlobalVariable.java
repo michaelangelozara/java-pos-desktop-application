@@ -6,6 +6,9 @@ public class GlobalVariable {
     public static String USER_UPDATED = "User successfully updated";
     public static String USER_DELETED = "User successfully deleted";
     public static String USER_NOT_FOUND = "User not found";
+    public static String USER_INVALID_CREDENTIAL = "Incorrect username or password";
+    public static String USER_LOGGED_IN = "User successfully logged in";
+
 
     // Product messages
     public static String PRODUCT_ADDED = "Product successfully added";

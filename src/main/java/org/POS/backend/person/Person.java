@@ -32,6 +32,9 @@ public class Person {
     @Column(name = "tax_registration_number")
     private String taxRegistrationNumber;
 
+    @Enumerated(EnumType.STRING)
+    private PersonType type;
+
     private String address;
 
     @Column(columnDefinition = "TEXT")

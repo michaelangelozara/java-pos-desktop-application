@@ -38,6 +38,11 @@
             <artifactId>mysql-connector-j</artifactId>
             <version>9.1.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml</groupId>
+            <artifactId>classmate</artifactId>
+            <version>1.5.1</version> <!-- Check for the latest version -->
+        </dependency>
     </dependencies>
 
 </project>

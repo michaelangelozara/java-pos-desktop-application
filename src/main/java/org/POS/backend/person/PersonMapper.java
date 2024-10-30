@@ -11,6 +11,7 @@ public class PersonMapper {
         person.setContactNumber(dto.contactNumber());
         person.setCompanyName(dto.companyName());
         person.setTaxRegistrationNumber(dto.taxRegistration());
+        person.setType(dto.personType());
         person.setAddress(dto.address());
         person.setImage(dto.image());
         person.setStatus(dto.status());
@@ -25,6 +26,7 @@ public class PersonMapper {
         person.setContactNumber(dto.contactNumber());
         person.setCompanyName(dto.companyName());
         person.setTaxRegistrationNumber(dto.taxRegistration());
+        person.setType(dto.personType());
         person.setAddress(dto.address());
         person.setImage(dto.image());
         person.setStatus(dto.status());

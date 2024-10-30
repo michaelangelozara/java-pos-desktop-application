@@ -3,6 +3,8 @@ package org.POS.backend.user;
 import org.POS.backend.department.DepartmentDAO;
 import org.POS.backend.department.DepartmentService;
 import org.POS.backend.exception.ResourceNotFoundException;
+import org.POS.backend.global_variable.CurrentUser;
+import org.POS.backend.global_variable.GlobalVariable;
 
 import java.util.List;
 
@@ -50,5 +52,17 @@ public class UserService {
             return this.userMapper.toUserResponseDto(user);
 
         return null;
+    }
+
+    public String authenticate(LoginRequestDto dto){
+        var user = this.userDAO.authenticateUserByUsernameAndPassword(dto.username(), dto.password());
+        if(user == null)
+            return GlobalVariable.USER_INVALID_CREDENTIAL;
+
+        CurrentUser.id = user.getId();
+        CurrentUser.employeeId = user.getEmployeeId();
+        CurrentUser.username = user.getUsername();
+
+        return GlobalVariable.USER_LOGGED_IN;
     }
 }

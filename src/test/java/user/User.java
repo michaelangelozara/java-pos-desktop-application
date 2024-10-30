@@ -1,6 +1,7 @@
 package user;
 
 import org.POS.backend.exception.ResourceNotFoundException;
+import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.user.*;
 import org.junit.jupiter.api.Test;
 
@@ -90,5 +91,17 @@ public class User {
         UserService userService = new UserService();
 
         System.out.println(userService.getValidUserById(1));
+    }
+
+    @Test
+    void authenticate(){
+        LoginRequestDto dto = new LoginRequestDto("username", "password");
+
+        UserService userService = new UserService();
+        System.out.println(userService.authenticate(dto));
+        System.out.println("USER INFORMATION");
+        System.out.println(CurrentUser.id);
+        System.out.println(CurrentUser.employeeId);
+        System.out.println(CurrentUser.username);
     }
 }
