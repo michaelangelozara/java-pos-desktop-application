@@ -36,6 +36,7 @@ public class HibernateUtil {
                                 .applySettings(configuration.getProperties())
                                 .build()
                 );
+                System.out.println("Database connected");
             } catch (Throwable ex) {
                 // Use a logging framework instead of printStackTrace
                 System.err.println("Initial SessionFactory creation failed." + ex);

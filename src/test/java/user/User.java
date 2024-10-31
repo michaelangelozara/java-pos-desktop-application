@@ -10,17 +10,16 @@ import java.time.LocalDate;
 
 public class User {
 
-
     @Test
     void add(){
         UserService userService = new UserService();
 
         AddUserRequestDto dto = new AddUserRequestDto(
-                "Michael Angelo Zara",
-                "Ewan",
+                "Christian James Torres",
+                "Ewan_ko",
                 "YUNJKADS",
-                "09090909099",
-                BigDecimal.valueOf(1000),
+                "09090909039",
+                BigDecimal.valueOf(2000),
                 0,
                 LocalDate.now(),
                 UserGender.MALE,
@@ -32,9 +31,9 @@ public class User {
                 UserStatus.ACTIVE,
                 "YVHIYIYFGVBJIJUYVHBUBJ",
                 true,
-                "username",
+                "username1",
                 "password",
-                UserRole.SALESMAN,
+                UserRole.ADMIN,
                 1
         );
         userService.add(dto);

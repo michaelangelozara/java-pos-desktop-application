@@ -7,7 +7,7 @@ import org.POS.backend.category.UpdateCategoryRequestDto;
 import org.junit.jupiter.api.Test;
 
 public class Category {
-
+    
     @Test
     void add(){
         CategoryService categoryService = new CategoryService();
