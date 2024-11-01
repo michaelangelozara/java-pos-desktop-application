@@ -54,15 +54,15 @@ public class UserService {
         return null;
     }
 
-    public String authenticate(LoginRequestDto dto){
+    public boolean authenticate(LoginRequestDto dto){
         var user = this.userDAO.authenticateUserByUsernameAndPassword(dto.username(), dto.password());
         if(user == null)
-            return GlobalVariable.USER_INVALID_CREDENTIAL;
+            return false;
 
         CurrentUser.id = user.getId();
         CurrentUser.employeeId = user.getEmployeeId();
         CurrentUser.username = user.getUsername();
 
-        return GlobalVariable.USER_LOGGED_IN;
+        return true;
     }
 }

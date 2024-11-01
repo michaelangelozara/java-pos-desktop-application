@@ -12,9 +12,9 @@ public class Category {
     void add(){
         CategoryService categoryService = new CategoryService();
         AddCategoryRequestDto dto = new AddCategoryRequestDto(
-                "Cars",
+                "Fruits2",
                 CategoryStatus.ACTIVE,
-                "No note 1"
+                "No note"
         );
         categoryService.add(dto);
     }

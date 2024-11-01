@@ -13,7 +13,7 @@ public class DepartmentTest {
     void add(){
         DepartmentService departmentService = new DepartmentService();
         AddDepartmentRequestDto dto = new AddDepartmentRequestDto(
-                "Human Resource",
+                "Information Technology",
                 DepartmentStatus.ACTIVE,
                 "No note"
         );
