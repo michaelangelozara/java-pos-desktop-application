@@ -23,6 +23,7 @@ public class CategoryMapper {
 
     public CategoryResponseDto categoryResponseDto(Category category){
         return new CategoryResponseDto(
+                category.getId(),
                 category.getName(),
                 category.getStatus(),
                 category.getNote()

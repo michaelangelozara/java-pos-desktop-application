@@ -85,7 +85,24 @@ public class SubcategoryDAO {
             session.getTransaction().commit();
             return subcategory;
         }catch (Exception e){
-            System.out.println("Error deleting subcategory : " + e.getMessage());
+            System.out.println("Error getting subcategory : " + e.getMessage());
+        }
+
+        return null;
+    }
+
+    public List<Subcategory> getAllValidSubcategoriesByCategoryId(int categoryId){
+        try(Session session = sessionFactory.openSession()){
+            session.beginTransaction();
+
+            List<Subcategory> subcategories = session.createQuery("SELECT s FROM Subcategory s WHERE s.category.id = :categoryId AND s.isDeleted = FALSE", Subcategory.class)
+                    .setParameter("categoryId", categoryId)
+                    .getResultList();
+
+            session.getTransaction().commit();
+            return subcategories;
+        }catch (Exception e){
+            System.out.println("Error getting subcategories : " + e.getMessage());
         }
 
         return null;

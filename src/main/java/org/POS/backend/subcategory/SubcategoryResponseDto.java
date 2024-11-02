@@ -1,9 +1,10 @@
 package org.POS.backend.subcategory;
 
 public record SubcategoryResponseDto(
-        int categoryId,
+        int id,
         String name,
         SubcategoryStatus status,
-        String note
+        String categoryName,
+        String code
 ) {
 }

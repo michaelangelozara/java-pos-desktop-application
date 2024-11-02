@@ -1,5 +1,7 @@
 package org.POS.backend.category;
 
+import jakarta.transaction.Transactional;
+
 import java.util.List;
 
 public class CategoryService {
@@ -31,10 +33,7 @@ public class CategoryService {
         return this.categoryMapper.categoryResponseDtoList(this.categoryDAO.getAllValidCategories());
     }
 
-    public CategoryResponseDto getValidCategory(int categoryId){
-        var category = this.categoryDAO.getValidCategory(categoryId);
-        if(category != null)
-            return this.categoryMapper.categoryResponseDto(category);
-        return null;
+    public Category getValidCategory(int categoryId){
+        return this.categoryDAO.getValidCategory(categoryId);
     }
 }

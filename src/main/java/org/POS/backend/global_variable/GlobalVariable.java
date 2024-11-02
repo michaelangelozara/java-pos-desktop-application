@@ -46,4 +46,10 @@ public class GlobalVariable {
     public static String BRAND_DELETED = "Brand successfully deleted";
     public static String BRAND_NOT_FOUND = "Brand not found";
 
+    // expense
+    public static String EXPENSE_ADDED = "Expense successfully added";
+    public static String EXPENSE_UPDATED = "Expense successfully updated";
+    public static String EXPENSE_DELETED = "Expense successfully deleted";
+    public static String EXPENSE_NOT_FOUND = "Expense not found";
+
 }

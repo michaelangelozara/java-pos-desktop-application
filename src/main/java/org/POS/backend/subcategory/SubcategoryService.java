@@ -58,4 +58,8 @@ public class SubcategoryService {
         var subcategories = this.subcategoryDAO.getAllValidSubcategories();
         return this.subcategoryMapper.subcategoryResponseDtoList(subcategories);
     }
+
+    public List<SubcategoryResponseDto> getAllValidSubcategoriesByCategoryId(int categoryId){
+        return this.subcategoryMapper.subcategoryResponseDtoList(this.subcategoryDAO.getAllValidSubcategoriesByCategoryId(categoryId));
+    }
 }

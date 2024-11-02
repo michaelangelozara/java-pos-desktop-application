@@ -3,6 +3,7 @@ package org.POS.backend.configuration;
 import org.POS.backend.brand.Brand;
 import org.POS.backend.category.Category;
 import org.POS.backend.department.Department;
+import org.POS.backend.expense.Expense;
 import org.POS.backend.person.Person;
 import org.POS.backend.product.Product;
 import org.POS.backend.subcategory.Subcategory;
@@ -29,6 +30,7 @@ public class HibernateUtil {
                 configuration.addAnnotatedClass(Product.class);
                 configuration.addAnnotatedClass(Subcategory.class);
                 configuration.addAnnotatedClass(User.class);
+                configuration.addAnnotatedClass(Expense.class);
 
                 // Build the SessionFactory
                 sessionFactory = configuration.buildSessionFactory(

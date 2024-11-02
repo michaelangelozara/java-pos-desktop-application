@@ -4,6 +4,7 @@ public record AddSubcategoryRequestDto(
         int categoryId,
         String name,
         SubcategoryStatus status,
-        String note
+        String note,
+        String code
 ) {
 }

@@ -23,6 +23,8 @@ public class Category {
     @Enumerated(EnumType.STRING)
     private CategoryStatus status;
 
+    private String code;
+
     private String note;
 
     @Column(name = "is_deleted")

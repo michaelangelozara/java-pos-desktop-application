@@ -17,24 +17,24 @@ public class PanelAction extends javax.swing.JPanel {
     }
 
     public void initEvent(TableActionEvent event, int row) {
-//        cmdEdit.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent ae) {
-//                event.onEdit(row);
-//            }
-//        });
-//        cmdDelete.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent ae) {
-//                event.onDelete(row);
-//            }
-//        });
-//        cmdView.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent ae) {
-//                event.onView(row);
-//            }
-//        });
+        cmdEdit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                event.onEdit(row);
+            }
+        });
+        cmdDelete.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                event.onDelete(row);
+            }
+        });
+        cmdView.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                event.onView(row);
+            }
+        });
     }
 
     /**

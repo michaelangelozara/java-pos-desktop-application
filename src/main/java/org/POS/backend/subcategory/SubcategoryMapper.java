@@ -12,6 +12,7 @@ public class SubcategoryMapper {
         subcategory.setName(dto.name());
         subcategory.setStatus(dto.status());
         subcategory.setNote(dto.note());
+        subcategory.setCode(dto.code());
         return subcategory;
     }
 
@@ -22,6 +23,7 @@ public class SubcategoryMapper {
         subcategory.setName(dto.name());
         subcategory.setStatus(dto.status());
         subcategory.setNote(dto.note());
+        subcategory.setCode(dto.code());
         return subcategory;
     }
 
@@ -30,7 +32,9 @@ public class SubcategoryMapper {
                 subcategory.getId(),
                 subcategory.getName(),
                 subcategory.getStatus(),
-                subcategory.getNote()
+                subcategory.getCategory().getName(),
+                subcategory.getCode()
+
         );
     }
 

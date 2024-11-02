@@ -13,9 +13,10 @@ public class Subcategory {
         SubcategoryService service = new SubcategoryService();
         AddSubcategoryRequestDto dto = new AddSubcategoryRequestDto(
                 2,
-                "Toyota",
+                "Phone",
                 SubcategoryStatus.ACTIVE,
-                "This is car category!"
+                "This is car category!",
+                "code"
         );
         service.add(dto);
     }
@@ -28,6 +29,7 @@ public class Subcategory {
                 "Cellphone",
                 SubcategoryStatus.ACTIVE,
                 "This is cellphone gago !!!",
+                "code",
                 3
         );
         service.update(dto);

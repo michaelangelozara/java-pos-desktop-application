@@ -1,10 +1,10 @@
 package category;
 
-import org.POS.backend.category.AddCategoryRequestDto;
-import org.POS.backend.category.CategoryService;
-import org.POS.backend.category.CategoryStatus;
-import org.POS.backend.category.UpdateCategoryRequestDto;
+import org.POS.backend.category.*;
+import org.POS.backend.subcategory.Subcategory;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 public class Category {
     
@@ -12,7 +12,7 @@ public class Category {
     void add(){
         CategoryService categoryService = new CategoryService();
         AddCategoryRequestDto dto = new AddCategoryRequestDto(
-                "Fruits2",
+                "Gadgets",
                 CategoryStatus.ACTIVE,
                 "No note"
         );
@@ -48,7 +48,8 @@ public class Category {
     @Test
     void getValidCategory(){
         CategoryService categoryService = new CategoryService();
-        System.out.println(categoryService.getValidCategory(2));
+        List<Subcategory> subcategories = categoryService.getValidCategory(11).getSubcategories();
+        System.out.println(subcategories);
     }
 
 

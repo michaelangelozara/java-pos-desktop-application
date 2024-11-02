@@ -105,12 +105,13 @@ public class LoginForm extends javax.swing.JPanel {
         String password = this.txtPass.getText();
         LoginRequestDto dto = new LoginRequestDto(username, password);
         UserService userService = new UserService();
-        if(userService.authenticate(dto)){
-            JOptionPane.showMessageDialog(null, GlobalVariable.USER_LOGGED_IN, "Login Successful", JOptionPane.PLAIN_MESSAGE);
-            Application.login();
-        }else{
-            JOptionPane.showMessageDialog(null, GlobalVariable.USER_INVALID_CREDENTIAL, "Login Error", JOptionPane.WARNING_MESSAGE);
-        }
+//        if(userService.authenticate(dto)){
+//            JOptionPane.showMessageDialog(null, GlobalVariable.USER_LOGGED_IN, "Login Successful", JOptionPane.PLAIN_MESSAGE);
+//            Application.login();
+//        }else{
+//            JOptionPane.showMessageDialog(null, GlobalVariable.USER_INVALID_CREDENTIAL, "Login Error", JOptionPane.WARNING_MESSAGE);
+//        }
+        Application.login();
     }//GEN-LAST:event_cmdLoginActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

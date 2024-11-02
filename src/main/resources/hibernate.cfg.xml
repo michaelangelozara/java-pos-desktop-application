@@ -20,5 +20,6 @@
         <mapping class="org.POS.backend.person.Person"/>
         <mapping class="org.POS.backend.product.Product"/>
         <mapping class="org.POS.backend.subcategory.Subcategory"/>
+        <mapping class="org.POS.backend.expense.Expense"/>
     </session-factory>
 </hibernate-configuration>

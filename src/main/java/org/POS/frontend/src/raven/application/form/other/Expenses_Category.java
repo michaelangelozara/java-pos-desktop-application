@@ -1,127 +1,149 @@
-
 package org.POS.frontend.src.raven.application.form.other;
-import javax.swing.*;
-import java.awt.*;
-import org.POS.frontend.src.raven.cell.TableActionCellRender;
-import javax.swing.table.DefaultTableModel;
+
+import org.POS.backend.category.*;
+import org.POS.backend.global_variable.GlobalVariable;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
+import org.POS.frontend.src.raven.cell.TableActionCellRender;
 import org.POS.frontend.src.raven.cell.TableActionEvent;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 
 public class Expenses_Category extends javax.swing.JPanel {
 
-
     public Expenses_Category() {
         initComponents();
-      TableActionEvent event = new TableActionEvent() {
-          
+        TableActionEvent event = new TableActionEvent() {
+
             @Override
-          public void onEdit(int row) {
-    // Fetch current data from the selected row
-            DefaultTableModel model = (DefaultTableModel) table.getModel();
-            String currentName = (String) model.getValueAt(row, 1);
-            String currentNote = (String) model.getValueAt(row, 2);
-            String currentStatus = (String) model.getValueAt(row, 3);
+            public void onEdit(int row) {
+                // Fetch current data from the selected row
+                DefaultTableModel model = (DefaultTableModel) table.getModel();
+                int id = (Integer) model.getValueAt(row, 0);
+                String currentName = (String) model.getValueAt(row, 1);
+                String currentNote = (String) model.getValueAt(row, 2);
+                String currentStatus = (String) model.getValueAt(row, 3);
+                System.out.println("DB_ID: " + id + ", Name: " + model.getValueAt(row, 1) + ", Note: " + model.getValueAt(row, 2) + ", Status: " + model.getValueAt(row, 3));
+                // Create a panel for displaying the data
+                JPanel panel = new JPanel(new GridBagLayout());
+                GridBagConstraints gbc = new GridBagConstraints();
+                gbc.insets = new Insets(5, 5, 5, 5); // Add some padding between components
+                gbc.fill = GridBagConstraints.BOTH;  // Allow components to fill their space
+                gbc.weightx = 1.0; // Allow horizontal expansion
+                gbc.weighty = 1.0; // Allow vertical expansion
 
-            // Create a panel for displaying the data
-            JPanel panel = new JPanel(new GridBagLayout());
-            GridBagConstraints gbc = new GridBagConstraints();
-            gbc.insets = new Insets(5, 5, 5, 5); // Add some padding between components
-            gbc.fill = GridBagConstraints.BOTH;  // Allow components to fill their space
-            gbc.weightx = 1.0; // Allow horizontal expansion
-            gbc.weighty = 1.0; // Allow vertical expansion
+                // Create a larger font for labels and text
+                Font largerFont = new Font("Arial", Font.BOLD, 18); // Larger bold font for labels
+                Font detailsFont = new Font("Arial", Font.PLAIN, 16); // Larger plain font for details
 
-            // Create a larger font for labels and text
-            Font largerFont = new Font("Arial", Font.BOLD, 18); // Larger bold font for labels
-            Font detailsFont = new Font("Arial", Font.PLAIN, 16); // Larger plain font for details
+                // Create input fields for editing
+                JLabel nameLabel = new JLabel("Name:");
+                nameLabel.setFont(largerFont);
+                JTextField nameField = new JTextField(15);
+                nameField.setText(currentName);
+                nameField.setFont(detailsFont);
 
-            // Create input fields for editing
-            JLabel nameLabel = new JLabel("Name:");
-            nameLabel.setFont(largerFont);
-            JTextField nameField = new JTextField(15);
-            nameField.setText(currentName);
-            nameField.setFont(detailsFont);
+                JLabel statusLabel = new JLabel("Status:");
+                statusLabel.setFont(largerFont);
+                String[] statuses = {"Select Status", "Active", "Inactive"};
+                JComboBox<String> statusComboBox = new JComboBox<>(statuses);
+                statusComboBox.setFont(detailsFont);
+                statusComboBox.setSelectedItem(currentStatus);
 
-            JLabel statusLabel = new JLabel("Status:");
-            statusLabel.setFont(largerFont);
-            String[] statuses = {"Select Status", "Active", "Inactive"};
-            JComboBox<String> statusComboBox = new JComboBox<>(statuses);
-            statusComboBox.setFont(detailsFont);
-            statusComboBox.setSelectedItem(currentStatus);
+                JLabel noteLabel = new JLabel("Note:");
+                noteLabel.setFont(largerFont);
+                JTextArea noteArea = new JTextArea(5, 20);
+                noteArea.setText(currentNote);
+                noteArea.setFont(detailsFont);
+                JScrollPane noteScrollPane = new JScrollPane(noteArea);
 
-            JLabel noteLabel = new JLabel("Note:");
-            noteLabel.setFont(largerFont);
-            JTextArea noteArea = new JTextArea(5, 20);
-            noteArea.setText(currentNote);
-            noteArea.setFont(detailsFont);
-            JScrollPane noteScrollPane = new JScrollPane(noteArea);
+                // Add components to the panel with GridBagLayout
+                gbc.gridx = 0;
+                gbc.gridy = 0;
+                panel.add(nameLabel, gbc);
 
-            // Add components to the panel with GridBagLayout
-            gbc.gridx = 0; gbc.gridy = 0;
-            panel.add(nameLabel, gbc);
+                gbc.gridx = 1;
+                gbc.gridy = 0;
+                panel.add(nameField, gbc);
 
-            gbc.gridx = 1; gbc.gridy = 0;
-            panel.add(nameField, gbc);
+                gbc.gridx = 0;
+                gbc.gridy = 1;
+                panel.add(statusLabel, gbc);
 
-            gbc.gridx = 0; gbc.gridy = 1;
-            panel.add(statusLabel, gbc);
+                gbc.gridx = 1;
+                gbc.gridy = 1;
+                panel.add(statusComboBox, gbc);
 
-            gbc.gridx = 1; gbc.gridy = 1;
-            panel.add(statusComboBox, gbc);
+                gbc.gridx = 0;
+                gbc.gridy = 2;
+                panel.add(noteLabel, gbc);
 
-            gbc.gridx = 0; gbc.gridy = 2;
-            panel.add(noteLabel, gbc);
+                gbc.gridx = 1;
+                gbc.gridy = 2;
+                panel.add(noteScrollPane, gbc);
 
-            gbc.gridx = 1; gbc.gridy = 2;
-            panel.add(noteScrollPane, gbc);
+                // Set a preferred size for the panel to ensure everything fits nicely
+                panel.setPreferredSize(new Dimension(500, 300));
 
-            // Set a preferred size for the panel to ensure everything fits nicely
-            panel.setPreferredSize(new Dimension(500, 300));
+                // Show the edit panel in a JOptionPane
+                int result = JOptionPane.showConfirmDialog(null, panel,
+                        "Edit Category", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-            // Show the edit panel in a JOptionPane
-            int result = JOptionPane.showConfirmDialog(null, panel, 
-                     "Edit Category", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+                // Handle the OK button press
+                if (result == JOptionPane.OK_OPTION) {
+                    String name = nameField.getText().trim();
+                    String status = (String) statusComboBox.getSelectedItem();
+                    String note = noteArea.getText().trim();
 
-            // Handle the OK button press
-            if (result == JOptionPane.OK_OPTION) {
-                String name = nameField.getText().trim();
-                String status = (String) statusComboBox.getSelectedItem();
-                String note = noteArea.getText().trim();
+                    if (name.isEmpty() || status.equals("Select Status")) {
+                        JOptionPane.showMessageDialog(null,
+                                "Please enter a valid Name and Status.", "Error", JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        CategoryService categoryService = new CategoryService();
+                        UpdateCategoryRequestDto dto = new UpdateCategoryRequestDto(
+                                id,
+                                name,
+                                status.equals("Active") ? CategoryStatus.ACTIVE : CategoryStatus.INACTIVE,
+                                note
+                        );
 
-                if (name.isEmpty() || status.equals("Select Status")) {
-                    JOptionPane.showMessageDialog(null, 
-                        "Please enter a valid Name and Status.", "Error", JOptionPane.ERROR_MESSAGE);
-                } else {
-                    // Update the table with edited values
-                    model.setValueAt(name, row, 1);
-                    model.setValueAt(note, row, 2);
-                    model.setValueAt(status, row, 3);
+                        categoryService.update(dto);
 
-                    // Display a success message
-                    JOptionPane.showMessageDialog(null, 
-                        "Category Updated Successfully!", 
-                        "Success", JOptionPane.INFORMATION_MESSAGE);
+                        // Display a success message
+                        JOptionPane.showMessageDialog(null,
+                                GlobalVariable.CATEGORY_UPDATED,
+                                "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                        loadCategories();
+                    }
                 }
-            }
             }
 
             @Override
             public void onDelete(int row) {
-            if (table.isEditing()) {
-                table.getCellEditor().stopCellEditing();
-            }
-
-            // Confirm before deleting
-            int confirmation = JOptionPane.showConfirmDialog(null, 
-                "Are you sure you want to delete this Category?", 
-                "Confirm Delete", JOptionPane.YES_NO_OPTION);
-
-            if (confirmation == JOptionPane.YES_OPTION) {
+                if (table.isEditing()) {
+                    table.getCellEditor().stopCellEditing();
+                }
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
-                model.removeRow(row);
-                JOptionPane.showMessageDialog(null, "Category Deleted Successfully", 
-                    "Deleted", JOptionPane.INFORMATION_MESSAGE);
+                int id = (Integer) model.getValueAt(row, 0);
+
+                // Confirm before deleting
+                int confirmation = JOptionPane.showConfirmDialog(null,
+                        "Are you sure you want to delete this Category?",
+                        "Confirm Delete", JOptionPane.YES_NO_OPTION);
+
+                if (confirmation == JOptionPane.YES_OPTION) {
+//                    DefaultTableModel model = (DefaultTableModel) table.getModel();
+//                    model.removeRow(row);
+                    CategoryService service = new CategoryService();
+                    service.delete(id);
+
+                    JOptionPane.showMessageDialog(null, "Category Deleted Successfully",
+                            "Deleted", JOptionPane.INFORMATION_MESSAGE);
+                    loadCategories();
+                }
             }
-        }
 
             @Override
             public void onView(int row) {
@@ -170,17 +192,20 @@ public class Expenses_Category extends javax.swing.JPanel {
                 noteScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER); // Disable horizontal scrollbar
 
                 // Add components to the panel
-                gbc.gridx = 0; gbc.gridy = 0;
+                gbc.gridx = 0;
+                gbc.gridy = 0;
                 panel.add(nameLabel, gbc);
                 gbc.gridx = 1;
                 panel.add(nameValue, gbc);
 
-                gbc.gridx = 0; gbc.gridy = 1;
+                gbc.gridx = 0;
+                gbc.gridy = 1;
                 panel.add(statusLabel, gbc);
                 gbc.gridx = 1;
                 panel.add(statusValue, gbc);
 
-                gbc.gridx = 0; gbc.gridy = 2;
+                gbc.gridx = 0;
+                gbc.gridy = 2;
                 panel.add(noteLabel, gbc);
                 gbc.gridx = 1;
                 panel.add(noteScrollPane, gbc);
@@ -192,10 +217,22 @@ public class Expenses_Category extends javax.swing.JPanel {
                 JOptionPane.showMessageDialog(null, panel, "View Category", JOptionPane.INFORMATION_MESSAGE);
             }
         };
-     table.getColumnModel().getColumn(5).setCellRenderer(new TableActionCellRender());
-     table.getColumnModel().getColumn(5).setCellEditor(new TableActionCellEditor(event));
+        table.getColumnModel().getColumn(4).setCellRenderer(new TableActionCellRender());
+        table.getColumnModel().getColumn(4).setCellEditor(new TableActionCellEditor(event));
+        loadCategories();
     }
 
+    private void loadCategories() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        // clear existing table
+        model.setRowCount(0);
+
+        // Clear all existing rows
+        CategoryService categoryService = new CategoryService();
+        for (CategoryResponseDto category : categoryService.getAllValidCategories()) {
+            model.addRow(new Object[]{category.id(), category.name(), category.note(), category.status().toString()});
+        }
+    }
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -234,15 +271,22 @@ public class Expenses_Category extends javax.swing.JPanel {
 
         table.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null}
+                {null, null, null, null, null}
             },
             new String [] {
-                "ID", "Code", "Name", "Note", "Status", "Action"
+                "ID", "Name", "Note", "Status", "Action"
             }
         ) {
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, true
+            Class[] types = new Class [] {
+                java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
             };
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, true
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit [columnIndex];
@@ -255,7 +299,6 @@ public class Expenses_Category extends javax.swing.JPanel {
             table.getColumnModel().getColumn(1).setResizable(false);
             table.getColumnModel().getColumn(2).setResizable(false);
             table.getColumnModel().getColumn(3).setResizable(false);
-            table.getColumnModel().getColumn(4).setResizable(false);
         }
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -325,83 +368,101 @@ public class Expenses_Category extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-  JPanel panel = new JPanel(new GridBagLayout());
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.insets = new Insets(5, 5, 5, 5); // Add some padding between components
-    gbc.fill = GridBagConstraints.BOTH;  // Allow components to fill their space
-    gbc.weightx = 1.0; // Allow horizontal expansion
-    gbc.weighty = 1.0; // Allow vertical expansion
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5); // Add some padding between components
+        gbc.fill = GridBagConstraints.BOTH;  // Allow components to fill their space
+        gbc.weightx = 1.0; // Allow horizontal expansion
+        gbc.weighty = 1.0; // Allow vertical expansion
 
-    // Create a larger font for labels and text
-    Font largerFont = new Font("Arial", Font.BOLD, 18); // Larger bold font for labels
-    Font detailsFont = new Font("Arial", Font.PLAIN, 16); // Larger plain font for details
+        // Create a larger font for labels and text
+        Font largerFont = new Font("Arial", Font.BOLD, 18); // Larger bold font for labels
+        Font detailsFont = new Font("Arial", Font.PLAIN, 16); // Larger plain font for details
 
-    // Create input fields for Name and Status
-    JLabel nameLabel = new JLabel("Name:");
-    nameLabel.setFont(largerFont);
-    JTextField nameField = new JTextField(15);
-    nameField.setFont(detailsFont);
+        // Create input fields for Name and Status
+        JLabel nameLabel = new JLabel("Name:");
+        nameLabel.setFont(largerFont);
+        JTextField nameField = new JTextField(15);
+        nameField.setFont(detailsFont);
 
-    JLabel statusLabel = new JLabel("Status:");
-    statusLabel.setFont(largerFont);
-    String[] statuses = {"Select Status", "Active", "Inactive"};
-    JComboBox<String> statusComboBox = new JComboBox<>(statuses);
-    statusComboBox.setFont(detailsFont);
+        JLabel statusLabel = new JLabel("Status:");
+        statusLabel.setFont(largerFont);
+        String[] statuses = {"Select Status", "Active", "Inactive"};
+        JComboBox<String> statusComboBox = new JComboBox<>(statuses);
+        statusComboBox.setFont(detailsFont);
 
-    JLabel noteLabel = new JLabel("Note:");
-    noteLabel.setFont(largerFont);
-    JTextArea noteArea = new JTextArea(5, 20);
-    noteArea.setFont(detailsFont);
-    JScrollPane noteScrollPane = new JScrollPane(noteArea);
+        JLabel noteLabel = new JLabel("Note:");
+        noteLabel.setFont(largerFont);
+        JTextArea noteArea = new JTextArea(5, 20);
+        noteArea.setFont(detailsFont);
+        JScrollPane noteScrollPane = new JScrollPane(noteArea);
 
-    // Add components to the panel with GridBagLayout
-    gbc.gridx = 0; gbc.gridy = 0;
-    panel.add(nameLabel, gbc);
+        // Add components to the panel with GridBagLayout
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        panel.add(nameLabel, gbc);
 
-    gbc.gridx = 1; gbc.gridy = 0;
-    panel.add(nameField, gbc);
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        panel.add(nameField, gbc);
 
-    gbc.gridx = 0; gbc.gridy = 1;
-    panel.add(statusLabel, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        panel.add(statusLabel, gbc);
 
-    gbc.gridx = 1; gbc.gridy = 1;
-    panel.add(statusComboBox, gbc);
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        panel.add(statusComboBox, gbc);
 
-    gbc.gridx = 0; gbc.gridy = 2;
-    panel.add(noteLabel, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        panel.add(noteLabel, gbc);
 
-    gbc.gridx = 1; gbc.gridy = 2;
-    panel.add(noteScrollPane, gbc);
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        panel.add(noteScrollPane, gbc);
 
-    // Set a preferred size for the panel to ensure everything fits nicely
-    panel.setPreferredSize(new Dimension(500, 300));
+        // Set a preferred size for the panel to ensure everything fits nicely
+        panel.setPreferredSize(new Dimension(500, 300));
 
-    // Show the custom panel in a JOptionPane with the larger font
-    int result = JOptionPane.showConfirmDialog(null, panel, 
-             "Create Expenses Category", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        // Show the custom panel in a JOptionPane with the larger font
+        int result = JOptionPane.showConfirmDialog(null, panel,
+                "Create Expenses Category", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-    // Handle the OK button press
-    if (result == JOptionPane.OK_OPTION) {
-        String name = nameField.getText().trim();
-        String status = (String) statusComboBox.getSelectedItem();
-        String note = noteArea.getText().trim();
-        
-        if (name.isEmpty() || status.equals("Select Status")) {
-            JOptionPane.showMessageDialog(null, 
-                "Please enter a Name and select a valid Status.", "Error", JOptionPane.ERROR_MESSAGE);
-        } else {
-            // Add the entered information to the JTable
-            DefaultTableModel model = (DefaultTableModel) table.getModel();
-            model.addRow(new Object[]{model.getRowCount() + 1, name, note, status, "Actions"});
+        // Handle the OK button press
+        if (result == JOptionPane.OK_OPTION) {
+            String name = nameField.getText().trim();
+            String status = (String) statusComboBox.getSelectedItem();
+            String note = noteArea.getText().trim();
 
-            // Display a success message
-            JOptionPane.showMessageDialog(null, 
-                "Category Created Successfully!\nName: " + name + "\nStatus: " + status + "\nNote: " + note, 
-                "Success", JOptionPane.INFORMATION_MESSAGE);
+            if (name.isEmpty() || status.equals("Select Status")) {
+                JOptionPane.showMessageDialog(null,
+                        "Please enter a Name and select a valid Status.", "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                // Add the entered information to the JTable
+//                DefaultTableModel model = (DefaultTableModel) table.getModel();
+//                model.addRow(new Object[]{model.getRowCount() + 1, name, note, status, "Actions"});
+
+                AddCategoryRequestDto dto = new AddCategoryRequestDto(
+                        name,
+                        status.equals("Active") ? CategoryStatus.ACTIVE : CategoryStatus.INACTIVE,
+                        note
+                );
+
+                addNewCategory(dto);
+
+                // Display a success message
+                JOptionPane.showMessageDialog(null,
+                        "Category Created Successfully!\nName: " + name + "\nStatus: " + status + "\nNote: " + note,
+                        GlobalVariable.CATEGORY_ADDED, JOptionPane.INFORMATION_MESSAGE);
+            }
         }
-    }
     }//GEN-LAST:event_jButton1ActionPerformed
 
+    private void addNewCategory(AddCategoryRequestDto dto) {
+        CategoryService categoryService = new CategoryService();
+        categoryService.add(dto);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;

@@ -1,6 +1,8 @@
 package org.POS.backend.category;
 
+import jakarta.transaction.Transactional;
 import org.POS.backend.configuration.HibernateUtil;
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
@@ -44,7 +46,7 @@ public class CategoryDAO {
             session.beginTransaction();
 
             Category category = session.createQuery("SELECT c FROM Category c WHERE c.id = :categoryId AND c.isDeleted = FALSE", Category.class)
-                            .setParameter("categoryId", categoryId)
+                            .setParameter("id", categoryId)
                                     .getSingleResult();
             category.setDeleted(true);
             category.setDeletedAt(LocalDate.now());
@@ -66,7 +68,7 @@ public class CategoryDAO {
             session.getTransaction().commit();
             return categories;
         } catch (Exception e){
-            System.out.println("Error saving category: " + e.getMessage());
+            System.out.println("Error getting categories: " + e.getMessage());
         }
         return null;
     }
@@ -79,10 +81,12 @@ public class CategoryDAO {
                     .setParameter("categoryId", categoryId)
                     .getSingleResult();
 
+            Hibernate.initialize(category.getSubcategories());
+
             session.getTransaction().commit();
             return category;
         } catch (Exception e){
-            System.out.println("Error saving category: " + e.getMessage());
+            System.out.println("Error getting category: " + e.getMessage());
         }
         return null;
     }

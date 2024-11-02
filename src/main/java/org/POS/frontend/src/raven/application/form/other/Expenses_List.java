@@ -1,304 +1,369 @@
-
 package org.POS.frontend.src.raven.application.form.other;
+
+import org.POS.backend.category.CategoryService;
+import org.POS.backend.expense.ExpenseService;
+import org.POS.backend.expense.ExpenseStatus;
+import org.POS.backend.subcategory.SubcategoryService;
+import org.POS.frontend.src.raven.cell.TableActionCellEditor;
+import org.POS.frontend.src.raven.cell.TableActionCellRender;
+import org.POS.frontend.src.raven.cell.TableActionEvent;
+
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
-import org.POS.frontend.src.raven.cell.TableActionCellRender;
-import javax.swing.table.DefaultTableModel;
-import org.POS.frontend.src.raven.cell.TableActionCellEditor;
-import org.POS.frontend.src.raven.cell.TableActionEvent;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Vector;
 
 public class Expenses_List extends javax.swing.JPanel {
 
     public Expenses_List() {
         initComponents();
-          TableActionEvent event = new TableActionEvent() {
-          
-@Override
-public void onEdit(int row) {
-    // Get the data from the selected row (adjust the indexes as necessary)
-    DefaultTableModel model = (DefaultTableModel) table.getModel();
-    String expenseReason = (String) model.getValueAt(row, 1);
-    String categoryName = (String) model.getValueAt(row, 2);
-    String subCategory = (String) model.getValueAt(row, 3);
-    String amount = (String) model.getValueAt(row, 4);
-    String account = (String) model.getValueAt(row, 5);
-    String status = (String) model.getValueAt(row, 7);
-
-    // Create the panel and set the layout to GridBagLayout
-    JPanel panel = new JPanel(new GridBagLayout());
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.insets = new Insets(10, 10, 10, 10); // Add padding
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    gbc.anchor = GridBagConstraints.WEST;
-
-    // Fonts
-    Font boldFont = new Font("Arial", Font.BOLD, 14);
-    Font regularFont = new Font("Arial", Font.PLAIN, 14);
-
-    // Expense Reason *
-    gbc.gridx = 0;
-    gbc.gridy = 0;
-    JLabel expenseReasonLabel = new JLabel("Expense Reason *");
-    expenseReasonLabel.setFont(boldFont);
-    panel.add(expenseReasonLabel, gbc);
-
-    gbc.gridx = 1;
-    JTextField expenseReasonField = new JTextField(15);
-    expenseReasonField.setFont(regularFont);
-    expenseReasonField.setText(expenseReason); // Prefill with existing value
-    panel.add(expenseReasonField, gbc);
-
-    // Category Name *
-    gbc.gridx = 2;
-    JLabel categoryNameLabel = new JLabel("Category Name *");
-    categoryNameLabel.setFont(boldFont);
-    panel.add(categoryNameLabel, gbc);
-
-    gbc.gridx = 3;
-    JComboBox<String> categoryCombo = new JComboBox<>(new String[]{"Select a category", "Category 1", "Category 2"});
-    categoryCombo.setFont(regularFont);
-    categoryCombo.setSelectedItem(categoryName); // Prefill with existing value
-    panel.add(categoryCombo, gbc);
-
-    // Sub Category
-    gbc.gridx = 0;
-    gbc.gridy = 1;
-    JLabel subCategoryLabel = new JLabel("Sub Category");
-    subCategoryLabel.setFont(boldFont);
-    panel.add(subCategoryLabel, gbc);
-
-    gbc.gridx = 1;
-    JComboBox<String> subCategoryCombo = new JComboBox<>(new String[]{"Select a subcategory", "SubCategory 1", "SubCategory 2"});
-    subCategoryCombo.setFont(regularFont);
-    subCategoryCombo.setSelectedItem(subCategory); // Prefill with existing value
-    panel.add(subCategoryCombo, gbc);
-
-    // Amount *
-    gbc.gridx = 2;
-    JLabel amountLabel = new JLabel("Amount *");
-    amountLabel.setFont(boldFont);
-    panel.add(amountLabel, gbc);
-
-    gbc.gridx = 3;
-    JTextField amountField = new JTextField(15);
-    amountField.setFont(regularFont);
-    amountField.setText(amount); // Prefill with existing value
-    panel.add(amountField, gbc);
-
-    // Account *
-    gbc.gridx = 0;
-    gbc.gridy = 2;
-    JLabel accountLabel = new JLabel("Account *");
-    accountLabel.setFont(boldFont);
-    panel.add(accountLabel, gbc);
-
-    gbc.gridx = 1;
-    JTextField accountField = new JTextField(15);
-    accountField.setFont(regularFont);
-    accountField.setText(account); // Prefill with existing value
-    panel.add(accountField, gbc);
-
-    // Date (Current Date, Non-Editable)
-    gbc.gridx = 2;
-    gbc.gridy = 2;
-    JLabel dateLabel = new JLabel("Date");
-    dateLabel.setFont(boldFont);
-    panel.add(dateLabel, gbc);
-
-    gbc.gridx = 3;
-
-    // Get the current date
-    LocalDate currentDate = LocalDate.now();
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    JTextField dateField = new JTextField(currentDate.format(formatter), 15);
-    dateField.setFont(regularFont);
-    dateField.setEditable(false); // Make it non-editable
-    panel.add(dateField, gbc);
-
-    // Status
-    gbc.gridx = 0;
-    gbc.gridy = 3;
-    JLabel statusLabel = new JLabel("Status");
-    statusLabel.setFont(boldFont);
-    panel.add(statusLabel, gbc);
-
-    gbc.gridx = 1;
-    JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Active", "Inactive"});
-    statusCombo.setFont(regularFont);
-    statusCombo.setSelectedItem(status); // Prefill with existing value
-    panel.add(statusCombo, gbc);
-
-    // Display the form in a dialog
-    int result = JOptionPane.showConfirmDialog(null, panel, "Edit Expense", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-    if (result == JOptionPane.OK_OPTION) {
-        model.setValueAt(expenseReasonField.getText(), row, 1);
-        model.setValueAt(categoryCombo.getSelectedItem(), row, 2);
-        model.setValueAt(subCategoryCombo.getSelectedItem(), row, 3);
-        model.setValueAt(amountField.getText(), row, 4);
-        model.setValueAt(accountField.getText(), row, 5);
-        model.setValueAt(dateField.getText(), row, 6); // This will always use the current date
-        model.setValueAt(statusCombo.getSelectedItem(), row, 7);
-
-        JOptionPane.showMessageDialog(null, "Expense updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-    }
-}
-
+        TableActionEvent event = new TableActionEvent() {
 
             @Override
-          public void onDelete(int row) {
-            if (table.isEditing()) {
-                table.getCellEditor().stopCellEditing();
-            }
-
-            // Confirm before deleting
-            int confirmation = JOptionPane.showConfirmDialog(null, 
-                "Are you sure you want to delete this Product?", 
-                "Confirm Delete", JOptionPane.YES_NO_OPTION);
-
-            if (confirmation == JOptionPane.YES_OPTION) {
+            public void onEdit(int row) {
+                // Get the data from the selected row (adjust the indexes as necessary)
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
-                model.removeRow(row);
-                JOptionPane.showMessageDialog(null, "Product Deleted Successfully", 
-                    "Deleted", JOptionPane.INFORMATION_MESSAGE);
+                String number = (String) model.getValueAt(row, 0);
+                int expenseId = (Integer) model.getValueAt(row, 1);
+                String expenseReason = (String) model.getValueAt(row, 2);
+                String categoryName = (String) model.getValueAt(row, 3);
+                String subCategory = (String) model.getValueAt(row, 4);
+                BigDecimal amount = (BigDecimal) model.getValueAt(row, 5);
+                String account = (String) model.getValueAt(row, 6);
+                LocalDate date = (LocalDate) model.getValueAt(row, 7);
+                ExpenseStatus status = (ExpenseStatus) model.getValueAt(row, 8);
+
+                // Create the panel and set the layout to GridBagLayout
+                JPanel panel = new JPanel(new GridBagLayout());
+                GridBagConstraints gbc = new GridBagConstraints();
+                gbc.insets = new Insets(10, 10, 10, 10); // Add padding
+                gbc.fill = GridBagConstraints.HORIZONTAL;
+                gbc.anchor = GridBagConstraints.WEST;
+
+                // Fonts
+                Font boldFont = new Font("Arial", Font.BOLD, 14);
+                Font regularFont = new Font("Arial", Font.PLAIN, 14);
+
+                // Expense Reason *
+                gbc.gridx = 0;
+                gbc.gridy = 0;
+                JLabel expenseReasonLabel = new JLabel("Expense Reason *");
+                expenseReasonLabel.setFont(boldFont);
+                panel.add(expenseReasonLabel, gbc);
+
+                gbc.gridx = 1;
+                JTextField expenseReasonField = new JTextField(15);
+                expenseReasonField.setFont(regularFont);
+                expenseReasonField.setText(expenseReason); // Prefill with existing value
+                panel.add(expenseReasonField, gbc);
+
+                // Category Name *
+                gbc.gridx = 2;
+                JLabel categoryNameLabel = new JLabel("Category Name *");
+                categoryNameLabel.setFont(boldFont);
+                panel.add(categoryNameLabel, gbc);
+
+                gbc.gridx = 3;
+                CategoryService categoryService = new CategoryService();
+                var categories = categoryService.getAllValidCategories();
+                String[] categoryNames = new String[categories.size()+1];
+                categoryNames[0] = "Select a category";
+
+                Map<Integer, Integer> categoryMap = new HashMap<>();
+                for(int i = 1; i < categories.size()+1; i++){
+                    categoryNames[i] = categories.get(i-1).name();
+                    categoryMap.put(i, categories.get(i-1).id());
+                }
+
+                JComboBox<String> categoryCombo = new JComboBox<>(categoryNames);
+                categoryCombo.setFont(regularFont);
+                categoryCombo.setSelectedItem(categoryName); // Prefill with existing value
+                panel.add(categoryCombo, gbc);
+
+
+                SubcategoryService subcategoryService = new SubcategoryService();
+                Vector<String> subcategoryNames = new Vector<>();
+                subcategoryNames.add("Select a subcategory");
+                JComboBox<String> subCategoryCombo = new JComboBox<>(subcategoryNames);
+                Map<Integer, Integer> subcategoryMap = new HashMap<>();
+
+                // category combobox listener
+                categoryCombo.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        int selectCategoryIndex = categoryCombo.getSelectedIndex();
+                        int categoryId = categoryMap.get(selectCategoryIndex);
+                        var subcategories = subcategoryService.getAllValidSubcategoriesByCategoryId(categoryId);
+
+                        // clear all subcategories
+                        subCategoryCombo.removeAllItems();
+                        subCategoryCombo.addItem("Select a subcategory");
+                        for(int i = 1; i < subcategories.size() + 1; i++){
+                            subCategoryCombo.addItem(subcategories.get(i-1).name());
+                            subcategoryMap.put(i, subcategories.get(i-1).id());
+                        }
+                    }
+                });
+
+                // Sub Category
+                gbc.gridx = 0;
+                gbc.gridy = 1;
+                JLabel subCategoryLabel = new JLabel("Sub Category");
+                subCategoryLabel.setFont(boldFont);
+                panel.add(subCategoryLabel, gbc);
+                gbc.gridx = 1;
+
+
+                subCategoryCombo.setFont(regularFont);
+                subCategoryCombo.setSelectedItem(subCategory); // Prefill with existing value
+                panel.add(subCategoryCombo, gbc);
+
+                // Amount *
+                gbc.gridx = 2;
+                JLabel amountLabel = new JLabel("Amount *");
+                amountLabel.setFont(boldFont);
+                panel.add(amountLabel, gbc);
+
+                gbc.gridx = 3;
+                JTextField amountField = new JTextField(15);
+                amountField.setFont(regularFont);
+                amountField.setText(String.valueOf(amount)); // Prefill with existing value
+                panel.add(amountField, gbc);
+
+                // Account *
+                gbc.gridx = 0;
+                gbc.gridy = 2;
+                JLabel accountLabel = new JLabel("Account *");
+                accountLabel.setFont(boldFont);
+                panel.add(accountLabel, gbc);
+
+                gbc.gridx = 1;
+                JTextField accountField = new JTextField(15);
+                accountField.setFont(regularFont);
+                accountField.setText(account); // Prefill with existing value
+                panel.add(accountField, gbc);
+
+                // Date (Current Date, Non-Editable)
+                gbc.gridx = 2;
+                gbc.gridy = 2;
+                JLabel dateLabel = new JLabel("Date");
+                dateLabel.setFont(boldFont);
+                panel.add(dateLabel, gbc);
+
+                gbc.gridx = 3;
+
+                // Get the current date
+                LocalDate currentDate = LocalDate.now();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                JTextField dateField = new JTextField(currentDate.format(formatter), 15);
+                dateField.setFont(regularFont);
+                dateField.setEditable(false); // Make it non-editable
+                panel.add(dateField, gbc);
+
+                // Status
+                gbc.gridx = 0;
+                gbc.gridy = 3;
+                JLabel statusLabel = new JLabel("Status");
+                statusLabel.setFont(boldFont);
+                panel.add(statusLabel, gbc);
+
+                gbc.gridx = 1;
+                JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Active", "Inactive"});
+                statusCombo.setFont(regularFont);
+                statusCombo.setSelectedItem(status); // Prefill with existing value
+                panel.add(statusCombo, gbc);
+
+                // Display the form in a dialog
+                int result = JOptionPane.showConfirmDialog(null, panel, "Edit Expense", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+                if (result == JOptionPane.OK_OPTION) {
+//                    model.setValueAt(expenseReasonField.getText(), row, 1);
+//                    model.setValueAt(categoryCombo.getSelectedItem(), row, 2);
+//                    model.setValueAt(subCategoryCombo.getSelectedItem(), row, 3);
+//                    model.setValueAt(amountField.getText(), row, 4);
+//                    model.setValueAt(accountField.getText(), row, 5);
+//                    model.setValueAt(dateField.getText(), row, 6); // This will always use the current date
+//                    model.setValueAt(statusCombo.getSelectedItem(), row, 7);
+                    int subcategorySelectedIndex = subCategoryCombo.getSelectedIndex();
+                    int subcategoryId = subcategoryMap.get(subcategorySelectedIndex);
+
+                    System.out.println(categoryMap.get(categoryCombo.getSelectedIndex()));
+                    System.out.println(subcategoryMap.get(subCategoryCombo.getSelectedIndex()));
+                    JOptionPane.showMessageDialog(null, "Expense updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    loadExpenses();
+                }
             }
-        }
+
+            @Override
+            public void onDelete(int row) {
+                if (table.isEditing()) {
+                    table.getCellEditor().stopCellEditing();
+                }
+
+                // Confirm before deleting
+                int confirmation = JOptionPane.showConfirmDialog(null,
+                        "Are you sure you want to delete this Product?",
+                        "Confirm Delete", JOptionPane.YES_NO_OPTION);
+
+                if (confirmation == JOptionPane.YES_OPTION) {
+                    DefaultTableModel model = (DefaultTableModel) table.getModel();
+                    model.removeRow(row);
+                    JOptionPane.showMessageDialog(null, "Product Deleted Successfully",
+                            "Deleted", JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
 
             @Override
 
-public void onView(int row) {
-    // Get the data from the selected row (adjust the indexes as necessary)
-    DefaultTableModel model = (DefaultTableModel) table.getModel();
-    String expenseReason = (String) model.getValueAt(row, 1);
-    String categoryName = (String) model.getValueAt(row, 2);
-    String subCategory = (String) model.getValueAt(row, 3);
-    String amount = (String) model.getValueAt(row, 4);
-    String account = (String) model.getValueAt(row, 5);
-    String date = (String) model.getValueAt(row, 6);
-    String status = (String) model.getValueAt(row, 7);
+            public void onView(int row) {
+                // Get the data from the selected row (adjust the indexes as necessary)
+                DefaultTableModel model = (DefaultTableModel) table.getModel();
+                String expenseReason = (String) model.getValueAt(row, 1);
+                String categoryName = (String) model.getValueAt(row, 2);
+                String subCategory = (String) model.getValueAt(row, 3);
+                String amount = (String) model.getValueAt(row, 4);
+                String account = (String) model.getValueAt(row, 5);
+                String date = (String) model.getValueAt(row, 6);
+                String status = (String) model.getValueAt(row, 7);
 
-    // Create the panel and set the layout to GridBagLayout
-    JPanel panel = new JPanel(new GridBagLayout());
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.insets = new Insets(10, 10, 10, 10); // Add padding
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    gbc.anchor = GridBagConstraints.WEST;
+                // Create the panel and set the layout to GridBagLayout
+                JPanel panel = new JPanel(new GridBagLayout());
+                GridBagConstraints gbc = new GridBagConstraints();
+                gbc.insets = new Insets(10, 10, 10, 10); // Add padding
+                gbc.fill = GridBagConstraints.HORIZONTAL;
+                gbc.anchor = GridBagConstraints.WEST;
 
-    // Fonts
-    Font boldFont = new Font("Arial", Font.BOLD, 14);
-    Font regularFont = new Font("Arial", Font.PLAIN, 14);
+                // Fonts
+                Font boldFont = new Font("Arial", Font.BOLD, 14);
+                Font regularFont = new Font("Arial", Font.PLAIN, 14);
 
-    // Expense Reason
-    gbc.gridx = 0;
-    gbc.gridy = 0;
-    JLabel expenseReasonLabel = new JLabel("Expense Reason");
-    expenseReasonLabel.setFont(boldFont);
-    panel.add(expenseReasonLabel, gbc);
+                // Expense Reason
+                gbc.gridx = 0;
+                gbc.gridy = 0;
+                JLabel expenseReasonLabel = new JLabel("Expense Reason");
+                expenseReasonLabel.setFont(boldFont);
+                panel.add(expenseReasonLabel, gbc);
 
-    gbc.gridx = 1;
-    JTextField expenseReasonField = new JTextField(15);
-    expenseReasonField.setFont(regularFont);
-    expenseReasonField.setText(expenseReason); // Prefill with existing value
-    expenseReasonField.setEditable(false);     // Make it non-editable
-    panel.add(expenseReasonField, gbc);
+                gbc.gridx = 1;
+                JTextField expenseReasonField = new JTextField(15);
+                expenseReasonField.setFont(regularFont);
+                expenseReasonField.setText(expenseReason); // Prefill with existing value
+                expenseReasonField.setEditable(false);     // Make it non-editable
+                panel.add(expenseReasonField, gbc);
 
-    // Category Name
-    gbc.gridx = 0;
-    gbc.gridy = 1;
-    JLabel categoryNameLabel = new JLabel("Category Name");
-    categoryNameLabel.setFont(boldFont);
-    panel.add(categoryNameLabel, gbc);
+                // Category Name
+                gbc.gridx = 0;
+                gbc.gridy = 1;
+                JLabel categoryNameLabel = new JLabel("Category Name");
+                categoryNameLabel.setFont(boldFont);
+                panel.add(categoryNameLabel, gbc);
 
-    gbc.gridx = 1;
-    JTextField categoryField = new JTextField(15);
-    categoryField.setFont(regularFont);
-    categoryField.setText(categoryName); // Prefill with existing value
-    categoryField.setEditable(false);    // Make it non-editable
-    panel.add(categoryField, gbc);
+                gbc.gridx = 1;
+                JTextField categoryField = new JTextField(15);
+                categoryField.setFont(regularFont);
+                categoryField.setText(categoryName); // Prefill with existing value
+                categoryField.setEditable(false);    // Make it non-editable
+                panel.add(categoryField, gbc);
 
-    // Sub Category
-    gbc.gridx = 0;
-    gbc.gridy = 2;
-    JLabel subCategoryLabel = new JLabel("Sub Category");
-    subCategoryLabel.setFont(boldFont);
-    panel.add(subCategoryLabel, gbc);
+                // Sub Category
+                gbc.gridx = 0;
+                gbc.gridy = 2;
+                JLabel subCategoryLabel = new JLabel("Sub Category");
+                subCategoryLabel.setFont(boldFont);
+                panel.add(subCategoryLabel, gbc);
 
-    gbc.gridx = 1;
-    JTextField subCategoryField = new JTextField(15);
-    subCategoryField.setFont(regularFont);
-    subCategoryField.setText(subCategory); // Prefill with existing value
-    subCategoryField.setEditable(false);   // Make it non-editable
-    panel.add(subCategoryField, gbc);
+                gbc.gridx = 1;
+                JTextField subCategoryField = new JTextField(15);
+                subCategoryField.setFont(regularFont);
+                subCategoryField.setText(subCategory); // Prefill with existing value
+                subCategoryField.setEditable(false);   // Make it non-editable
+                panel.add(subCategoryField, gbc);
 
-    // Amount
-    gbc.gridx = 0;
-    gbc.gridy = 3;
-    JLabel amountLabel = new JLabel("Amount");
-    amountLabel.setFont(boldFont);
-    panel.add(amountLabel, gbc);
+                // Amount
+                gbc.gridx = 0;
+                gbc.gridy = 3;
+                JLabel amountLabel = new JLabel("Amount");
+                amountLabel.setFont(boldFont);
+                panel.add(amountLabel, gbc);
 
-    gbc.gridx = 1;
-    JTextField amountField = new JTextField(15);
-    amountField.setFont(regularFont);
-    amountField.setText(amount); // Prefill with existing value
-    amountField.setEditable(false);  // Make it non-editable
-    panel.add(amountField, gbc);
+                gbc.gridx = 1;
+                JTextField amountField = new JTextField(15);
+                amountField.setFont(regularFont);
+                amountField.setText(amount); // Prefill with existing value
+                amountField.setEditable(false);  // Make it non-editable
+                panel.add(amountField, gbc);
 
-    // Account
-    gbc.gridx = 0;
-    gbc.gridy = 4;
-    JLabel accountLabel = new JLabel("Account");
-    accountLabel.setFont(boldFont);
-    panel.add(accountLabel, gbc);
+                // Account
+                gbc.gridx = 0;
+                gbc.gridy = 4;
+                JLabel accountLabel = new JLabel("Account");
+                accountLabel.setFont(boldFont);
+                panel.add(accountLabel, gbc);
 
-    gbc.gridx = 1;
-    JTextField accountField = new JTextField(15);
-    accountField.setFont(regularFont);
-    accountField.setText(account); // Prefill with existing value
-    accountField.setEditable(false); // Make it non-editable
-    panel.add(accountField, gbc);
+                gbc.gridx = 1;
+                JTextField accountField = new JTextField(15);
+                accountField.setFont(regularFont);
+                accountField.setText(account); // Prefill with existing value
+                accountField.setEditable(false); // Make it non-editable
+                panel.add(accountField, gbc);
 
-    // Date
-    gbc.gridx = 0;
-    gbc.gridy = 5;
-    JLabel dateLabel = new JLabel("Date");
-    dateLabel.setFont(boldFont);
-    panel.add(dateLabel, gbc);
+                // Date
+                gbc.gridx = 0;
+                gbc.gridy = 5;
+                JLabel dateLabel = new JLabel("Date");
+                dateLabel.setFont(boldFont);
+                panel.add(dateLabel, gbc);
 
-    gbc.gridx = 1;
-    JTextField dateField = new JTextField(15);
-    dateField.setFont(regularFont);
-    dateField.setText(date);  // Prefill with existing value
-    dateField.setEditable(false); // Make it non-editable
-    panel.add(dateField, gbc);
+                gbc.gridx = 1;
+                JTextField dateField = new JTextField(15);
+                dateField.setFont(regularFont);
+                dateField.setText(date);  // Prefill with existing value
+                dateField.setEditable(false); // Make it non-editable
+                panel.add(dateField, gbc);
 
-    // Status
-    gbc.gridx = 0;
-    gbc.gridy = 6;
-    JLabel statusLabel = new JLabel("Status");
-    statusLabel.setFont(boldFont);
-    panel.add(statusLabel, gbc);
+                // Status
+                gbc.gridx = 0;
+                gbc.gridy = 6;
+                JLabel statusLabel = new JLabel("Status");
+                statusLabel.setFont(boldFont);
+                panel.add(statusLabel, gbc);
 
-    gbc.gridx = 1;
-    JTextField statusField = new JTextField(15);
-    statusField.setFont(regularFont);
-    statusField.setText(status);  // Prefill with existing value
-    statusField.setEditable(false); // Make it non-editable
-    panel.add(statusField, gbc);
+                gbc.gridx = 1;
+                JTextField statusField = new JTextField(15);
+                statusField.setFont(regularFont);
+                statusField.setText(status);  // Prefill with existing value
+                statusField.setEditable(false); // Make it non-editable
+                panel.add(statusField, gbc);
 
-    // Display the form in a dialog
-    JOptionPane.showMessageDialog(null, panel, "View Expense", JOptionPane.PLAIN_MESSAGE);
-}
-
+                // Display the form in a dialog
+                JOptionPane.showMessageDialog(null, panel, "View Expense", JOptionPane.PLAIN_MESSAGE);
+            }
 
         };
-     table.getColumnModel().getColumn(8).setCellRenderer(new TableActionCellRender());
-     table.getColumnModel().getColumn(8).setCellEditor(new TableActionCellEditor(event));
+        table.getColumnModel().getColumn(9).setCellRenderer(new TableActionCellRender());
+        table.getColumnModel().getColumn(9).setCellEditor(new TableActionCellEditor(event));
+        loadExpenses();
+    }
+
+    private void loadExpenses() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        // clear existing table
+        model.setRowCount(0);
+
+        ExpenseService expenseService = new ExpenseService();
+        var expenses = expenseService.getAllValidExpenses();
+        for (int i = 0; i < expenses.size(); i++) {
+            model.addRow(new Object[]{String.valueOf(i+1), expenses.get(i).id(), expenses.get(i).expenseReason(), expenses.get(i).category().name(), expenses.get(i).subcategory().name(), expenses.get(i).amount(), expenses.get(i).account(), expenses.get(i).date(), expenses.get(i).status()});
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -339,12 +404,19 @@ public void onView(int row) {
 
             },
             new String [] {
-                "#", "Expense Reason", "Category", "Sub Category", "Amount	", "Account	", "Date	", "Status", "Action"
+                "#", "ID", "Expense Reason", "Category", "Sub Category", "Amount	", "Account	", "Date	", "Status", "Action"
             }
         ) {
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false, false, true
+            Class[] types = new Class [] {
+                java.lang.Object.class, java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
             };
+            boolean[] canEdit = new boolean [] {
+                false, true, false, false, false, false, false, false, false, true
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit [columnIndex];
@@ -354,12 +426,12 @@ public void onView(int row) {
         jScrollPane1.setViewportView(table);
         if (table.getColumnModel().getColumnCount() > 0) {
             table.getColumnModel().getColumn(0).setResizable(false);
-            table.getColumnModel().getColumn(1).setResizable(false);
             table.getColumnModel().getColumn(2).setResizable(false);
             table.getColumnModel().getColumn(3).setResizable(false);
             table.getColumnModel().getColumn(4).setResizable(false);
             table.getColumnModel().getColumn(5).setResizable(false);
             table.getColumnModel().getColumn(6).setResizable(false);
+            table.getColumnModel().getColumn(7).setResizable(false);
         }
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -427,179 +499,179 @@ public void onView(int row) {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-    JPanel panel = new JPanel();
-    panel.setLayout(new GridBagLayout()); // Use GridBagLayout for a more flexible layout
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.insets = new Insets(10, 10, 10, 10); // Add padding
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    gbc.anchor = GridBagConstraints.WEST;
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridBagLayout()); // Use GridBagLayout for a more flexible layout
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10); // Add padding
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
 
-    // Create a bold and larger font for the labels
-    Font boldFont = new Font("Arial", Font.BOLD, 14);
-    Font regularFont = new Font("Arial", Font.PLAIN, 14);
+        // Create a bold and larger font for the labels
+        Font boldFont = new Font("Arial", Font.BOLD, 14);
+        Font regularFont = new Font("Arial", Font.PLAIN, 14);
 
-    // Expense Reason *
-    gbc.gridx = 0;
-    gbc.gridy = 0;
-    JLabel expenseReasonLabel = new JLabel("Expense Reason *");
-    expenseReasonLabel.setFont(boldFont);
-    panel.add(expenseReasonLabel, gbc);
+        // Expense Reason *
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        JLabel expenseReasonLabel = new JLabel("Expense Reason *");
+        expenseReasonLabel.setFont(boldFont);
+        panel.add(expenseReasonLabel, gbc);
 
-    gbc.gridx = 1;
-    JTextField expenseReasonField = new JTextField(15);
-    expenseReasonField.setFont(regularFont);
-    panel.add(expenseReasonField, gbc);
+        gbc.gridx = 1;
+        JTextField expenseReasonField = new JTextField(15);
+        expenseReasonField.setFont(regularFont);
+        panel.add(expenseReasonField, gbc);
 
-    // Category Name *
-    gbc.gridx = 2;
-    JLabel categoryNameLabel = new JLabel("Category Name *");
-    categoryNameLabel.setFont(boldFont);
-    panel.add(categoryNameLabel, gbc);
+        // Category Name *
+        gbc.gridx = 2;
+        JLabel categoryNameLabel = new JLabel("Category Name *");
+        categoryNameLabel.setFont(boldFont);
+        panel.add(categoryNameLabel, gbc);
 
-    gbc.gridx = 3;
-    JComboBox<String> categoryCombo = new JComboBox<>(new String[]{"Select a category", "Category 1", "Category 2"});
-    categoryCombo.setFont(regularFont);
-    panel.add(categoryCombo, gbc);
+        gbc.gridx = 3;
+        JComboBox<String> categoryCombo = new JComboBox<>(new String[]{"Select a category", "Category 1", "Category 2"});
+        categoryCombo.setFont(regularFont);
+        panel.add(categoryCombo, gbc);
 
-    // Sub Category *
-    gbc.gridx = 0;
-    gbc.gridy = 1;
-    JLabel subCategoryLabel = new JLabel("Sub Category *");
-    subCategoryLabel.setFont(boldFont);
-    panel.add(subCategoryLabel, gbc);
+        // Sub Category *
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        JLabel subCategoryLabel = new JLabel("Sub Category *");
+        subCategoryLabel.setFont(boldFont);
+        panel.add(subCategoryLabel, gbc);
 
-    gbc.gridx = 1;
-    JComboBox<String> subCategoryCombo = new JComboBox<>(new String[]{"Select a sub-category", "Sub Category 1", "Sub Category 2"});
-    subCategoryCombo.setFont(regularFont);
-    panel.add(subCategoryCombo, gbc);
+        gbc.gridx = 1;
+        JComboBox<String> subCategoryCombo = new JComboBox<>(new String[]{"Select a sub-category", "Sub Category 1", "Sub Category 2"});
+        subCategoryCombo.setFont(regularFont);
+        panel.add(subCategoryCombo, gbc);
 
-    // Account *
-    gbc.gridx = 0;
-    gbc.gridy = 2;
-    JLabel accountLabel = new JLabel("Account *");
-    accountLabel.setFont(boldFont);
-    panel.add(accountLabel, gbc);
+        // Account *
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        JLabel accountLabel = new JLabel("Account *");
+        accountLabel.setFont(boldFont);
+        panel.add(accountLabel, gbc);
 
-    gbc.gridx = 1;
-    JTextField accountField = new JTextField(15);
-    accountField.setFont(regularFont);
-    panel.add(accountField, gbc);
+        gbc.gridx = 1;
+        JTextField accountField = new JTextField(15);
+        accountField.setFont(regularFont);
+        panel.add(accountField, gbc);
 
-    // Amount *
-    gbc.gridx = 2;
-    JLabel amountLabel = new JLabel("Amount *");
-    amountLabel.setFont(boldFont);
-    panel.add(amountLabel, gbc);
+        // Amount *
+        gbc.gridx = 2;
+        JLabel amountLabel = new JLabel("Amount *");
+        amountLabel.setFont(boldFont);
+        panel.add(amountLabel, gbc);
 
-    gbc.gridx = 3;
-    JTextField amountField = new JTextField(15);
-    amountField.setFont(regularFont);
-    panel.add(amountField, gbc);
+        gbc.gridx = 3;
+        JTextField amountField = new JTextField(15);
+        amountField.setFont(regularFont);
+        panel.add(amountField, gbc);
 
-    // Cheque No
-    gbc.gridx = 0;
-    gbc.gridy = 3;
-    JLabel chequeNoLabel = new JLabel("Cheque No");
-    chequeNoLabel.setFont(boldFont);
-    panel.add(chequeNoLabel, gbc);
+        // Cheque No
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        JLabel chequeNoLabel = new JLabel("Cheque No");
+        chequeNoLabel.setFont(boldFont);
+        panel.add(chequeNoLabel, gbc);
 
-    gbc.gridx = 1;
-    JTextField chequeNoField = new JTextField(15);
-    chequeNoField.setFont(regularFont);
-    panel.add(chequeNoField, gbc);
+        gbc.gridx = 1;
+        JTextField chequeNoField = new JTextField(15);
+        chequeNoField.setFont(regularFont);
+        panel.add(chequeNoField, gbc);
 
-    // Voucher No
-    gbc.gridx = 2;
-    JLabel voucherNoLabel = new JLabel("Voucher No");
-    voucherNoLabel.setFont(boldFont);
-    panel.add(voucherNoLabel, gbc);
+        // Voucher No
+        gbc.gridx = 2;
+        JLabel voucherNoLabel = new JLabel("Voucher No");
+        voucherNoLabel.setFont(boldFont);
+        panel.add(voucherNoLabel, gbc);
 
-    gbc.gridx = 3;
-    JTextField voucherNoField = new JTextField(15);
-    voucherNoField.setFont(regularFont);
-    panel.add(voucherNoField, gbc);
+        gbc.gridx = 3;
+        JTextField voucherNoField = new JTextField(15);
+        voucherNoField.setFont(regularFont);
+        panel.add(voucherNoField, gbc);
 
-    // Note
-    gbc.gridx = 0;
-    gbc.gridy = 4;
-    JLabel noteLabel = new JLabel("Note");
-    noteLabel.setFont(boldFont);
-    panel.add(noteLabel, gbc);
+        // Note
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        JLabel noteLabel = new JLabel("Note");
+        noteLabel.setFont(boldFont);
+        panel.add(noteLabel, gbc);
 
-    gbc.gridx = 1;
-    gbc.gridwidth = 3;
-    JTextArea noteArea = new JTextArea(3, 15);
-    noteArea.setFont(regularFont);
-    JScrollPane noteScrollPane = new JScrollPane(noteArea);
-    panel.add(noteScrollPane, gbc);
-    gbc.gridwidth = 1;
+        gbc.gridx = 1;
+        gbc.gridwidth = 3;
+        JTextArea noteArea = new JTextArea(3, 15);
+        noteArea.setFont(regularFont);
+        JScrollPane noteScrollPane = new JScrollPane(noteArea);
+        panel.add(noteScrollPane, gbc);
+        gbc.gridwidth = 1;
 
-    // Date (Current Date, Non-Editable)
-    gbc.gridx = 0;
-    gbc.gridy = 5;
-    JLabel dateLabel = new JLabel("Date");
-    dateLabel.setFont(boldFont);
-    panel.add(dateLabel, gbc);
+        // Date (Current Date, Non-Editable)
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        JLabel dateLabel = new JLabel("Date");
+        dateLabel.setFont(boldFont);
+        panel.add(dateLabel, gbc);
 
-    gbc.gridx = 1;
-    // Get the current date
-    LocalDate currentDate = LocalDate.now();
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    JTextField dateField = new JTextField(currentDate.format(formatter), 15);
-    dateField.setFont(regularFont);
-    dateField.setEditable(false);  // Make the date field non-editable
-    panel.add(dateField, gbc);
+        gbc.gridx = 1;
+        // Get the current date
+        LocalDate currentDate = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        JTextField dateField = new JTextField(currentDate.format(formatter), 15);
+        dateField.setFont(regularFont);
+        dateField.setEditable(false);  // Make the date field non-editable
+        panel.add(dateField, gbc);
 
-    // Status
-    gbc.gridx = 2;
-    JLabel statusLabel = new JLabel("Status");
-    statusLabel.setFont(boldFont);
-    panel.add(statusLabel, gbc);
+        // Status
+        gbc.gridx = 2;
+        JLabel statusLabel = new JLabel("Status");
+        statusLabel.setFont(boldFont);
+        panel.add(statusLabel, gbc);
 
-    gbc.gridx = 3;
-    JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Active", "Inactive"});
-    statusCombo.setFont(regularFont);
-    panel.add(statusCombo, gbc);
+        gbc.gridx = 3;
+        JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Active", "Inactive"});
+        statusCombo.setFont(regularFont);
+        panel.add(statusCombo, gbc);
 
-    // Image - Modify to use JFileChooser for file upload
-    gbc.gridx = 0;
-    gbc.gridy = 6;
-    JLabel imageLabel = new JLabel("Image");
-    imageLabel.setFont(boldFont);
-    panel.add(imageLabel, gbc);
+        // Image - Modify to use JFileChooser for file upload
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        JLabel imageLabel = new JLabel("Image");
+        imageLabel.setFont(boldFont);
+        panel.add(imageLabel, gbc);
 
-    gbc.gridx = 1;
-    JButton imageButton = new JButton("Choose File");
-    imageButton.setFont(regularFont);
+        gbc.gridx = 1;
+        JButton imageButton = new JButton("Choose File");
+        imageButton.setFont(regularFont);
 
-    // Add action listener for the imageButton to open file explorer
-    imageButton.addActionListener(e -> {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        int returnValue = fileChooser.showOpenDialog(null);
-        if (returnValue == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
-            JOptionPane.showMessageDialog(null, "Selected Image: " + selectedFile.getName());
+        // Add action listener for the imageButton to open file explorer
+        imageButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            int returnValue = fileChooser.showOpenDialog(null);
+            if (returnValue == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = fileChooser.getSelectedFile();
+                JOptionPane.showMessageDialog(null, "Selected Image: " + selectedFile.getName());
+            }
+        });
+        panel.add(imageButton, gbc);
+
+        // Display the form in a dialog
+        int result = JOptionPane.showConfirmDialog(null, panel, "Create Expense", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        // If the user clicks OK, process the input
+        if (result == JOptionPane.OK_OPTION) {
+            String expenseReason = expenseReasonField.getText();
+            String amount = amountField.getText();
+            String account = accountField.getText();
+
+            // Validate the required fields
+            if (expenseReason.isEmpty() || amount.isEmpty() || account.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Please fill out all required fields.", "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(null, "Expense Created Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            }
         }
-    });
-    panel.add(imageButton, gbc);
-
-    // Display the form in a dialog
-    int result = JOptionPane.showConfirmDialog(null, panel, "Create Expense", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-    // If the user clicks OK, process the input
-    if (result == JOptionPane.OK_OPTION) {
-        String expenseReason = expenseReasonField.getText();
-        String amount = amountField.getText();
-        String account = accountField.getText();
-
-        // Validate the required fields
-        if (expenseReason.isEmpty() || amount.isEmpty() || account.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Please fill out all required fields.", "Error", JOptionPane.ERROR_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(null, "Expense Created Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-        }
-    }
 
     }//GEN-LAST:event_jButton1ActionPerformed
 
