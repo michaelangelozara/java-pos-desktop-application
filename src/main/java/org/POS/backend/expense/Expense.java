@@ -3,7 +3,8 @@ package org.POS.backend.expense;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.POS.backend.subcategory.Subcategory;
+import org.POS.backend.expense_subcategory.ExpenseSubcategory;
+import org.POS.backend.product_subcategory.ProductSubcategory;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -27,16 +28,30 @@ public class Expense {
     @Column(name = "deleted_at")
     private LocalDate deletedAt;
 
+    @Column(columnDefinition = "VARCHAR(50) NOT NULL")
+    private String code;
+
     private BigDecimal amount;
 
     private String account;
 
     private LocalDate date;
 
+    @Column(name = "cheque_no")
+    private String chequeNo;
+
+    @Column(name = "voucher_no")
+    private String voucherNo;
+
+    private String note;
+
     @Enumerated(EnumType.STRING)
     private ExpenseStatus status;
 
+    @Column(columnDefinition = "LONGTEXT")
+    private String image;
+
     @ManyToOne
     @JoinColumn(name = "subcategory_id")
-    private Subcategory subcategory;
+    private ExpenseSubcategory expenseSubcategory;
 }

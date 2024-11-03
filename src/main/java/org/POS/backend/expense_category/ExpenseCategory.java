@@ -1,18 +1,19 @@
-package org.POS.backend.department;
+package org.POS.backend.expense_category;
+
 
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.POS.backend.user.User;
+import org.POS.backend.expense_subcategory.ExpenseSubcategory;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Entity
-@Table(name = "departments")
+@Table(name = "expense_categories")
 @Data
 @NoArgsConstructor
-public class Department {
+public class ExpenseCategory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,12 +22,7 @@ public class Department {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    private DepartmentStatus status;
-
-    private String note;
-
-    @Column(columnDefinition = "VARCHAR(50) NOT NULL")
-    private String code;
+    private ExpenseCategoryStatus status;
 
     @Column(name = "is_deleted")
     private boolean isDeleted;
@@ -34,6 +30,11 @@ public class Department {
     @Column(name = "deleted_at")
     private LocalDate deletedAt;
 
-    @OneToMany(mappedBy = "department")
-    private List<User> users;
+    @Column(columnDefinition = "VARCHAR(50) NOT NULL")
+    private String code;
+
+    private String note;
+
+    @OneToMany(mappedBy = "expenseCategory")
+    private List<ExpenseSubcategory> expenseSubcategories;
 }

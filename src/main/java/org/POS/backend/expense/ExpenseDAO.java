@@ -70,12 +70,12 @@ public class ExpenseDAO {
                                     .getSingleResult();
 
             if(expense != null){
-                if(expense.getSubcategory() != null)
-                    Hibernate.initialize(expense.getSubcategory());
+                if(expense.getExpenseSubcategory() != null)
+                    Hibernate.initialize(expense.getExpenseSubcategory());
 
-                assert expense.getSubcategory() != null;
-                if(expense.getSubcategory().getCategory() != null)
-                    Hibernate.initialize(expense.getSubcategory().getCategory());
+                assert expense.getExpenseSubcategory() != null;
+                if(expense.getExpenseSubcategory().getExpenseCategory() != null)
+                    Hibernate.initialize(expense.getExpenseSubcategory().getExpenseCategory());
             }
 
             session.getTransaction().commit();

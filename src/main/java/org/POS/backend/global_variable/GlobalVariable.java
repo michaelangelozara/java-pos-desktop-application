@@ -52,4 +52,29 @@ public class GlobalVariable {
     public static String EXPENSE_DELETED = "Expense successfully deleted";
     public static String EXPENSE_NOT_FOUND = "Expense not found";
 
+    // expense category
+    public static String EXPENSE_CATEGORY_ADDED = "Expense category successfully added";
+    public static String EXPENSE_CATEGORY_UPDATED = "Expense category successfully updated";
+    public static String EXPENSE_CATEGORY_DELETED = "Expense category successfully deleted";
+    public static String EXPENSE_CATEGORY_NOT_FOUND = "Expense category not found";
+
+    // expense subcategory
+    public static String EXPENSE_SUBCATEGORY_ADDED = "Expense subcategory successfully added";
+    public static String EXPENSE_SUBCATEGORY_UPDATED = "Expense subcategory successfully updated";
+    public static String EXPENSE_SUBCATEGORY_DELETED = "Expense subcategory successfully deleted";
+    public static String EXPENSE_SUBCATEGORY_NOT_FOUND = "Expense subcategory not found";
+
+    // code generator
+    public static String GENERATING_CODE_ERROR = "Generating code error";
+
+
+    // code generator prefixes
+    public static String PRODUCT_PREFIX = "AEC-";
+    public static String SUBCATEGORY_PREFIX = "AES-";
+    public static String BRAND_PREFIX = "APC-";
+    public static String EXPENSE_CATEGORY_PREFIX = "EXP-";
+    public static String EXPENSE_SUBCATEGORY_PREFIX = "EXPS-";
+    public static String CLIENT_PREFIX = "AC-";
+    public static String SUPPLIER_PREFIX = "SP-";
+
 }

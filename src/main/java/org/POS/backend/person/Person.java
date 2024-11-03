@@ -32,6 +32,9 @@ public class Person {
     @Column(name = "tax_registration_number")
     private String taxRegistrationNumber;
 
+    @Column(columnDefinition = "VARCHAR(50) NOT NULL")
+    private String code;
+
     @Enumerated(EnumType.STRING)
     private PersonType type;
 

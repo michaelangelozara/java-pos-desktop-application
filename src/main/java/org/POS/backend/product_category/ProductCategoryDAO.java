@@ -1,6 +1,5 @@
-package org.POS.backend.category;
+package org.POS.backend.product_category;
 
-import jakarta.transaction.Transactional;
 import org.POS.backend.configuration.HibernateUtil;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
@@ -9,19 +8,19 @@ import org.hibernate.SessionFactory;
 import java.time.LocalDate;
 import java.util.List;
 
-public class CategoryDAO {
+public class ProductCategoryDAO {
 
     private SessionFactory sessionFactory;
 
-    public CategoryDAO() {
+    public ProductCategoryDAO() {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public void add(Category category){
+    public void add(ProductCategory productCategory){
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            session.persist(category);
+            session.persist(productCategory);
 
             session.getTransaction().commit();
         } catch (Exception e){
@@ -29,11 +28,11 @@ public class CategoryDAO {
         }
     }
 
-    public void update(Category category){
+    public void update(ProductCategory productCategory){
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            session.merge(category);
+            session.merge(productCategory);
 
             session.getTransaction().commit();
         } catch (Exception e){
@@ -45,12 +44,12 @@ public class CategoryDAO {
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            Category category = session.createQuery("SELECT c FROM Category c WHERE c.id = :categoryId AND c.isDeleted = FALSE", Category.class)
+            ProductCategory productCategory = session.createQuery("SELECT c FROM ProductCategory c WHERE c.id = :categoryId AND c.isDeleted = FALSE", ProductCategory.class)
                             .setParameter("id", categoryId)
                                     .getSingleResult();
-            category.setDeleted(true);
-            category.setDeletedAt(LocalDate.now());
-            session.merge(category);
+            productCategory.setDeleted(true);
+            productCategory.setDeletedAt(LocalDate.now());
+            session.merge(productCategory);
 
             session.getTransaction().commit();
         } catch (Exception e){
@@ -58,11 +57,11 @@ public class CategoryDAO {
         }
     }
 
-    public List<Category> getAllValidCategories(){
+    public List<ProductCategory> getAllValidCategories(){
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            List<Category> categories = session.createQuery("SELECT c FROM Category c WHERE c.isDeleted = FALSE", Category.class)
+            List<ProductCategory> categories = session.createQuery("SELECT c FROM ProductCategory c WHERE c.isDeleted = FALSE", ProductCategory.class)
                     .getResultList();
 
             session.getTransaction().commit();
@@ -73,18 +72,18 @@ public class CategoryDAO {
         return null;
     }
 
-    public Category getValidCategory(int categoryId){
+    public ProductCategory getValidCategory(int categoryId){
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            Category category = session.createQuery("SELECT c FROM Category c WHERE c.id =: categoryId AND c.isDeleted = FALSE", Category.class)
+            ProductCategory productCategory = session.createQuery("SELECT c FROM ProductCategory c WHERE c.id =: categoryId AND c.isDeleted = FALSE", ProductCategory.class)
                     .setParameter("categoryId", categoryId)
                     .getSingleResult();
 
-            Hibernate.initialize(category.getSubcategories());
+            Hibernate.initialize(productCategory.getSubcategories());
 
             session.getTransaction().commit();
-            return category;
+            return productCategory;
         } catch (Exception e){
             System.out.println("Error getting category: " + e.getMessage());
         }

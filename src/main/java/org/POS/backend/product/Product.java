@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.POS.backend.brand.Brand;
+import org.POS.backend.product_subcategory.ProductSubcategory;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -22,8 +23,6 @@ public class Product {
 
     private String model;
 
-    private String code;
-
     @Column(name = "is_deleted")
     private boolean isDeleted;
 
@@ -35,6 +34,9 @@ public class Product {
 
     @Column(name = "product_tax")
     private int productTax;
+
+    @Column(columnDefinition = "VARCHAR(50) NOT NULL")
+    private String code;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tax_type")
@@ -61,4 +63,8 @@ public class Product {
     @ManyToOne
     @JoinColumn(name = "brand_id")
     private Brand brand;
+
+    @ManyToOne
+    @JoinColumn(name = "product_subcategory_id")
+    private ProductSubcategory productSubcategory;
 }

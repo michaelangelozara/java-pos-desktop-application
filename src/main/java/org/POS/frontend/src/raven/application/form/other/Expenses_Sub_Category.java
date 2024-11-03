@@ -2,14 +2,13 @@ package org.POS.frontend.src.raven.application.form.other;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.POS.backend.category.Category;
-import org.POS.backend.category.CategoryResponseDto;
-import org.POS.backend.category.CategoryService;
-import org.POS.backend.subcategory.*;
+import org.POS.backend.expense_category.ExpenseCategoryService;
+import org.POS.backend.expense_subcategory.*;
+import org.POS.backend.product_category.ProductCategoryService;
+import org.POS.backend.product_subcategory.*;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
 import javax.swing.table.DefaultTableModel;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
@@ -46,8 +45,8 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
                 JLabel categoryLabel = new JLabel("Category:");
                 categoryLabel.setFont(largerFont);
                 
-                CategoryService categoryService = new CategoryService();
-                var validCategories = categoryService.getAllValidCategories();
+                ExpenseCategoryService expenseCategoryService = new ExpenseCategoryService();
+                var validCategories = expenseCategoryService.getAllValidExpenseCategories();
 
                 Map<Integer, Integer> subcategoryMap = new HashMap<>();
 
@@ -139,24 +138,16 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
                         JOptionPane.showMessageDialog(null,
                                 "Please enter valid Category, Subcategory Code, Name, and Status.", "Error", JOptionPane.ERROR_MESSAGE);
                     } else {
-                        // Update the table with the edited values
-//                        model.setValueAt(category, row, 0);
-//                        model.setValueAt(subCategoryCode, row, 1);
-//                        model.setValueAt(name, row, 2);
-//                        model.setValueAt(status, row, 3);
-//                        model.setValueAt(note, row, 4);
-
                         int categoryId = subcategoryMap.get(selectedCategoryIndex);
-                        SubcategoryService subcategoryService = new SubcategoryService();
-                        UpdateSubcategoryRequestDto dto = new UpdateSubcategoryRequestDto(
+                        ExpenseSubcategoryService productSubcategoryService = new ExpenseSubcategoryService();
+                        UpdateExpenseSubcategoryRequestDto dto = new UpdateExpenseSubcategoryRequestDto(
                                 subcategoryId,
                                 name,
-                                status.equals("Active") ? SubcategoryStatus.ACTIVE : SubcategoryStatus.INACTIVE,
+                                status.equals("Active") ? ExpenseSubcategoryStatus.ACTIVE : ExpenseSubcategoryStatus.INACTIVE,
                                 note,
-                                subCategoryCode,
                                 categoryId
                         );
-                        subcategoryService.update(dto);
+                        productSubcategoryService.update(dto);
 
                         JOptionPane.showMessageDialog(null,
                                 "SubCategory Updated Successfully!",
@@ -182,8 +173,8 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
                     DefaultTableModel model = (DefaultTableModel) table.getModel();
                     int subcategoryId = (Integer) model.getValueAt(row, 0);
 
-                    SubcategoryService subcategoryService = new SubcategoryService();
-                    subcategoryService.delete(subcategoryId);
+                    ExpenseSubcategoryService expenseSubcategoryService = new ExpenseSubcategoryService();
+                    expenseSubcategoryService.delete(subcategoryId);
 
                     JOptionPane.showMessageDialog(null, "SubCategory Deleted Successfully",
                             "Deleted", JOptionPane.INFORMATION_MESSAGE);
@@ -303,9 +294,9 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
         model.setRowCount(0);
 
         // Clear all existing rows
-        SubcategoryService subcategoryService = new SubcategoryService();
-        for (SubcategoryResponseDto subcategory : subcategoryService.getAllValidSubcategories()) {
-            model.addRow(new Object[]{subcategory.id(), subcategory.categoryName(), subcategory.name(), subcategory.code(), subcategory.status().name()});
+        ExpenseSubcategoryService expenseSubcategoryService = new ExpenseSubcategoryService();
+        for (ExpenseSubcategoryResponseDto subcategory : expenseSubcategoryService.getAllValidExpenseSubcategories()) {
+            model.addRow(new Object[]{subcategory.id(), subcategory.expenseCategoryResponseDto().name(), subcategory.name(), subcategory.code(), subcategory.status().name()});
         }
     }
 
@@ -455,8 +446,8 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
         JLabel categoryLabel = new JLabel("Category Name:");
         categoryLabel.setFont(boldFont);
 
-        CategoryService categoryService = new CategoryService();
-        var validCategories = categoryService.getAllValidCategories();
+        ExpenseCategoryService expenseSubcategoryService1 = new ExpenseCategoryService();
+        var validCategories = expenseSubcategoryService1.getAllValidExpenseCategories();
 
         Map<Integer, Integer> categoryMap = new HashMap<>();
 
@@ -540,20 +531,19 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
                 UIManager.put("OptionPane.messageFont", new Font("Arial", Font.PLAIN, 14));
                 UIManager.put("OptionPane.buttonFont", new Font("Arial", Font.PLAIN, 14));
 
-                SubcategoryService subcategoryService = new SubcategoryService();
+                ExpenseSubcategoryService expenseSubcategoryService = new ExpenseSubcategoryService();
 
                 int categoryId = categoryMap.get(selectedIndex);
 
-                AddSubcategoryRequestDto dto = new AddSubcategoryRequestDto(
-                        categoryId,
+                AddExpenseSubcategoryRequestDto dto = new AddExpenseSubcategoryRequestDto(
                         name,
-                        status.equals("Active") ? SubcategoryStatus.ACTIVE : SubcategoryStatus.INACTIVE,
+                        status.equals("Active") ? ExpenseSubcategoryStatus.ACTIVE : ExpenseSubcategoryStatus.INACTIVE,
                         note,
-                        subCategoryCode
+                        categoryId
                 );
 
                 // save subcategory to the database
-                subcategoryService.add(dto);
+                expenseSubcategoryService.add(dto);
 
                 JOptionPane.showMessageDialog(null,
                         "Sub Category Created Successfully!\nCategory: " + category + "\nSubCategory Code: " + subCategoryCode

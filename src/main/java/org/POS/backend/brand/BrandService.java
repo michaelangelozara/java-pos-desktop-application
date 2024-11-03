@@ -1,7 +1,7 @@
 package org.POS.backend.brand;
 
 import org.POS.backend.global_variable.GlobalVariable;
-import org.POS.backend.subcategory.SubcategoryDAO;
+import org.POS.backend.product_subcategory.ProductSubcategoryDAO;
 
 import java.util.List;
 
@@ -11,16 +11,16 @@ public class BrandService {
 
     private BrandMapper brandMapper;
 
-    private SubcategoryDAO subcategoryDAO;
+    private ProductSubcategoryDAO productSubcategoryDAO;
 
     public BrandService() {
         this.brandDAO = new BrandDAO();
         this.brandMapper = new BrandMapper();
-        this.subcategoryDAO = new SubcategoryDAO();
+        this.productSubcategoryDAO = new ProductSubcategoryDAO();
     }
 
     public String add(AddBrandRequestDto dto){
-        var subcategory = this.subcategoryDAO.getValidSubcategoryById(dto.subcategoryId());
+        var subcategory = this.productSubcategoryDAO.getValidSubcategoryById(dto.subcategoryId());
 
         if(subcategory == null)
             return GlobalVariable.SUBCATEGORY_NOT_FOUND;
@@ -31,7 +31,7 @@ public class BrandService {
     }
 
     public String update(UpdateBrandRequestDto dto){
-        var subcategory = this.subcategoryDAO.getValidSubcategoryById(dto.subcategoryId());
+        var subcategory = this.productSubcategoryDAO.getValidSubcategoryById(dto.subcategoryId());
 
         if(subcategory == null)
             return GlobalVariable.SUBCATEGORY_NOT_FOUND;

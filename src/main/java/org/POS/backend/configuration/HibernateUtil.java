@@ -1,12 +1,16 @@
 package org.POS.backend.configuration;
 
 import org.POS.backend.brand.Brand;
-import org.POS.backend.category.Category;
+import org.POS.backend.code_generator.CodeGenerator;
+import org.POS.backend.product_category.ProductCategory;
 import org.POS.backend.department.Department;
 import org.POS.backend.expense.Expense;
+import org.POS.backend.code_generator.CodeGeneratorService;
+import org.POS.backend.expense_category.ExpenseCategory;
+import org.POS.backend.expense_subcategory.ExpenseSubcategory;
 import org.POS.backend.person.Person;
 import org.POS.backend.product.Product;
-import org.POS.backend.subcategory.Subcategory;
+import org.POS.backend.product_subcategory.ProductSubcategory;
 import org.POS.backend.user.User;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -24,13 +28,16 @@ public class HibernateUtil {
 
                 // Add annotated entity classes
                 configuration.addAnnotatedClass(Brand.class);
-                configuration.addAnnotatedClass(Category.class);
+                configuration.addAnnotatedClass(ProductCategory.class);
                 configuration.addAnnotatedClass(Department.class);
                 configuration.addAnnotatedClass(Person.class);
                 configuration.addAnnotatedClass(Product.class);
-                configuration.addAnnotatedClass(Subcategory.class);
+                configuration.addAnnotatedClass(ProductSubcategory.class);
                 configuration.addAnnotatedClass(User.class);
                 configuration.addAnnotatedClass(Expense.class);
+                configuration.addAnnotatedClass(CodeGenerator.class);
+                configuration.addAnnotatedClass(ExpenseCategory.class);
+                configuration.addAnnotatedClass(ExpenseSubcategory.class);
 
                 // Build the SessionFactory
                 sessionFactory = configuration.buildSessionFactory(

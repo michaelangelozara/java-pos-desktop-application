@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.POS.backend.product.Product;
-import org.POS.backend.subcategory.Subcategory;
+import org.POS.backend.product_subcategory.ProductSubcategory;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -25,12 +25,15 @@ public class Brand {
 
     private LocalDate deletedAt;
 
+    @Column(columnDefinition = "VARCHAR(50) NOT NULL")
+    private String code;
+
     @Enumerated(EnumType.STRING)
     private BrandStatus status;
 
     @ManyToOne
     @JoinColumn(name = "subcategory_id")
-    private Subcategory subcategory;
+    private ProductSubcategory productSubcategory;
 
     @OneToMany(mappedBy = "brand")
     private List<Product> products;

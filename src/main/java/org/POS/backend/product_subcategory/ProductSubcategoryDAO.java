@@ -1,4 +1,4 @@
-package org.POS.backend.subcategory;
+package org.POS.backend.product_subcategory;
 
 import org.POS.backend.configuration.HibernateUtil;
 import org.hibernate.Session;
@@ -7,19 +7,19 @@ import org.hibernate.SessionFactory;
 import java.time.LocalDate;
 import java.util.List;
 
-public class SubcategoryDAO {
+public class ProductSubcategoryDAO {
 
     private SessionFactory sessionFactory;
 
-    public SubcategoryDAO() {
+    public ProductSubcategoryDAO() {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public void add(Subcategory subcategory){
+    public void add(ProductSubcategory productSubcategory){
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            session.persist(subcategory);
+            session.persist(productSubcategory);
 
             session.getTransaction().commit();
         }catch (Exception e){
@@ -27,11 +27,11 @@ public class SubcategoryDAO {
         }
     }
 
-    public void update(Subcategory subcategory){
+    public void update(ProductSubcategory productSubcategory){
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            session.merge(subcategory);
+            session.merge(productSubcategory);
 
             session.getTransaction().commit();
         }catch (Exception e){
@@ -43,12 +43,12 @@ public class SubcategoryDAO {
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            Subcategory subcategory = session.createQuery("SELECT s FROM Subcategory s WHERE s.id = :subcategoryId AND s.isDeleted = FALSE", Subcategory.class)
+            ProductSubcategory productSubcategory = session.createQuery("SELECT s FROM ProductSubcategory s WHERE s.id = :subcategoryId AND s.isDeleted = FALSE", ProductSubcategory.class)
                             .setParameter("subcategoryId", subcategoryId)
                                     .getSingleResult();
-            subcategory.setDeleted(true);
-            subcategory.setDeletedAt(LocalDate.now());
-            session.merge(subcategory);
+            productSubcategory.setDeleted(true);
+            productSubcategory.setDeletedAt(LocalDate.now());
+            session.merge(productSubcategory);
 
             session.getTransaction().commit();
             return true;
@@ -58,11 +58,11 @@ public class SubcategoryDAO {
         return false;
     }
 
-    public List<Subcategory> getAllValidSubcategories(){
+    public List<ProductSubcategory> getAllValidSubcategories(){
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            List<Subcategory> subcategories = session.createQuery("SELECT s FROM Subcategory s WHERE s.isDeleted = FALSE", Subcategory.class)
+            List<ProductSubcategory> subcategories = session.createQuery("SELECT s FROM ProductSubcategory s WHERE s.isDeleted = FALSE", ProductSubcategory.class)
                     .getResultList();
 
             session.getTransaction().commit();
@@ -74,16 +74,16 @@ public class SubcategoryDAO {
         return null;
     }
 
-    public Subcategory getValidSubcategoryById(int subcategoryId){
+    public ProductSubcategory getValidSubcategoryById(int subcategoryId){
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            Subcategory subcategory = session.createQuery("SELECT s FROM Subcategory s WHERE s.id = :subcategoryId AND s.isDeleted = FALSE", Subcategory.class)
+            ProductSubcategory productSubcategory = session.createQuery("SELECT s FROM ProductSubcategory s WHERE s.id = :subcategoryId AND s.isDeleted = FALSE", ProductSubcategory.class)
                             .setParameter("subcategoryId", subcategoryId)
                                     .getSingleResult();
 
             session.getTransaction().commit();
-            return subcategory;
+            return productSubcategory;
         }catch (Exception e){
             System.out.println("Error getting subcategory : " + e.getMessage());
         }
@@ -91,11 +91,11 @@ public class SubcategoryDAO {
         return null;
     }
 
-    public List<Subcategory> getAllValidSubcategoriesByCategoryId(int categoryId){
+    public List<ProductSubcategory> getAllValidSubcategoriesByCategoryId(int categoryId){
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            List<Subcategory> subcategories = session.createQuery("SELECT s FROM Subcategory s WHERE s.category.id = :categoryId AND s.isDeleted = FALSE", Subcategory.class)
+            List<ProductSubcategory> subcategories = session.createQuery("SELECT s FROM ProductSubcategory s WHERE s.category.id = :categoryId AND s.isDeleted = FALSE", ProductSubcategory.class)
                     .setParameter("categoryId", categoryId)
                     .getResultList();
 

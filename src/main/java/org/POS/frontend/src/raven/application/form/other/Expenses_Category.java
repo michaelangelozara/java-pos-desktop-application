@@ -1,6 +1,7 @@
 package org.POS.frontend.src.raven.application.form.other;
 
-import org.POS.backend.category.*;
+import org.POS.backend.expense_category.*;
+import org.POS.backend.product_category.*;
 import org.POS.backend.global_variable.GlobalVariable;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
@@ -100,15 +101,15 @@ public class Expenses_Category extends javax.swing.JPanel {
                         JOptionPane.showMessageDialog(null,
                                 "Please enter a valid Name and Status.", "Error", JOptionPane.ERROR_MESSAGE);
                     } else {
-                        CategoryService categoryService = new CategoryService();
-                        UpdateCategoryRequestDto dto = new UpdateCategoryRequestDto(
+                        ExpenseCategoryService expenseCategoryService = new ExpenseCategoryService();
+                        UpdateExpenseCategoryRequestDto dto = new UpdateExpenseCategoryRequestDto(
                                 id,
                                 name,
-                                status.equals("Active") ? CategoryStatus.ACTIVE : CategoryStatus.INACTIVE,
+                                status.equals("Active") ? ExpenseCategoryStatus.ACTIVE : ExpenseCategoryStatus.INACTIVE,
                                 note
                         );
 
-                        categoryService.update(dto);
+                        expenseCategoryService.update(dto);
 
                         // Display a success message
                         JOptionPane.showMessageDialog(null,
@@ -136,7 +137,7 @@ public class Expenses_Category extends javax.swing.JPanel {
                 if (confirmation == JOptionPane.YES_OPTION) {
 //                    DefaultTableModel model = (DefaultTableModel) table.getModel();
 //                    model.removeRow(row);
-                    CategoryService service = new CategoryService();
+                    ExpenseCategoryService service = new ExpenseCategoryService();
                     service.delete(id);
 
                     JOptionPane.showMessageDialog(null, "Category Deleted Successfully",
@@ -217,8 +218,8 @@ public class Expenses_Category extends javax.swing.JPanel {
                 JOptionPane.showMessageDialog(null, panel, "View Category", JOptionPane.INFORMATION_MESSAGE);
             }
         };
-        table.getColumnModel().getColumn(4).setCellRenderer(new TableActionCellRender());
-        table.getColumnModel().getColumn(4).setCellEditor(new TableActionCellEditor(event));
+        table.getColumnModel().getColumn(5).setCellRenderer(new TableActionCellRender());
+        table.getColumnModel().getColumn(5).setCellEditor(new TableActionCellEditor(event));
         loadCategories();
     }
 
@@ -228,9 +229,9 @@ public class Expenses_Category extends javax.swing.JPanel {
         model.setRowCount(0);
 
         // Clear all existing rows
-        CategoryService categoryService = new CategoryService();
-        for (CategoryResponseDto category : categoryService.getAllValidCategories()) {
-            model.addRow(new Object[]{category.id(), category.name(), category.note(), category.status().toString()});
+        ExpenseCategoryService expenseCategoryService = new ExpenseCategoryService();
+        for (ExpenseCategoryResponseDto category : expenseCategoryService.getAllValidExpenseCategories()) {
+            model.addRow(new Object[]{category.id(), category.name(), category.code(), category.note(), category.status().toString()});
         }
     }
 
@@ -271,17 +272,17 @@ public class Expenses_Category extends javax.swing.JPanel {
 
         table.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null}
+                {null, null, null, null, null, null, null}
             },
             new String [] {
-                "ID", "Name", "Note", "Status", "Action"
+                "#", "ID", "Name", "Code", "Note", "Status", "Action"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
+                java.lang.Object.class, java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, true
+                true, false, false, true, false, false, true
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -295,10 +296,10 @@ public class Expenses_Category extends javax.swing.JPanel {
         table.setRowHeight(40);
         jScrollPane1.setViewportView(table);
         if (table.getColumnModel().getColumnCount() > 0) {
-            table.getColumnModel().getColumn(0).setResizable(false);
             table.getColumnModel().getColumn(1).setResizable(false);
             table.getColumnModel().getColumn(2).setResizable(false);
-            table.getColumnModel().getColumn(3).setResizable(false);
+            table.getColumnModel().getColumn(4).setResizable(false);
+            table.getColumnModel().getColumn(5).setResizable(false);
         }
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -443,26 +444,24 @@ public class Expenses_Category extends javax.swing.JPanel {
 //                DefaultTableModel model = (DefaultTableModel) table.getModel();
 //                model.addRow(new Object[]{model.getRowCount() + 1, name, note, status, "Actions"});
 
-                AddCategoryRequestDto dto = new AddCategoryRequestDto(
+                ExpenseCategoryService expenseCategoryService = new ExpenseCategoryService();
+
+                AddExpenseCategoryRequestDto dto = new AddExpenseCategoryRequestDto(
                         name,
-                        status.equals("Active") ? CategoryStatus.ACTIVE : CategoryStatus.INACTIVE,
+                        status.equals("Active") ? ExpenseCategoryStatus.ACTIVE : ExpenseCategoryStatus.INACTIVE,
                         note
                 );
 
-                addNewCategory(dto);
+                expenseCategoryService.add(dto);
 
                 // Display a success message
                 JOptionPane.showMessageDialog(null,
                         "Category Created Successfully!\nName: " + name + "\nStatus: " + status + "\nNote: " + note,
                         GlobalVariable.CATEGORY_ADDED, JOptionPane.INFORMATION_MESSAGE);
+                loadCategories();
             }
         }
     }//GEN-LAST:event_jButton1ActionPerformed
-
-    private void addNewCategory(AddCategoryRequestDto dto) {
-        CategoryService categoryService = new CategoryService();
-        categoryService.add(dto);
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;

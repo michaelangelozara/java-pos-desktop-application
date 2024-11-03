@@ -1,0 +1,111 @@
+package org.POS.backend.expense_category;
+
+import org.POS.backend.configuration.HibernateUtil;
+import org.POS.backend.expense_subcategory.ExpenseSubcategory;
+import org.hibernate.Hibernate;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+
+import java.time.LocalDate;
+import java.util.List;
+
+public class ExpenseCategoryDAO {
+
+    private SessionFactory sessionFactory;
+
+    public ExpenseCategoryDAO(){
+        this.sessionFactory = HibernateUtil.getSessionFactory();
+    }
+
+    public void add(ExpenseCategory expenseCategory){
+        try(Session session = sessionFactory.openSession()){
+            session.beginTransaction();
+
+            session.persist(expenseCategory);
+
+            session.getTransaction().commit();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+
+    public void update(ExpenseCategory expenseCategory){
+        try(Session session = sessionFactory.openSession()){
+            session.beginTransaction();
+
+            session.merge(expenseCategory);
+
+            session.getTransaction().commit();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public void delete(int expenseCategoryId){
+        Transaction transaction = null;
+        try(Session session = sessionFactory.openSession()){
+            transaction = session.beginTransaction();
+
+            var dateNow = LocalDate.now();
+
+            ExpenseCategory expenseCategory = session.createQuery("SELECT ec FROM ExpenseCategory ec WHERE ec.id = :expenseCategoryId AND ec.isDeleted = FALSE ", ExpenseCategory.class)
+                            .setParameter("expenseCategoryId", expenseCategoryId)
+                                    .getSingleResult();
+            expenseCategory.setDeleted(true);
+            expenseCategory.setDeletedAt(dateNow);
+
+            if(expenseCategory.getExpenseSubcategories() != null){
+                Hibernate.initialize(expenseCategory.getExpenseSubcategories());
+
+                List<ExpenseSubcategory> subcategoryList = expenseCategory.getExpenseSubcategories();
+                for(ExpenseSubcategory expenseSubcategory : subcategoryList){
+                    expenseSubcategory.setDeleted(true);
+                    expenseSubcategory.setDeletedAt(dateNow);
+                    session.merge(expenseSubcategory);
+                }
+            }
+
+            session.merge(expenseCategory);
+
+            session.getTransaction().commit();
+        }catch (Exception e){
+            if(transaction != null)
+                transaction.rollback();
+
+            e.printStackTrace();
+        }
+    }
+
+    public ExpenseCategory getValidExpenseCategoryById(int expenseCategoryId){
+        try (Session session = sessionFactory.openSession()){
+            session.beginTransaction();
+
+            ExpenseCategory expenseCategory = session.createQuery("SELECT ec FROM ExpenseCategory ec WHERE ec.id = :expenseCategoryId AND ec.isDeleted = FALSE ", ExpenseCategory.class)
+                            .setParameter("expenseCategoryId", expenseCategoryId)
+                                    .getSingleResult();
+
+            session.getTransaction().commit();
+            return expenseCategory;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<ExpenseCategory> getAllValidExpenseCategories(){
+        try (Session session = sessionFactory.openSession()){
+            session.beginTransaction();
+
+            List<ExpenseCategory> expenseCategories = session.createQuery("SELECT ec FROM ExpenseCategory ec WHERE ec.isDeleted = FALSE ", ExpenseCategory.class)
+                    .getResultList();
+
+            session.getTransaction().commit();
+            return expenseCategories;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+}

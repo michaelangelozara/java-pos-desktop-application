@@ -1,8 +1,17 @@
 package org.POS.backend.person;
 
+import org.POS.backend.code_generator.CodeGeneratorService;
+import org.POS.backend.global_variable.GlobalVariable;
+
 import java.util.List;
 
 public class PersonMapper {
+
+    private CodeGeneratorService codeGeneratorService;
+
+    public PersonMapper(){
+        this.codeGeneratorService = new CodeGeneratorService();
+    }
 
     public Person toPerson(AddPersonRequestDto dto){
         Person person = new Person();
@@ -15,6 +24,7 @@ public class PersonMapper {
         person.setAddress(dto.address());
         person.setImage(dto.image());
         person.setStatus(dto.status());
+        person.setCode(dto.personType().equals(PersonType.CLIENT) ? this.codeGeneratorService.generateProductCode(GlobalVariable.CLIENT_PREFIX) : this.codeGeneratorService.generateProductCode(GlobalVariable.SUPPLIER_PREFIX));
         return person;
     }
 

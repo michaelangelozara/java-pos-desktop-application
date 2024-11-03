@@ -7,6 +7,10 @@ public record AddExpenseRequestDto(
         String expenseReason,
         BigDecimal amount,
         String account,
-        ExpenseStatus status
+        String chequeNo,
+        String voucherNo,
+        String note,
+        ExpenseStatus status,
+        String image
 ) {
 }
