@@ -5,6 +5,7 @@ import org.POS.backend.brand.BrandResponseDto;
 import java.math.BigDecimal;
 
 public record ProductResponseDto(
+        int id,
         String name,
         String model,
         String code,

@@ -12,14 +12,14 @@ public class Product {
         ProductService productService = new ProductService();
 
         AddProductRequestDto dto = new AddProductRequestDto(
-                "Iphone 10",
+                "Iphone 19",
                 "JSA-10",
-                "CODE",
                 1,
                 ProductUnit.PIECE,
                 0,
                 ProductTaxType.INCLUSIVE,
-                BigDecimal.valueOf(25990),
+                BigDecimal.valueOf(95990),
+                BigDecimal.valueOf(1000),
                 0,
                 "No note yet",
                 10,

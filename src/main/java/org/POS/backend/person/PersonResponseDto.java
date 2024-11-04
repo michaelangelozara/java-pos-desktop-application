@@ -1,6 +1,7 @@
 package org.POS.backend.person;
 
 public record PersonResponseDto(
+        int id,
         String name,
         String email,
         String contactNumber,
@@ -8,6 +9,7 @@ public record PersonResponseDto(
         String taxRegistration,
         String address,
         String image,
-        PersonStatus status
+        PersonStatus status,
+        String code
 ) {
 }

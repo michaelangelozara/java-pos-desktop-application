@@ -14,7 +14,7 @@ public class Person {
                 "09090909090",
                 "NedNets Inc.",
                 "KIGG-xZIZ-112",
-                PersonType.CLIENT,
+                PersonType.SUPPLIER,
                 "New York",
                 "JSISSHJLO267<L",
                 PersonStatus.ACTIVE
@@ -60,5 +60,11 @@ public class Person {
     void getValidPerson(){
         PersonService personService = new PersonService();
         System.out.println(personService.getValidPersonById(1));
+    }
+
+    @Test
+    void getAllValidPeopleByType(){
+        PersonService personService = new PersonService();
+        System.out.println(personService.getAllValidPeopleByType(PersonType.SUPPLIER));
     }
 }

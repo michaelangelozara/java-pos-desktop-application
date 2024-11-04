@@ -12,7 +12,7 @@ public class ExpenseSubcategory {
     void add(){
         ExpenseSubcategoryService subcategoryService = new ExpenseSubcategoryService();
         AddExpenseSubcategoryRequestDto dto = new AddExpenseSubcategoryRequestDto(
-                "Exp Sub v2",
+                "Bagong Kategorya",
                 ExpenseSubcategoryStatus.ACTIVE,
                 "No note",
                 1
@@ -42,9 +42,7 @@ public class ExpenseSubcategory {
     @Test
     void getAllValidExpenseSubcategories(){
         ExpenseSubcategoryService subcategoryService = new ExpenseSubcategoryService();
-        subcategoryService.getAllValidExpenseSubcategories().forEach(s ->{
-            System.out.println(s.name());
-        });
+
     }
 
     @Test

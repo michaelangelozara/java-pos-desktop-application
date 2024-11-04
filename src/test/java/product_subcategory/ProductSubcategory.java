@@ -1,4 +1,4 @@
-package subcategory;
+package product_subcategory;
 
 import org.POS.backend.product_subcategory.AddProductSubcategoryRequestDto;
 import org.POS.backend.product_subcategory.ProductSubcategoryService;
@@ -12,7 +12,7 @@ public class ProductSubcategory {
     void add(){
         ProductSubcategoryService service = new ProductSubcategoryService();
         AddProductSubcategoryRequestDto dto = new AddProductSubcategoryRequestDto(
-                2,
+                1,
                 "Phone",
                 ProductSubcategoryStatus.ACTIVE,
                 "This is car category!",

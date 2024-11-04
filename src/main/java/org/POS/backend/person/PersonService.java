@@ -27,7 +27,7 @@ public class PersonService {
         if(person == null)
             return GlobalVariable.PERSON_NOT_FOUND;
 
-        var updatedPerson = this.personMapper.toUpdatedPerson(dto);
+        var updatedPerson = this.personMapper.toUpdatedPerson(person, dto);
         this.personDAO.update(updatedPerson);
         return GlobalVariable.PERSON_UPDATED;
     }
@@ -53,4 +53,10 @@ public class PersonService {
         var people = this.personDAO.getAllValidPeople();
         return this.personMapper.personResponseDtoList(people);
     }
+
+    public List<PersonResponseDto> getAllValidPeopleByType(PersonType type){
+        var people = this.personDAO.getAllValidPeopleByType(type);
+        return this.personMapper.personResponseDtoList(people);
+    }
+
 }

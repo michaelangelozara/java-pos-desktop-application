@@ -1,4 +1,4 @@
-package category;
+package product_category;
 
 import org.POS.backend.product_category.*;
 import org.POS.backend.product_subcategory.ProductSubcategory;

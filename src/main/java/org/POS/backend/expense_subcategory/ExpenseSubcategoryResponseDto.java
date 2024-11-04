@@ -7,6 +7,7 @@ public record ExpenseSubcategoryResponseDto(
         ExpenseCategoryResponseDto expenseCategoryResponseDto,
         String code,
         String name,
-        ExpenseSubcategoryStatus status
+        ExpenseSubcategoryStatus status,
+        String note
 ) {
 }

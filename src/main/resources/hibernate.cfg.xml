@@ -24,5 +24,8 @@
         <mapping class="org.POS.backend.code_generator.CodeGenerator"/>
         <mapping class="org.POS.backend.expense_category.ExpenseCategory"/>
         <mapping class="org.POS.backend.expense_subcategory.ExpenseSubcategory"/>
+        <mapping class="org.POS.backend.purchase.Purchase"/>
+        <mapping class="org.POS.backend.purchased_product.PurchaseProduct"/>
+        <mapping class="org.POS.backend.return_product.ReturnProduct"/>
     </session-factory>
 </hibernate-configuration>

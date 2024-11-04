@@ -14,10 +14,11 @@ public class Brand {
         AddBrandRequestDto dto = new AddBrandRequestDto(
                 "Toyota VB89-S",
                 BrandStatus.ACTIVE,
-                2
+                1
         );
         brandService.add(dto);
     }
+
 
     @Test
     void update(){

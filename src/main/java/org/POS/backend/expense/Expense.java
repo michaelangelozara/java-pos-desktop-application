@@ -31,6 +31,7 @@ public class Expense {
     @Column(columnDefinition = "VARCHAR(50) NOT NULL")
     private String code;
 
+    @Column(precision = 10, scale = 2)
     private BigDecimal amount;
 
     private String account;

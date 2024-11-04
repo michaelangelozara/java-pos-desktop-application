@@ -57,10 +57,11 @@ public class ExpenseSubcategoryDAO {
     }
 
     public ExpenseSubcategory getValidExpenseSubcategoryById(int expenseSubcategoryId){
+        ExpenseSubcategory expenseSubcategory = null;
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            ExpenseSubcategory expenseSubcategory = session.createQuery("SELECT es FROM ExpenseSubcategory es WHERE es.id = :expenseSubcategoryId AND es.isDeleted = FALSE ", ExpenseSubcategory.class)
+            expenseSubcategory = session.createQuery("SELECT es FROM ExpenseSubcategory es WHERE es.id = :expenseSubcategoryId AND es.isDeleted = FALSE ", ExpenseSubcategory.class)
                     .setParameter("expenseSubcategoryId", expenseSubcategoryId)
                     .getSingleResult();
 
@@ -70,13 +71,13 @@ public class ExpenseSubcategoryDAO {
             e.printStackTrace();
         }
 
-        return null;
+        return expenseSubcategory;
     }
 
     public List<ExpenseSubcategory> getAllValidExpenseSubcategories(){
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
-            String hqlQuery = "SELECT es FROM ExpenseSubcategory es WHERE es.isDeleted = FALSE ";
+            String hqlQuery = "SELECT es FROM ExpenseSubcategory es LEFT JOIN FETCH es.expenseCategory WHERE es.isDeleted = FALSE ";
             List<ExpenseSubcategory> expenseSubcategories = session.createQuery(hqlQuery, ExpenseSubcategory.class)
                             .getResultList();
 

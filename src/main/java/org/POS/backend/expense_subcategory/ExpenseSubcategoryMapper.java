@@ -30,9 +30,7 @@ public class ExpenseSubcategoryMapper {
     }
 
     public ExpenseSubcategory toUpdatedExpenseSubcategory(ExpenseSubcategory expenseSubcategory, UpdateExpenseSubcategoryRequestDto dto, ExpenseCategory expenseCategory){
-        expenseSubcategory.setId(dto.expenseSubcategoryId());
         expenseSubcategory.setExpenseCategory(expenseCategory);
-        expenseSubcategory.setId(dto.expenseCategoryId());
         expenseSubcategory.setName(dto.name());
         expenseSubcategory.setStatus(dto.status());
         expenseSubcategory.setNote(dto.note());
@@ -45,7 +43,8 @@ public class ExpenseSubcategoryMapper {
                 this.expenseCategoryMapper.expenseCategoryResponseDto(expenseSubcategory.getExpenseCategory()),
                 expenseSubcategory.getCode(),
                 expenseSubcategory.getName(),
-                expenseSubcategory.getStatus()
+                expenseSubcategory.getStatus(),
+                expenseSubcategory.getNote()
         );
     }
 

@@ -21,10 +21,12 @@ public class Expenses_Category extends javax.swing.JPanel {
             public void onEdit(int row) {
                 // Fetch current data from the selected row
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
-                int id = (Integer) model.getValueAt(row, 0);
-                String currentName = (String) model.getValueAt(row, 1);
-                String currentNote = (String) model.getValueAt(row, 2);
-                String currentStatus = (String) model.getValueAt(row, 3);
+                int id = (Integer) model.getValueAt(row, 1);
+                String currentName = (String) model.getValueAt(row, 2);
+//                String currentCode = (String) model.getValueAt(row, 3);
+                String currentNote = (String) model.getValueAt(row, 4);
+                String currentStatus = (String) model.getValueAt(row, 5);
+
                 System.out.println("DB_ID: " + id + ", Name: " + model.getValueAt(row, 1) + ", Note: " + model.getValueAt(row, 2) + ", Status: " + model.getValueAt(row, 3));
                 // Create a panel for displaying the data
                 JPanel panel = new JPanel(new GridBagLayout());
@@ -218,8 +220,8 @@ public class Expenses_Category extends javax.swing.JPanel {
                 JOptionPane.showMessageDialog(null, panel, "View Category", JOptionPane.INFORMATION_MESSAGE);
             }
         };
-        table.getColumnModel().getColumn(5).setCellRenderer(new TableActionCellRender());
-        table.getColumnModel().getColumn(5).setCellEditor(new TableActionCellEditor(event));
+        table.getColumnModel().getColumn(6).setCellRenderer(new TableActionCellRender());
+        table.getColumnModel().getColumn(6).setCellEditor(new TableActionCellEditor(event));
         loadCategories();
     }
 
@@ -230,8 +232,9 @@ public class Expenses_Category extends javax.swing.JPanel {
 
         // Clear all existing rows
         ExpenseCategoryService expenseCategoryService = new ExpenseCategoryService();
-        for (ExpenseCategoryResponseDto category : expenseCategoryService.getAllValidExpenseCategories()) {
-            model.addRow(new Object[]{category.id(), category.name(), category.code(), category.note(), category.status().toString()});
+        var categories = expenseCategoryService.getAllValidExpenseCategories();
+        for(int i = 0; i < categories.size(); i++){
+            model.addRow(new Object[]{i+1, categories.get(i).id(), categories.get(i).name(), categories.get(i).code(), categories.get(i).note(), categories.get(i).status().name()});
         }
     }
 

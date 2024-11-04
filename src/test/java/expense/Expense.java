@@ -14,7 +14,11 @@ public class Expense {
                 "Bought a lot of phones",
                 BigDecimal.valueOf(100000),
                 "No Account yet",
-                ExpenseStatus.ACTIVE
+                "1231234786",
+                "12314",
+                "No note yet",
+                ExpenseStatus.ACTIVE,
+                "image"
         );
 
         ExpenseService expenseService = new ExpenseService();

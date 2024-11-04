@@ -1,17 +1,21 @@
 package org.POS.backend.product;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.POS.backend.brand.Brand;
 import org.POS.backend.product_subcategory.ProductSubcategory;
+import org.POS.backend.purchased_product.PurchaseProduct;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "products")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 public class Product {
 
@@ -42,8 +46,11 @@ public class Product {
     @Column(name = "tax_type")
     private ProductTaxType taxType;
 
-    @Column(name = "regular_price")
+    @Column(name = "regular_price", precision = 10, scale = 2)
     private BigDecimal regularPrice;
+
+    @Column(name = "selling_price", precision = 10, scale = 2)
+    private BigDecimal sellingPrice;
 
     private int discount;
 
@@ -57,7 +64,7 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private ProductStatus status;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String image;
 
     @ManyToOne
@@ -67,4 +74,7 @@ public class Product {
     @ManyToOne
     @JoinColumn(name = "product_subcategory_id")
     private ProductSubcategory productSubcategory;
+
+    @OneToMany(mappedBy = "product")
+    private List<PurchaseProduct> purchaseProducts;
 }

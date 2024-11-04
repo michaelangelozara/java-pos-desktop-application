@@ -11,6 +11,9 @@ import org.POS.backend.expense_subcategory.ExpenseSubcategory;
 import org.POS.backend.person.Person;
 import org.POS.backend.product.Product;
 import org.POS.backend.product_subcategory.ProductSubcategory;
+import org.POS.backend.purchase.Purchase;
+import org.POS.backend.purchased_product.PurchaseProduct;
+import org.POS.backend.return_product.ReturnProduct;
 import org.POS.backend.user.User;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -38,6 +41,9 @@ public class HibernateUtil {
                 configuration.addAnnotatedClass(CodeGenerator.class);
                 configuration.addAnnotatedClass(ExpenseCategory.class);
                 configuration.addAnnotatedClass(ExpenseSubcategory.class);
+                configuration.addAnnotatedClass(Purchase.class);
+                configuration.addAnnotatedClass(PurchaseProduct.class);
+                configuration.addAnnotatedClass(ReturnProduct.class);
 
                 // Build the SessionFactory
                 sessionFactory = configuration.buildSessionFactory(

@@ -28,9 +28,7 @@ public class PersonMapper {
         return person;
     }
 
-    public Person toUpdatedPerson(UpdatePersonRequestDto dto){
-        Person person = new Person();
-        person.setId(dto.personId());
+    public Person toUpdatedPerson(Person person, UpdatePersonRequestDto dto){
         person.setName(dto.name());
         person.setEmail(dto.email());
         person.setContactNumber(dto.contactNumber());
@@ -45,6 +43,7 @@ public class PersonMapper {
 
     public PersonResponseDto personResponseDto(Person person){
         return new PersonResponseDto(
+                person.getId(),
                 person.getName(),
                 person.getEmail(),
                 person.getContactNumber(),
@@ -52,7 +51,8 @@ public class PersonMapper {
                 person.getTaxRegistrationNumber(),
                 person.getAddress(),
                 person.getImage(),
-                person.getStatus()
+                person.getStatus(),
+                person.getCode()
         );
     }
 

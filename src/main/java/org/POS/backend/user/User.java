@@ -28,6 +28,7 @@ public class User {
     @Column(name = "contact_number")
     private String contactNumber;
 
+    @Column(precision = 9, scale = 2)
     private BigDecimal salary;
 
     private int commission;

@@ -3,8 +3,10 @@ package org.POS.backend.person;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.POS.backend.purchase.Purchase;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "people")
@@ -15,9 +17,6 @@ public class Person {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    @Column(name = "person_id")
-    private String personId;
 
     private String name;
 
@@ -40,7 +39,7 @@ public class Person {
 
     private String address;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String image;
 
     @Enumerated(EnumType.STRING)
@@ -51,4 +50,7 @@ public class Person {
 
     @Column(name = "deleted_at")
     private LocalDate deletedAt;
+
+    @OneToMany(mappedBy = "person")
+    private List<Purchase> purchases;
 }

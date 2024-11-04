@@ -64,6 +64,13 @@ public class GlobalVariable {
     public static String EXPENSE_SUBCATEGORY_DELETED = "Expense subcategory successfully deleted";
     public static String EXPENSE_SUBCATEGORY_NOT_FOUND = "Expense subcategory not found";
 
+    // purchase
+
+    public static String PURCHASE_ADDED = "Purchase successfully added";
+    public static String PURCHASE_UPDATED = "Purchase successfully updated";
+    public static String PURCHASE_DELETED = "Purchase successfully deleted";
+    public static String PURCHASE_NOT_FOUND = "Purchase not found";
+
     // code generator
     public static String GENERATING_CODE_ERROR = "Generating code error";
 
@@ -76,5 +83,5 @@ public class GlobalVariable {
     public static String EXPENSE_SUBCATEGORY_PREFIX = "EXPS-";
     public static String CLIENT_PREFIX = "AC-";
     public static String SUPPLIER_PREFIX = "SP-";
-
+    public static String PURCHASE_PREFIX = "PCH-";
 }

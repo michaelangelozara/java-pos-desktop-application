@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Vector;
 
 import org.POS.backend.expense_category.ExpenseCategoryService;
 import org.POS.backend.expense_subcategory.*;
@@ -23,12 +24,9 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
             @Override
             public void onEdit(int row) {
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
-                int subcategoryId = (Integer) model.getValueAt(row, 0);
-                String currentCategory = (String) model.getValueAt(row, 1);         // Category
-                String currentSubCategoryCode = (String) model.getValueAt(row, 2);  // Subcategory Code
-                String currentName = (String) model.getValueAt(row, 3);             // Subcategory Name
-                String currentStatus = (String) model.getValueAt(row, 4);           // Status
-                String currentNote = (String) model.getValueAt(row, 5);             // Note
+                int subcategoryId = (Integer) model.getValueAt(row, 1);
+                String currentCategory = (String) model.getValueAt(row, 3);         // Category
+                String currentStatus = (String) model.getValueAt(row, 5);           // Status
 
                 // Create a panel for displaying the data
                 JPanel panel = new JPanel(new GridBagLayout());
@@ -48,30 +46,31 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
                 ExpenseCategoryService expenseCategoryService = new ExpenseCategoryService();
                 var validCategories = expenseCategoryService.getAllValidExpenseCategories();
 
-                Map<Integer, Integer> subcategoryMap = new HashMap<>();
+                Map<Integer, Integer> categoryMap = new HashMap<>();
 
-                String[] categories = new String[validCategories.size() + 1];
-                categories[0] = "Select a category";
-                for (int i = 1; i < categories.length; i++) {
-                    categories[i] = validCategories.get(i - 1).name();
-                    subcategoryMap.put(i, validCategories.get(i - 1).id());
+                Vector<String> categoryNames = new Vector<>();
+                categoryNames.add("Select a category");
+                for (int i = 0; i < validCategories.size(); i++) {
+                    categoryNames.add(validCategories.get(i).name());
+//                    categories[i] = validCategories.get(i - 1).name();
+                    categoryMap.put(i+1, validCategories.get(i).id());
                 }
 
-                JComboBox<String> categoryComboBox = new JComboBox<>(categories);
+                JComboBox<String> categoryComboBox = new JComboBox<>(categoryNames);
                 categoryComboBox.setFont(detailsFont);
 
                 // Subcategory Code
-                JLabel subCategoryCodeLabel = new JLabel("SubCategory Code:");
-                subCategoryCodeLabel.setFont(largerFont);
-                JTextField subCategoryCodeField = new JTextField(15);
-                subCategoryCodeField.setText(currentSubCategoryCode);
-                subCategoryCodeField.setFont(detailsFont);
+//                JLabel subCategoryCodeLabel = new JLabel("SubCategory Code:");
+//                subCategoryCodeLabel.setFont(largerFont);
+//                JTextField subCategoryCodeField = new JTextField(15);
+//                subCategoryCodeField.setText(currentSubCategoryCode);
+//                subCategoryCodeField.setFont(detailsFont);
 
                 // Subcategory Name
                 JLabel nameLabel = new JLabel("SubCategory Name:");
                 nameLabel.setFont(largerFont);
                 JTextField nameField = new JTextField(15);
-                nameField.setText(currentName);
+                nameField.setText(currentCategory);
                 nameField.setFont(detailsFont);
 
                 // Status
@@ -80,13 +79,15 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
                 String[] statuses = {"Select Status", "Active", "Inactive"};
                 JComboBox<String> statusComboBox = new JComboBox<>(statuses);
                 statusComboBox.setFont(detailsFont);
-                statusComboBox.setSelectedItem(currentStatus);
+                statusComboBox.setSelectedItem(currentStatus.equals("ACTIVE") ? "Active" : "Inactive");
 
                 // Note
+                ExpenseSubcategoryService subcategoryService = new ExpenseSubcategoryService();
+                var expense = subcategoryService.getValidExpenseSubcategoryById(subcategoryId);
                 JLabel noteLabel = new JLabel("Note:");
                 noteLabel.setFont(largerFont);
                 JTextArea noteArea = new JTextArea(5, 20);
-                noteArea.setText(currentNote);
+                noteArea.setText(expense.note());
                 noteArea.setFont(detailsFont);
                 JScrollPane noteScrollPane = new JScrollPane(noteArea);
 
@@ -97,14 +98,19 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
                 gbc.gridx = 1;
                 panel.add(categoryComboBox, gbc);
 
+//                gbc.gridx = 0;
+//                gbc.gridy = 1;
+//                panel.add(subCategoryCodeLabel, gbc);
+//                gbc.gridx = 1;
+//                panel.add(subCategoryCodeField, gbc);
+
+//                gbc.gridx = 0;
+//                gbc.gridy = 2;
+//                panel.add(nameLabel, gbc);
+//                gbc.gridx = 1;
+//                panel.add(nameField, gbc);
                 gbc.gridx = 0;
                 gbc.gridy = 1;
-                panel.add(subCategoryCodeLabel, gbc);
-                gbc.gridx = 1;
-                panel.add(subCategoryCodeField, gbc);
-
-                gbc.gridx = 0;
-                gbc.gridy = 2;
                 panel.add(nameLabel, gbc);
                 gbc.gridx = 1;
                 panel.add(nameField, gbc);
@@ -129,16 +135,16 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
 
                 if (result == JOptionPane.OK_OPTION) {
                     int selectedCategoryIndex = categoryComboBox.getSelectedIndex();
-                    String subCategoryCode = subCategoryCodeField.getText().trim();
+//                    String subCategoryCode = subCategoryCodeField.getText().trim();
                     String name = nameField.getText().trim();
                     String status = (String) statusComboBox.getSelectedItem();
                     String note = noteArea.getText().trim();
 
-                    if (selectedCategoryIndex == 0 || subCategoryCode.isEmpty() || name.isEmpty() || status.equals("Select Status")) {
+                    if (selectedCategoryIndex == 0 || name.isEmpty() || status.equals("Select Status")) {
                         JOptionPane.showMessageDialog(null,
                                 "Please enter valid Category, Subcategory Code, Name, and Status.", "Error", JOptionPane.ERROR_MESSAGE);
                     } else {
-                        int categoryId = subcategoryMap.get(selectedCategoryIndex);
+                        int categoryId = categoryMap.get(selectedCategoryIndex);
                         ExpenseSubcategoryService productSubcategoryService = new ExpenseSubcategoryService();
                         UpdateExpenseSubcategoryRequestDto dto = new UpdateExpenseSubcategoryRequestDto(
                                 subcategoryId,
@@ -186,11 +192,18 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
             @Override
             public void onView(int row) {
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
-                String currentSubCategoryCode = (String) model.getValueAt(row, 0);  // Assuming column 0 is the SubCategory Code
-                String currentCategory = (String) model.getValueAt(row, 1);         // Category
-                String currentName = (String) model.getValueAt(row, 2);             // SubCategory Name
-                String currentNote = (String) model.getValueAt(row, 3);             // Note
-                String currentStatus = (String) model.getValueAt(row, 4);           // Status
+//                String currentSubCategoryCode = (String) model.getValueAt(row, 0);  // Assuming column 0 is the SubCategory Code
+//                String currentCategory = (String) model.getValueAt(row, 1);         // Category
+//                String currentName = (String) model.getValueAt(row, 2);             // SubCategory Name
+//                String currentNote = (String) model.getValueAt(row, 3);             // Note
+//                String currentStatus = (String) model.getValueAt(row, 4);           // Status
+
+                int subcategoryId = (Integer) model.getValueAt(row, 1);
+                String category = (String) model.getValueAt(row, 2);  // Assuming column 0 is the SubCategory Code
+                String subcategory = (String) model.getValueAt(row, 3);         // Category
+                String subcategoryCode = (String) model.getValueAt(row, 4);             // SubCategory Name
+                String status = (String) model.getValueAt(row, 5);             // Note
+
 
                 JPanel panel = new JPanel(new GridBagLayout());
                 GridBagConstraints gbc = new GridBagConstraints();
@@ -205,32 +218,34 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
                 // Category Label and Value
                 JLabel categoryLabel = new JLabel("Category:");
                 categoryLabel.setFont(largerFont);
-                JLabel categoryValue = new JLabel(currentCategory);
+                JLabel categoryValue = new JLabel(category);
                 categoryValue.setFont(detailsFont);
 
                 // SubCategory Code Label and Value
                 JLabel subCategoryCodeLabel = new JLabel("SubCategory Code:");
                 subCategoryCodeLabel.setFont(largerFont);
-                JLabel subCategoryCodeValue = new JLabel(currentSubCategoryCode);
+                JLabel subCategoryCodeValue = new JLabel(subcategoryCode);
                 subCategoryCodeValue.setFont(detailsFont);
 
                 // SubCategory Name Label and Value
                 JLabel nameLabel = new JLabel("SubCategory Name:");
                 nameLabel.setFont(largerFont);
-                JLabel nameValue = new JLabel(currentName);
+                JLabel nameValue = new JLabel(subcategory);
                 nameValue.setFont(detailsFont);
 
                 // Status Label and Value
                 JLabel statusLabel = new JLabel("Status:");
                 statusLabel.setFont(largerFont);
-                JLabel statusValue = new JLabel(currentStatus);
+                JLabel statusValue = new JLabel(status);
                 statusValue.setFont(detailsFont);
 
+                ExpenseSubcategoryService subcategoryService = new ExpenseSubcategoryService();
+                var expenseSubcategory = subcategoryService.getValidExpenseSubcategoryById(subcategoryId);
                 // Note Label and Value (TextArea for multiline note)
                 JLabel noteLabel = new JLabel("Note:");
                 noteLabel.setFont(largerFont);
                 JTextArea noteValue = new JTextArea(5, 20);
-                noteValue.setText(currentNote);
+                noteValue.setText(expenseSubcategory.note());
                 noteValue.setEditable(false);
                 noteValue.setFocusable(false);
                 noteValue.setOpaque(false);
@@ -283,8 +298,8 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
             }
 
         };
-        table.getColumnModel().getColumn(5).setCellRenderer(new TableActionCellRender());
-        table.getColumnModel().getColumn(5).setCellEditor(new TableActionCellEditor(event));
+        table.getColumnModel().getColumn(6).setCellRenderer(new TableActionCellRender());
+        table.getColumnModel().getColumn(6).setCellEditor(new TableActionCellEditor(event));
         loadSubcategories();
     }
 
@@ -295,8 +310,9 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
 
         // Clear all existing rows
         ExpenseSubcategoryService expenseSubcategoryService = new ExpenseSubcategoryService();
-        for (ExpenseSubcategoryResponseDto subcategory : expenseSubcategoryService.getAllValidExpenseSubcategories()) {
-            model.addRow(new Object[]{subcategory.id(), subcategory.expenseCategoryResponseDto().name(), subcategory.name(), subcategory.code(), subcategory.status().name()});
+        var subcategories = expenseSubcategoryService.getAllValidExpenseSubcategories();
+        for(int i = 0; i < subcategories.size(); i++){
+            model.addRow(new Object[]{i+1, subcategories.get(i).id(), subcategories.get(i).expenseCategoryResponseDto().name(), subcategories.get(i).name(), subcategories.get(i).code(), subcategories.get(i).status().name()});
         }
     }
 
@@ -337,19 +353,19 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
 
         table.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null}
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null}
             },
             new String [] {
-                "ID", "Category", "Sub Category Name	", "Sub Category Code	", "Status", "Action"
+                "#", "ID", "Category", "Sub Category Name	", "Sub Category Code	", "Status", "Action"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
+                java.lang.Integer.class, java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
             };
             boolean[] canEdit = new boolean [] {
-                true, false, false, false, false, true
+                true, true, false, false, false, false, true
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -363,10 +379,10 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
         table.setRowHeight(40);
         jScrollPane1.setViewportView(table);
         if (table.getColumnModel().getColumnCount() > 0) {
-            table.getColumnModel().getColumn(1).setResizable(false);
             table.getColumnModel().getColumn(2).setResizable(false);
             table.getColumnModel().getColumn(3).setResizable(false);
             table.getColumnModel().getColumn(4).setResizable(false);
+            table.getColumnModel().getColumn(5).setResizable(false);
         }
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);

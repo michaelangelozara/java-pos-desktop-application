@@ -37,8 +37,8 @@ public class ExpenseSubcategoryService {
         if(expenseCategory != null) {
             var expenseSubcategory = this.expenseSubcategoryDAO.getValidExpenseSubcategoryById(dto.expenseSubcategoryId());
             if (expenseSubcategory != null) {
-                var updatedExpenseCategory = this.expenseSubcategoryMapper.toUpdatedExpenseSubcategory(expenseSubcategory, dto, expenseCategory);
-                this.expenseSubcategoryDAO.update(updatedExpenseCategory);
+                var updatedExpenseSubcategory = this.expenseSubcategoryMapper.toUpdatedExpenseSubcategory(expenseSubcategory, dto, expenseCategory);
+                this.expenseSubcategoryDAO.update(updatedExpenseSubcategory);
                 return GlobalVariable.EXPENSE_SUBCATEGORY_UPDATED;
             }
             return GlobalVariable.EXPENSE_SUBCATEGORY_NOT_FOUND;

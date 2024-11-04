@@ -79,10 +79,11 @@ public class ExpenseCategoryDAO {
     }
 
     public ExpenseCategory getValidExpenseCategoryById(int expenseCategoryId){
+        ExpenseCategory expenseCategory = null;
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            ExpenseCategory expenseCategory = session.createQuery("SELECT ec FROM ExpenseCategory ec WHERE ec.id = :expenseCategoryId AND ec.isDeleted = FALSE ", ExpenseCategory.class)
+            expenseCategory = session.createQuery("SELECT ec FROM ExpenseCategory ec WHERE ec.id = :expenseCategoryId AND ec.isDeleted = FALSE ", ExpenseCategory.class)
                             .setParameter("expenseCategoryId", expenseCategoryId)
                                     .getSingleResult();
 
@@ -91,7 +92,7 @@ public class ExpenseCategoryDAO {
         }catch (Exception e){
             e.printStackTrace();
         }
-        return null;
+        return expenseCategory;
     }
 
     public List<ExpenseCategory> getAllValidExpenseCategories(){
