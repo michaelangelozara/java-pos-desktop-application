@@ -4,9 +4,21 @@ package org.POS.frontend.src.raven.application.form.other;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Vector;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
+import org.POS.backend.brand.BrandService;
+import org.POS.backend.cryptography.Base64Converter;
+import org.POS.backend.product.*;
+import org.POS.backend.product_category.ProductCategoryService;
+import org.POS.backend.product_subcategory.ProductSubcategoryService;
+import org.POS.backend.string_checker.StringChecker;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
 
 import javax.swing.table.DefaultTableModel;
@@ -22,22 +34,11 @@ public class ProductList extends javax.swing.JPanel {
 
             @Override
             public void onEdit(int row) {
-                // Sample product data for demonstration purposes (you would fetch this from your data source)
-                String existingItemName = "Sample Item Name"; // Assuming column 0 contains item name
-                String existingItemModel = "Sample Model";     // Assuming column 1 contains item model
-                String existingItemCode = "SMPL123";           // Assuming column 2 contains item code
-                String existingCategory = "Category 1";        // Assuming column 3 contains category
-                String existingBrand = "Sample Brand";          // Assuming column 4 contains brand
-                String existingUnit = "Per Piece";              // Assuming column 5 contains unit
-                String existingProductTax = "VAT@10";          // Assuming column 6 contains product productTax
-                String existingTaxType = "Exclusive";           // Assuming column 7 contains productTax type
-                String existingPurchasePrice = "100.00";        // Assuming column 8 contains purchase price
-                String existingRegularPrice = "150.00";         // Assuming column 9 contains regular price
-                String existingDiscount = "10";                  // Assuming column 10 contains discount
-                String existingSellingPrice = "140.00";         // Assuming column 11 contains selling price
-                String existingNote = "This is a sample note."; // Assuming column 12 contains note
-                String existingAlertQuantity = "5";              // Assuming column 13 contains alert quantity
-                String existingStatus = "Active";                // Assuming column 14 contains status
+                DefaultTableModel model = (DefaultTableModel) table.getModel();
+                int productId = (Integer) model.getValueAt(row, 1);
+
+                ProductService productService = new ProductService();
+                var product = productService.getValidProductById(productId);
 
                 JPanel panel = new JPanel();
                 panel.setLayout(new GridBagLayout()); // Use GridBagLayout for a more flexible layout
@@ -60,7 +61,7 @@ public class ProductList extends javax.swing.JPanel {
                 gbc.gridx = 1;
                 JTextField itemNameField = new JTextField(15);
                 itemNameField.setFont(regularFont);
-                itemNameField.setText(existingItemName); // Prepopulate with existing value
+                itemNameField.setText(product.name()); // Prepopulate with existing value
                 panel.add(itemNameField, gbc);
 
                 // Item Model
@@ -72,35 +73,59 @@ public class ProductList extends javax.swing.JPanel {
                 gbc.gridx = 3;
                 JTextField itemModelField = new JTextField(15);
                 itemModelField.setFont(regularFont);
-                itemModelField.setText(existingItemModel); // Prepopulate with existing value
+                itemModelField.setText(product.model()); // Prepopulate with existing value
                 panel.add(itemModelField, gbc);
 
                 // Item Code *
                 gbc.gridx = 0;
                 gbc.gridy = 1;
-                JLabel itemCodeLabel = new JLabel("Item Code *");
-                itemCodeLabel.setFont(boldFont);
-                panel.add(itemCodeLabel, gbc);
+                JLabel itemStockLabel = new JLabel("Stock *");
+                itemStockLabel.setFont(boldFont);
+                panel.add(itemStockLabel, gbc);
 
                 gbc.gridx = 1;
-                JTextField itemCodeField = new JTextField(15);
-                itemCodeField.setFont(regularFont);
-                itemCodeField.setText(existingItemCode); // Prepopulate with existing value
-                panel.add(itemCodeField, gbc);
+                JTextField itemStockField = new JTextField(15);
+                itemStockField.setFont(regularFont);
+                itemStockField.setText(String.valueOf(product.stock())); // Prepopulate with existing value
+                panel.add(itemStockField, gbc);
 
                 // Category
                 gbc.gridx = 2;
-                JLabel categoryLabel = new JLabel("Category");
+                JLabel categoryLabel = new JLabel("Subcategory");
                 categoryLabel.setFont(boldFont);
                 panel.add(categoryLabel, gbc);
 
                 gbc.gridx = 3;
-                JComboBox<String> categoryCombo = new JComboBox<>(new String[]{"Select Category", "Category 1", "Category 2"});
-                categoryCombo.setFont(regularFont);
-                categoryCombo.setSelectedItem(existingCategory); // Preselect existing category
-                panel.add(categoryCombo, gbc);
+
+                Vector<String> productSubcategoryNames = new Vector<>();
+                productSubcategoryNames.add("Select Subcategory");
+                Map<Integer, Integer> productSubcategoryMap = new HashMap<>();
+                ProductSubcategoryService productSubcategoryService = new ProductSubcategoryService();
+                var productSubcategories = productSubcategoryService.getAllValidSubcategories();
+                for (int i = 0; i < productSubcategories.size(); i++) {
+                    productSubcategoryNames.add(productSubcategories.get(i).name());
+                    productSubcategoryMap.put(i + 1, productSubcategories.get(i).id());
+                }
+
+                JComboBox<String> productSubcategoryCombo = new JComboBox<>(productSubcategoryNames);
+                productSubcategoryCombo.setFont(regularFont);
+                panel.add(productSubcategoryCombo, gbc);
+
+                for (int i = 0; i < productSubcategories.size(); i++) {
+                    if (productSubcategories.get(i).id() == product.brand().productSubcategory().id()) {
+                        productSubcategoryCombo.removeAllItems();
+
+                        productSubcategoryNames.add("Select Subcategory");
+                        productSubcategoryCombo.addItem(productSubcategories.get(i).name());
+                        productSubcategoryCombo.setSelectedItem(productSubcategories.get(i).name());
+                        productSubcategoryMap.put(i + 1, productSubcategories.get(i).id());
+                        break;
+                    }
+                }
 
                 // Brand
+                BrandService brandService = new BrandService();
+                Map<Integer, Integer> brandMap = new HashMap<>();
                 gbc.gridx = 0;
                 gbc.gridy = 2;
                 JLabel brandLabel = new JLabel("Brand");
@@ -108,10 +133,33 @@ public class ProductList extends javax.swing.JPanel {
                 panel.add(brandLabel, gbc);
 
                 gbc.gridx = 1;
-                JTextField brandField = new JTextField(15);
-                brandField.setFont(regularFont);
-                brandField.setText(existingBrand); // Prepopulate with existing value
-                panel.add(brandField, gbc);
+                var tempBrands = brandService.getAllBrandByProductSubcategoryId(product.brand().productSubcategory().id());
+                JComboBox<String> brandCombo = new JComboBox<>();
+                brandCombo.setFont(regularFont);
+                panel.add(brandCombo, gbc);
+
+                for (int i = 0; i < tempBrands.size(); i++) {
+                    if (tempBrands.get(i).id() == product.brand().id()) {
+                        brandCombo.addItem(tempBrands.get(i).name());
+                        brandCombo.setSelectedItem(tempBrands.get(i).name());
+                        brandMap.put(i, tempBrands.get(i).id());
+                        break;
+                    }
+                }
+
+                productSubcategoryCombo.addActionListener(e -> {
+                    brandCombo.removeAllItems();
+
+                    brandCombo.setSelectedItem("Select Brand");
+                    int productSubcategoryIndex = productSubcategoryCombo.getSelectedIndex();
+                    int productSubcategoryId = productSubcategoryMap.get(productSubcategoryIndex);
+                    var brands = brandService.getAllBrandByProductSubcategoryId(productSubcategoryId);
+                    for (int i = 0; i < brands.size(); i++) {
+                        brandCombo.addItem(brands.get(i).name());
+                        brandMap.put(i + 1, brands.get(i).id());
+                    }
+
+                });
 
                 // Unit
                 gbc.gridx = 2;
@@ -122,7 +170,7 @@ public class ProductList extends javax.swing.JPanel {
                 gbc.gridx = 3;
                 JComboBox<String> unitCombo = new JComboBox<>(new String[]{"Per Piece", "12 pcs"});
                 unitCombo.setFont(regularFont);
-                unitCombo.setSelectedItem(existingUnit); // Preselect existing unit
+                unitCombo.setSelectedItem(product.unit().equals(ProductUnit.PIECE) ? "Per Piece" : "Per Dozen"); // Preselect existing unit
                 panel.add(unitCombo, gbc);
 
                 // Product Tax *
@@ -133,9 +181,20 @@ public class ProductList extends javax.swing.JPanel {
                 panel.add(productTaxLabel, gbc);
 
                 gbc.gridx = 1;
-                JComboBox<String> productTaxCombo = new JComboBox<>(new String[]{"Select Product Type", "VAT@0", "VAT@5", "VAT@10"});
+                Map<String, Integer> productTaxTypeMap = new HashMap<>();
+                productTaxTypeMap.put("VAT@0", 0);
+                productTaxTypeMap.put("VAT@5", 5);
+                productTaxTypeMap.put("VAT@10", 10);
+                productTaxTypeMap.put("VAT@20", 20);
+
+                Map<Integer, String> productTempMap = new HashMap<>();
+                productTempMap.put(0, "VAT@0");
+                productTempMap.put(5, "VAT@5");
+                productTempMap.put(10, "VAT@10");
+                productTempMap.put(20, "VAT@20");
+                JComboBox<String> productTaxCombo = new JComboBox<>(new String[]{"Select Product Type", "VAT@0", "VAT@5", "VAT@10", "VAT@20"});
                 productTaxCombo.setFont(regularFont);
-                productTaxCombo.setSelectedItem(existingProductTax); // Preselect existing product productTax
+                productTaxCombo.setSelectedItem(productTempMap.get(product.tax())); // Preselect existing product productTax
                 panel.add(productTaxCombo, gbc);
 
                 // Tax Type
@@ -147,7 +206,7 @@ public class ProductList extends javax.swing.JPanel {
                 gbc.gridx = 3;
                 JComboBox<String> taxTypeCombo = new JComboBox<>(new String[]{"Select Tax Type", "Exclusive", "Inclusive"});
                 taxTypeCombo.setFont(regularFont);
-                taxTypeCombo.setSelectedItem(existingTaxType); // Preselect existing productTax type
+                taxTypeCombo.setSelectedItem(product.taxType().equals(ProductTaxType.EXCLUSIVE) ? "Exclusive" : "Inclusive"); // Preselect existing productTax type
                 panel.add(taxTypeCombo, gbc);
 
                 // Purchase Price
@@ -160,7 +219,7 @@ public class ProductList extends javax.swing.JPanel {
                 gbc.gridx = 1;
                 JTextField purchasePriceField = new JTextField(15);
                 purchasePriceField.setFont(regularFont);
-                purchasePriceField.setText(existingPurchasePrice); // Prepopulate with existing value
+                purchasePriceField.setText(String.valueOf(product.purchasePrice())); // Prepopulate with existing value
                 panel.add(purchasePriceField, gbc);
 
                 // Regular Price *
@@ -172,7 +231,7 @@ public class ProductList extends javax.swing.JPanel {
                 gbc.gridx = 3;
                 JTextField regularPriceField = new JTextField(15);
                 regularPriceField.setFont(regularFont);
-                regularPriceField.setText(existingRegularPrice); // Prepopulate with existing value
+                regularPriceField.setText(String.valueOf(product.regularPrice())); // Prepopulate with existing value
                 panel.add(regularPriceField, gbc);
 
                 // Discount
@@ -185,7 +244,7 @@ public class ProductList extends javax.swing.JPanel {
                 gbc.gridx = 1;
                 JTextField discountField = new JTextField(15);
                 discountField.setFont(regularFont);
-                discountField.setText(existingDiscount); // Prepopulate with existing value
+                discountField.setText(String.valueOf(product.discount())); // Prepopulate with existing value
                 panel.add(discountField, gbc);
 
                 // Selling Price
@@ -197,7 +256,7 @@ public class ProductList extends javax.swing.JPanel {
                 gbc.gridx = 3;
                 JTextField sellingPriceField = new JTextField(15);
                 sellingPriceField.setFont(regularFont);
-                sellingPriceField.setText(existingSellingPrice); // Prepopulate with existing value
+                sellingPriceField.setText(String.valueOf(product.sellingPrice())); // Prepopulate with existing value
                 panel.add(sellingPriceField, gbc);
 
                 // Note
@@ -211,7 +270,7 @@ public class ProductList extends javax.swing.JPanel {
                 gbc.gridwidth = 3;
                 JTextArea noteArea = new JTextArea(3, 15);
                 noteArea.setFont(regularFont);
-                noteArea.setText(existingNote); // Prepopulate with existing value
+                noteArea.setText(product.note()); // Prepopulate with existing value
                 JScrollPane noteScrollPane = new JScrollPane(noteArea);
                 panel.add(noteScrollPane, gbc);
                 gbc.gridwidth = 1;
@@ -226,7 +285,7 @@ public class ProductList extends javax.swing.JPanel {
                 gbc.gridx = 1;
                 JTextField alertQuantityField = new JTextField(15);
                 alertQuantityField.setFont(regularFont);
-                alertQuantityField.setText(existingAlertQuantity); // Prepopulate with existing value
+                alertQuantityField.setText(String.valueOf(product.alertQuantity())); // Prepopulate with existing value
                 panel.add(alertQuantityField, gbc);
 
                 // Status
@@ -238,31 +297,100 @@ public class ProductList extends javax.swing.JPanel {
                 gbc.gridx = 3;
                 JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Select status", "Active", "Inactive"});
                 statusCombo.setFont(regularFont);
-                statusCombo.setSelectedItem(existingStatus); // Preselect existing status
+                statusCombo.setSelectedItem(product.status().equals(ProductStatus.ACTIVE) ? "Active" : "Inactive"); // Preselect existing status
                 panel.add(statusCombo, gbc);
+
+                // Image - Modify to use JFileChooser for file upload
+                gbc.gridx = 0;
+                gbc.gridy = 8;
+                JLabel imageLabel = new JLabel("Image");
+                imageLabel.setFont(boldFont);
+                panel.add(imageLabel, gbc);
+
+                gbc.gridx = 1;
+                JButton imageButton = new JButton("Choose File");
+                imageButton.setFont(regularFont);
+
+                // Add action listener for the imageButton to open file explorer
+                Base64Converter base64Converter = new Base64Converter();
+                imageButton.addActionListener(e -> {
+                    JFileChooser fileChooser = new JFileChooser();
+                    fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                    int returnValue = fileChooser.showOpenDialog(null);
+                    if (returnValue == JFileChooser.APPROVE_OPTION) {
+                        File selectedFile = fileChooser.getSelectedFile();
+                        try {
+                            base64Converter.setConvertFileToBase64(selectedFile);
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
+                });
+                panel.add(imageButton, gbc);
 
                 // Finalize and show the dialog
                 int result = JOptionPane.showConfirmDialog(null, panel, "Edit Product", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
                 if (result == JOptionPane.OK_OPTION) {
                     // Handle saving the edited values here
-//        // Example:
-//        String updatedItemName = itemNameField.getText();
-//        String updatedItemModel = itemModelField.getText();
-//        String updatedItemCode = itemCodeField.getText();
-//        String updatedCategory = (String) categoryCombo.getSelectedItem();
-//        String updatedBrand = brandField.getText();
-//        String updatedUnit = (String) unitCombo.getSelectedItem();
-//        String updatedProductTax = (String) productTaxCombo.getSelectedItem();
-//        String updatedTaxType = (String) taxTypeCombo.getSelectedItem();
-//        String updatedPurchasePrice = purchasePriceField.getText();
-//        String updatedRegularPrice = regularPriceField.getText();
-//        String updatedDiscount = discountField.getText();
-//        String updatedSellingPrice = sellingPriceField.getText();
-//        String updatedNote = noteArea.getText();
-//        String updatedAlertQuantity = alertQuantityField.getText();
-//        String updatedStatus = (String) statusCombo.getSelectedItem();
+                    String updatedItemName = itemNameField.getText();
+                    String updatedItemModel = itemModelField.getText();
+                    String updatedItemStock = itemStockField.getText();
+                    String updatedUnit = (String) unitCombo.getSelectedItem();
+                    String updatedProductTax = (String) productTaxCombo.getSelectedItem();
+                    String updatedTaxType = (String) taxTypeCombo.getSelectedItem();
+                    String updatedPurchasePrice = purchasePriceField.getText();
+                    String updatedRegularPrice = regularPriceField.getText();
+                    String updatedDiscount = discountField.getText();
+                    String updatedNote = noteArea.getText();
+                    String updatedAlertQuantity = alertQuantityField.getText();
+                    String updatedStatus = (String) statusCombo.getSelectedItem();
+                    String updatedImage = base64Converter.getBase64();
+                    int brandIndex = brandCombo.getSelectedIndex();
+                    int brandId = brandMap.get(brandIndex);
 
-                    // TODO: Save the updated values back to your data source
+                    if (!StringChecker.isNumericOnly(updatedItemStock)) {
+                        JOptionPane.showMessageDialog(null, "Any character in the stock is not allowed",
+                                "Error", JOptionPane.WARNING_MESSAGE);
+                    } else if (!StringChecker.isNumericOnly(updatedDiscount)) {
+                        JOptionPane.showMessageDialog(null, "Any character in the discount is not allowed",
+                                "Error", JOptionPane.WARNING_MESSAGE);
+                    } else if (!StringChecker.isNumericOnly(updatedAlertQuantity)) {
+                        JOptionPane.showMessageDialog(null, "Any character in the alert quantity is not allowed",
+                                "Error", JOptionPane.WARNING_MESSAGE);
+                    } else if (!StringChecker.isNumericOnly(updatedPurchasePrice)) {
+                        JOptionPane.showMessageDialog(null, "Any character in the purchase price is not allowed",
+                                "Error", JOptionPane.WARNING_MESSAGE);
+                    } else if (!StringChecker.isNumericOnly(updatedRegularPrice)) {
+                        JOptionPane.showMessageDialog(null, "Any character in the regular price is not allowed",
+                                "Error", JOptionPane.WARNING_MESSAGE);
+                    } else {
+                        assert updatedUnit != null;
+                        assert updatedTaxType != null;
+                        assert updatedStatus != null;
+                        UpdateProductRequestDto dto = new UpdateProductRequestDto(
+                                product.id(),
+                                updatedItemName,
+                                updatedItemModel,
+                                brandId,
+                                updatedUnit.equals("Per Piece") ? ProductUnit.PIECE : ProductUnit.DOZEN,
+                                productTaxTypeMap.get(updatedProductTax),
+                                updatedTaxType.equals("Exclusive") ? ProductTaxType.EXCLUSIVE : ProductTaxType.INCLUSIVE,
+                                BigDecimal.valueOf(Double.parseDouble(updatedRegularPrice)),
+                                Integer.parseInt(updatedDiscount),
+                                updatedNote,
+                                Integer.parseInt(updatedAlertQuantity),
+                                updatedStatus.equals("Active") ? ProductStatus.ACTIVE : ProductStatus.INACTIVE,
+                                updatedImage != null ? updatedImage : product.image(),
+                                BigDecimal.valueOf(Double.parseDouble(updatedPurchasePrice)),
+                                Integer.parseInt(updatedItemStock)
+                        );
+
+                        productService.update(dto);
+
+                        JOptionPane.showMessageDialog(null, "Product Updated Successfully",
+                                "Updated", JOptionPane.INFORMATION_MESSAGE);
+                        loadProducts();
+                    }
                 }
             }
 
@@ -279,15 +407,24 @@ public class ProductList extends javax.swing.JPanel {
 
                 if (confirmation == JOptionPane.YES_OPTION) {
                     DefaultTableModel model = (DefaultTableModel) table.getModel();
-                    model.removeRow(row);
+                    int productId = (Integer) model.getValueAt(row, 1);
+                    ProductService productService = new ProductService();
+                    productService.delete(productId);
                     JOptionPane.showMessageDialog(null, "Product Deleted Successfully",
                             "Deleted", JOptionPane.INFORMATION_MESSAGE);
+                    loadProducts();
                 }
             }
 
             @Override
 
             public void onView(int row) {
+                DefaultTableModel model = (DefaultTableModel) table.getModel();
+                int productId = (Integer) model.getValueAt(row, 1);
+
+                ProductService productService = new ProductService();
+                var product = productService.getValidProductById(productId);
+
                 // Placeholder for the image on the left side
                 JLabel imageLabel = new JLabel();
                 ImageIcon productIcon = new ImageIcon("src/raven/icon/png/logo_1.png");
@@ -311,7 +448,7 @@ public class ProductList extends javax.swing.JPanel {
                 label.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 label.setOpaque(true);
                 detailsPanel.add(label);
-                detail = new JLabel("Steel Bar", horizontalAlignment);
+                detail = new JLabel(product.name(), horizontalAlignment);
                 detail.setFont(new Font("Arial", Font.PLAIN, 16));  // Details font size 16
                 detail.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 detail.setOpaque(true);
@@ -322,7 +459,7 @@ public class ProductList extends javax.swing.JPanel {
                 label.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 label.setOpaque(true);
                 detailsPanel.add(label);
-                detail = new JLabel("AA-001", horizontalAlignment);
+                detail = new JLabel(product.code(), horizontalAlignment);
                 detail.setFont(new Font("Arial", Font.PLAIN, 16));
                 detail.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 detail.setOpaque(true);
@@ -333,7 +470,7 @@ public class ProductList extends javax.swing.JPanel {
                 label.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 label.setOpaque(true);
                 detailsPanel.add(label);
-                detail = new JLabel("Steel Bar", horizontalAlignment);
+                detail = new JLabel(product.model(), horizontalAlignment);
                 detail.setFont(new Font("Arial", Font.PLAIN, 16));
                 detail.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 detail.setOpaque(true);
@@ -344,7 +481,7 @@ public class ProductList extends javax.swing.JPanel {
                 label.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 label.setOpaque(true);
                 detailsPanel.add(label);
-                detail = new JLabel("Steel", horizontalAlignment);
+                detail = new JLabel(product.brand().productSubcategory().name(), horizontalAlignment);
                 detail.setFont(new Font("Arial", Font.PLAIN, 16));
                 detail.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 detail.setOpaque(true);
@@ -355,7 +492,7 @@ public class ProductList extends javax.swing.JPanel {
                 label.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 label.setOpaque(true);
                 detailsPanel.add(label);
-                detail = new JLabel("Sample Brand", horizontalAlignment);
+                detail = new JLabel(product.brand().name(), horizontalAlignment);
                 detail.setFont(new Font("Arial", Font.PLAIN, 16));
                 detail.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 detail.setOpaque(true);
@@ -366,7 +503,7 @@ public class ProductList extends javax.swing.JPanel {
                 label.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 label.setOpaque(true);
                 detailsPanel.add(label);
-                detail = new JLabel("Per Piece", horizontalAlignment);
+                detail = new JLabel(product.unit().equals(ProductUnit.PIECE) ? "Per Piece" : "Per Dozen", horizontalAlignment);
                 detail.setFont(new Font("Arial", Font.PLAIN, 16));
                 detail.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 detail.setOpaque(true);
@@ -377,7 +514,7 @@ public class ProductList extends javax.swing.JPanel {
                 label.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 label.setOpaque(true);
                 detailsPanel.add(label);
-                detail = new JLabel("10%", horizontalAlignment);
+                detail = new JLabel(String.valueOf(product.tax() + "%"), horizontalAlignment);
                 detail.setFont(new Font("Arial", Font.PLAIN, 16));
                 detail.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 detail.setOpaque(true);
@@ -388,7 +525,7 @@ public class ProductList extends javax.swing.JPanel {
                 label.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 label.setOpaque(true);
                 detailsPanel.add(label);
-                detail = new JLabel("15%", horizontalAlignment);
+                detail = new JLabel("I don't know", horizontalAlignment);
                 detail.setFont(new Font("Arial", Font.PLAIN, 16));
                 detail.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 detail.setOpaque(true);
@@ -400,7 +537,7 @@ public class ProductList extends javax.swing.JPanel {
                 label.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 label.setOpaque(true);
                 detailsPanel.add(label);
-                detail = new JLabel("150.00", horizontalAlignment);
+                detail = new JLabel(String.valueOf(product.purchasePrice()), horizontalAlignment);
                 detail.setFont(new Font("Arial", Font.PLAIN, 16));
                 detail.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 detail.setOpaque(true);
@@ -412,7 +549,7 @@ public class ProductList extends javax.swing.JPanel {
                 label.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 label.setOpaque(true);
                 detailsPanel.add(label);
-                detail = new JLabel("155.00", horizontalAlignment);
+                detail = new JLabel(String.valueOf(product.regularPrice()), horizontalAlignment);
                 detail.setFont(new Font("Arial", Font.PLAIN, 16));
                 detail.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 detail.setOpaque(true);
@@ -423,7 +560,7 @@ public class ProductList extends javax.swing.JPanel {
                 label.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 label.setOpaque(true);
                 detailsPanel.add(label);
-                detail = new JLabel("170.00", horizontalAlignment);
+                detail = new JLabel(String.valueOf(product.sellingPrice()), horizontalAlignment);
                 detail.setFont(new Font("Arial", Font.PLAIN, 16));
                 detail.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 detail.setOpaque(true);
@@ -434,7 +571,7 @@ public class ProductList extends javax.swing.JPanel {
                 label.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 label.setOpaque(true);
                 detailsPanel.add(label);
-                detail = new JLabel("150 pc", horizontalAlignment);
+                detail = new JLabel(String.valueOf(product.stock() + "pc"), horizontalAlignment);
                 detail.setFont(new Font("Arial", Font.PLAIN, 16));
                 detail.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 detail.setOpaque(true);
@@ -445,7 +582,7 @@ public class ProductList extends javax.swing.JPanel {
                 label.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 label.setOpaque(true);
                 detailsPanel.add(label);
-                detail = new JLabel("25,500.00", horizontalAlignment);
+                detail = new JLabel(String.valueOf(product.sellingPrice().multiply(BigDecimal.valueOf(product.stock()))), horizontalAlignment);
                 detail.setFont(new Font("Arial", Font.PLAIN, 16));
                 detail.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 detail.setOpaque(true);
@@ -456,7 +593,7 @@ public class ProductList extends javax.swing.JPanel {
                 label.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 label.setOpaque(true);
                 detailsPanel.add(label);
-                detail = new JLabel("10", horizontalAlignment);
+                detail = new JLabel(String.valueOf(product.alertQuantity()), horizontalAlignment);
                 detail.setFont(new Font("Arial", Font.PLAIN, 16));
                 detail.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 detail.setOpaque(true);
@@ -467,7 +604,7 @@ public class ProductList extends javax.swing.JPanel {
                 label.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 label.setOpaque(true);
                 detailsPanel.add(label);
-                detail = new JLabel("None", horizontalAlignment);
+                detail = new JLabel(product.note(), horizontalAlignment);
                 detail.setFont(new Font("Arial", Font.PLAIN, 16));
                 detail.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 detail.setOpaque(true);
@@ -484,8 +621,9 @@ public class ProductList extends javax.swing.JPanel {
 
 
         };
-        table.getColumnModel().getColumn(8).setCellRenderer(new TableActionCellRender());
-        table.getColumnModel().getColumn(8).setCellEditor(new TableActionCellEditor(event));
+        table.getColumnModel().getColumn(9).setCellRenderer(new TableActionCellRender());
+        table.getColumnModel().getColumn(9).setCellEditor(new TableActionCellEditor(event));
+        loadProducts();
     }
 
     @SuppressWarnings("unchecked")
@@ -523,17 +661,22 @@ public class ProductList extends javax.swing.JPanel {
 
         table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
-                        {null, null, null, null, null, null, null, null, null},
-                        {null, null, null, null, null, null, null, null, null},
-                        {null, null, null, null, null, null, null, null, null}
+
                 },
                 new String[]{
-                        "#", "Category", "Code", "Name", "Item Model", "Unit", "Selling Price", "Status", "Action"
+                        "#", "ID", "Code", "Category", "Name", "Item Model", "Unit", "Selling Price", "Status", "Action"
                 }
         ) {
-            boolean[] canEdit = new boolean[]{
-                    false, false, false, false, false, false, false, false, true
+            Class[] types = new Class[]{
+                    java.lang.Object.class, java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
             };
+            boolean[] canEdit = new boolean[]{
+                    false, true, false, false, false, false, false, false, false, true
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types[columnIndex];
+            }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit[columnIndex];
@@ -644,16 +787,14 @@ public class ProductList extends javax.swing.JPanel {
         // Item Code *
         gbc.gridx = 0;
         gbc.gridy = 1;
-        JLabel itemCodeLabel = new JLabel("Item Code *");
-        itemCodeLabel.setFont(boldFont);
-        panel.add(itemCodeLabel, gbc);
+        JLabel itemStock = new JLabel("Stock *");
+        itemStock.setFont(boldFont);
+        panel.add(itemStock, gbc);
 
         gbc.gridx = 1;
-        JTextField itemCodeField = new JTextField(15);
-        itemCodeField.setFont(regularFont);
-        itemCodeField.setText("This is system generated");
-        itemCodeField.setEnabled(false);
-        panel.add(itemCodeField, gbc);
+        JTextField itemStockField = new JTextField(15);
+        itemStockField.setFont(regularFont);
+        panel.add(itemStockField, gbc);
 
         // Category
         gbc.gridx = 2;
@@ -662,7 +803,16 @@ public class ProductList extends javax.swing.JPanel {
         panel.add(categoryLabel, gbc);
 
         gbc.gridx = 3;
-        JComboBox<String> categoryCombo = new JComboBox<>(new String[]{"Select Subcategory", "Category 1", "Category 2"});
+        Vector<String> productSubcategoryNames = new Vector<>();
+        productSubcategoryNames.add("Select Subcategory");
+        Map<Integer, Integer> productSubcategoryMap = new HashMap<>();
+        ProductSubcategoryService productSubcategoryService = new ProductSubcategoryService();
+        var productSubcategories = productSubcategoryService.getAllValidSubcategories();
+        for (int i = 0; i < productSubcategories.size(); i++) {
+            productSubcategoryNames.add(productSubcategories.get(i).name());
+            productSubcategoryMap.put(i + 1, productSubcategories.get(i).id());
+        }
+        JComboBox<String> categoryCombo = new JComboBox<>(productSubcategoryNames);
         categoryCombo.setFont(regularFont);
         panel.add(categoryCombo, gbc);
 
@@ -674,9 +824,31 @@ public class ProductList extends javax.swing.JPanel {
         panel.add(brandLabel, gbc);
 
         gbc.gridx = 1;
-        JComboBox<String> brandCombo = new JComboBox<>(new String[]{"Select Brand", "Brand 1", "Brand 2"});
+        Vector<String> brandNames = new Vector<>();
+        brandNames.add("Select Brand");
+        BrandService brandService = new BrandService();
+        Map<Integer, Integer> brandMap = new HashMap<>();
+
+        JComboBox<String> brandCombo = new JComboBox<>(brandNames);
         brandCombo.setFont(regularFont);
+        brandCombo.setSelectedItem("Select Brand");
         panel.add(brandCombo, gbc);
+
+
+        categoryCombo.addActionListener(e -> {
+            int productSubcategorySelectedIndex = categoryCombo.getSelectedIndex();
+            int productSubcategoryId = productSubcategoryMap.get(productSubcategorySelectedIndex);
+
+            brandCombo.removeAllItems();
+
+            var brands = brandService.getAllBrandByProductSubcategoryId(productSubcategoryId);
+            brandNames.add("Select Brand");
+            brandCombo.setSelectedItem("Select Brand");
+            for (int i = 0; i < brands.size(); i++) {
+                brandNames.add(brands.get(i).name());
+                brandMap.put(i + 1, brands.get(i).id());
+            }
+        });
 
         // Unit - Change to JComboBox with options
         gbc.gridx = 2;
@@ -697,7 +869,12 @@ public class ProductList extends javax.swing.JPanel {
         panel.add(productTaxLabel, gbc);
 
         gbc.gridx = 1;
-        JComboBox<String> productTaxCombo = new JComboBox<>(new String[]{"Select Product Type", "VAT@0", "VAT@5", "VAT@10"});
+        Map<String, Integer> productTaxTypeMap = new HashMap<>();
+        productTaxTypeMap.put("VAT@0", 0);
+        productTaxTypeMap.put("VAT@5", 5);
+        productTaxTypeMap.put("VAT@10", 10);
+        productTaxTypeMap.put("VAT@20", 20);
+        JComboBox<String> productTaxCombo = new JComboBox<>(new String[]{"Select Product Type", "VAT@0", "VAT@5", "VAT@10", "VAT@20"});
         productTaxCombo.setFont(regularFont);
         panel.add(productTaxCombo, gbc);
 
@@ -808,13 +985,18 @@ public class ProductList extends javax.swing.JPanel {
         imageButton.setFont(regularFont);
 
         // Add action listener for the imageButton to open file explorer
+        Base64Converter base64Converter = new Base64Converter();
         imageButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
             int returnValue = fileChooser.showOpenDialog(null);
             if (returnValue == JFileChooser.APPROVE_OPTION) {
                 File selectedFile = fileChooser.getSelectedFile();
-                JOptionPane.showMessageDialog(null, "Selected Image: " + selectedFile.getName());
+                try {
+                    base64Converter.setConvertFileToBase64(selectedFile);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         });
         panel.add(imageButton, gbc);
@@ -824,19 +1006,76 @@ public class ProductList extends javax.swing.JPanel {
 
         // If the user clicks OK, process the input
         if (result == JOptionPane.OK_OPTION) {
-            String itemName = itemNameField.getText();
-            String itemCode = itemCodeField.getText();
+            String name = itemNameField.getText();
+            String stock = itemStockField.getText();
             String regularPrice = regularPriceField.getText();
+            String productTaxType = (String) productTaxCombo.getSelectedItem();
 
             // Validate the required fields
-            if (itemName.isEmpty() || itemCode.isEmpty() || regularPrice.isEmpty()) {
+            if (name.isEmpty() || Objects.equals(productTaxType, "Select Product Type") || regularPrice.isEmpty()) {
                 JOptionPane.showMessageDialog(null, "Please fill out all required fields.", "Error", JOptionPane.ERROR_MESSAGE);
             } else {
+                int brandSelectedIndex = brandCombo.getSelectedIndex();
+                int brandId = brandMap.get(brandSelectedIndex);
+
+                String model = itemModelField.getText();
+                String unit = (String) unitCombo.getSelectedItem();
+                String taxType = (String) taxTypeCombo.getSelectedItem();
+                String purchasePrice = purchasePriceField.getText();
+                String discount = discountField.getText();
+                String note = noteArea.getText();
+                String alertQuantity = alertQuantityField.getText();
+                String status = (String) statusCombo.getSelectedItem();
+                String image = base64Converter.getBase64();
+
+//                "Per Piece", "12 pcs"
+                ProductService productService = new ProductService();
+                assert unit != null;
+                assert taxType != null;
+                assert status != null;
+                AddProductRequestDto dto = new AddProductRequestDto(
+                        name,
+                        model,
+                        brandId,
+                        unit.equals("Per Piece") ? ProductUnit.PIECE : ProductUnit.DOZEN,
+                        productTaxTypeMap.get(productTaxType),
+                        taxType.equals("Exclusive") ? ProductTaxType.EXCLUSIVE : ProductTaxType.INCLUSIVE,
+                        BigDecimal.valueOf(Double.parseDouble(purchasePrice)),
+                        BigDecimal.valueOf(Double.parseDouble(regularPrice)),
+                        Integer.parseInt(discount),
+                        note,
+                        Integer.parseInt(alertQuantity),
+                        status.equals("Active") ? ProductStatus.ACTIVE : ProductStatus.INACTIVE,
+                        image,
+                        Integer.parseInt(stock)
+                );
+                productService.add(dto);
                 JOptionPane.showMessageDialog(null, "Product Created Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadProducts();
             }
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 
+    private void loadProducts() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+
+        ProductService productService = new ProductService();
+        var products = productService.getAllValidProducts();
+        for (int i = 0; i < products.size(); i++) {
+            model.addRow(new Object[]{
+                    i + 1,
+                    products.get(i).id(),
+                    products.get(i).code(),
+                    products.get(i).brand().productSubcategory().name(),
+                    products.get(i).name(),
+                    products.get(i).model(),
+                    products.get(i).unit().name(),
+                    products.get(i).sellingPrice(),
+                    products.get(i).status().name()
+            });
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;

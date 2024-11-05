@@ -64,7 +64,7 @@ public class ProductDAO {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
-            Product product = session.createQuery("SELECT p FROM Product p WHERE p.id = :productId AND p.isDeleted = FALSE", Product.class)
+            Product product = session.createQuery("SELECT p FROM Product p LEFT JOIN FETCH p.brand WHERE p.id = :productId AND p.isDeleted = FALSE", Product.class)
                     .setParameter("productId", productId)
                     .getSingleResult();
 

@@ -82,7 +82,7 @@ public class PurchaseDAO {
         try (Session session = sessionFactory.openSession()){
             transaction = session.beginTransaction();
 
-            List<Purchase> purchases = session.createQuery("SELECT p FROM Purchase p LEFT JOIN FETCH p.products WHERE p.isDeleted = FALSE ", Purchase.class)
+            List<Purchase> purchases = session.createQuery("SELECT p FROM Purchase p WHERE p.isDeleted = FALSE ", Purchase.class)
                     .getResultList();
 
             session.getTransaction().commit();

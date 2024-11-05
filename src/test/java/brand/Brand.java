@@ -12,9 +12,9 @@ public class Brand {
     void add(){
         BrandService brandService = new BrandService();
         AddBrandRequestDto dto = new AddBrandRequestDto(
-                "Toyota VB89-S",
+                "Toyota G-15 Series",
                 BrandStatus.ACTIVE,
-                1
+                2
         );
         brandService.add(dto);
     }
@@ -30,5 +30,15 @@ public class Brand {
                 1
         );
         brandService.update(dto);
+    }
+
+    @Test
+    void getAllValidBrandBySubcategoryId(){
+        BrandService brandService = new BrandService();
+
+        brandService.getAllBrandByProductSubcategoryId(2)
+                .forEach(b -> {
+                    System.out.println(b.name());
+                });
     }
 }

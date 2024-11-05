@@ -9,12 +9,13 @@ public record AddProductRequestDto(
         ProductUnit unit,
         int productTax,
         ProductTaxType taxType,
+        BigDecimal purchasePrice,
         BigDecimal regularPrice,
-        BigDecimal sellingPrice,
-        int discount,
+        int percentageDiscount,
         String note,
         int alertQuantity,
         ProductStatus status,
-        String image
+        String image,
+        int stock
 ) {
 }

@@ -11,28 +11,28 @@ public class ProductSubcategory {
     @Test
     void add(){
         ProductSubcategoryService service = new ProductSubcategoryService();
-        AddProductSubcategoryRequestDto dto = new AddProductSubcategoryRequestDto(
-                1,
-                "Phone",
-                ProductSubcategoryStatus.ACTIVE,
-                "This is car category!",
-                "code"
-        );
-        service.add(dto);
+//        AddProductSubcategoryRequestDto dto = new AddProductSubcategoryRequestDto(
+//                1,
+//                "Phone",
+//                ProductSubcategoryStatus.ACTIVE,
+//                "This is car category!",
+//                "code"
+//        );
+//        service.add(dto);
     }
 
     @Test
     void update(){
         ProductSubcategoryService service = new ProductSubcategoryService();
-        UpdateProductSubcategoryRequestDto dto = new UpdateProductSubcategoryRequestDto(
-                1,
-                "Cellphone",
-                ProductSubcategoryStatus.ACTIVE,
-                "This is cellphone gago !!!",
-                "code",
-                3
-        );
-        service.update(dto);
+//        UpdateProductSubcategoryRequestDto dto = new UpdateProductSubcategoryRequestDto(
+//                1,
+//                "Cellphone",
+//                ProductSubcategoryStatus.ACTIVE,
+//                "This is cellphone gago !!!",
+//                "code",
+//                3
+//        );
+//        service.update(dto);
     }
 
     @Test

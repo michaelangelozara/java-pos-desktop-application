@@ -3,6 +3,7 @@ package org.POS.backend.brand;
 import org.POS.backend.code_generator.CodeGeneratorService;
 import org.POS.backend.global_variable.GlobalVariable;
 import org.POS.backend.product_subcategory.ProductSubcategory;
+import org.POS.backend.product_subcategory.ProductSubcategoryMapper;
 
 import java.util.List;
 
@@ -10,8 +11,11 @@ public class BrandMapper {
 
     private CodeGeneratorService codeGeneratorService;
 
+    private ProductSubcategoryMapper productSubcategoryMapper;
+
     public BrandMapper(){
         this.codeGeneratorService = new CodeGeneratorService();
+        this.productSubcategoryMapper = new ProductSubcategoryMapper();
     }
 
     public Brand toBrand(AddBrandRequestDto dto, ProductSubcategory productSubcategory){
@@ -34,8 +38,10 @@ public class BrandMapper {
 
     public BrandResponseDto brandResponseDto(Brand brand){
         return new BrandResponseDto(
+                brand.getId(),
                 brand.getName(),
-                brand.getStatus()
+                brand.getStatus(),
+                this.productSubcategoryMapper.subcategoryResponseDto(brand.getProductSubcategory())
         );
     }
 

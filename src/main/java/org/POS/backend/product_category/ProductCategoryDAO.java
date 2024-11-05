@@ -6,6 +6,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProductCategoryDAO {
@@ -16,77 +17,75 @@ public class ProductCategoryDAO {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public void add(ProductCategory productCategory){
-        try(Session session = sessionFactory.openSession()){
+    public void add(ProductCategory productCategory) {
+        try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
             session.persist(productCategory);
 
             session.getTransaction().commit();
-        } catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Error saving category: " + e.getMessage());
         }
     }
 
-    public void update(ProductCategory productCategory){
-        try(Session session = sessionFactory.openSession()){
+    public void update(ProductCategory productCategory) {
+        try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
             session.merge(productCategory);
 
             session.getTransaction().commit();
-        } catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Error saving category: " + e.getMessage());
         }
     }
 
-    public void delete(int categoryId){
-        try(Session session = sessionFactory.openSession()){
+    public void delete(int categoryId) {
+        try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
             ProductCategory productCategory = session.createQuery("SELECT c FROM ProductCategory c WHERE c.id = :categoryId AND c.isDeleted = FALSE", ProductCategory.class)
-                            .setParameter("id", categoryId)
-                                    .getSingleResult();
+                    .setParameter("categoryId", categoryId)
+                    .getSingleResult();
             productCategory.setDeleted(true);
             productCategory.setDeletedAt(LocalDate.now());
             session.merge(productCategory);
 
             session.getTransaction().commit();
-        } catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Error saving category: " + e.getMessage());
         }
     }
 
-    public List<ProductCategory> getAllValidCategories(){
-        try(Session session = sessionFactory.openSession()){
+    public List<ProductCategory> getAllValidCategories() {
+        List<ProductCategory> productCategories = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
-            List<ProductCategory> categories = session.createQuery("SELECT c FROM ProductCategory c WHERE c.isDeleted = FALSE", ProductCategory.class)
+            productCategories = session.createQuery("SELECT c FROM ProductCategory c WHERE c.isDeleted = FALSE", ProductCategory.class)
                     .getResultList();
 
             session.getTransaction().commit();
-            return categories;
-        } catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Error getting categories: " + e.getMessage());
         }
-        return null;
+        return productCategories;
     }
 
-    public ProductCategory getValidCategory(int categoryId){
-        try(Session session = sessionFactory.openSession()){
+    public ProductCategory getValidCategory(int categoryId) {
+        ProductCategory productCategory = null;
+        try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
-            ProductCategory productCategory = session.createQuery("SELECT c FROM ProductCategory c WHERE c.id =: categoryId AND c.isDeleted = FALSE", ProductCategory.class)
+            productCategory = session.createQuery("SELECT c FROM ProductCategory c LEFT JOIN FETCH c.subcategories WHERE c.id =: categoryId AND c.isDeleted = FALSE", ProductCategory.class)
                     .setParameter("categoryId", categoryId)
                     .getSingleResult();
 
-            Hibernate.initialize(productCategory.getSubcategories());
-
             session.getTransaction().commit();
-            return productCategory;
-        } catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Error getting category: " + e.getMessage());
         }
-        return null;
+        return productCategory;
     }
 }

@@ -5,7 +5,6 @@ public record UpdateProductSubcategoryRequestDto(
         String name,
         ProductSubcategoryStatus status,
         String note,
-        String code,
         int categoryId
 ) {
 }

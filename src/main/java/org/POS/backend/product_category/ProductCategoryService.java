@@ -8,30 +8,32 @@ public class ProductCategoryService {
 
     private ProductCategoryMapper productCategoryMapper;
 
-    public ProductCategoryService(){
+    public ProductCategoryService() {
         this.productCategoryDAO = new ProductCategoryDAO();
         this.productCategoryMapper = new ProductCategoryMapper();
     }
 
-    public void add(AddProductCategoryRequestDto dto){
-        var category = this.productCategoryMapper.toCategory(dto);
+    public void add(AddProductCategoryRequestDto dto) {
+        var category = this.productCategoryMapper.toProductCategory(dto);
         this.productCategoryDAO.add(category);
     }
 
-    public void update(UpdateProductCategoryRequestDto dto){
-        var updatedCategory = this.productCategoryMapper.toUpdatedCategory(dto);
-        this.productCategoryDAO.update(updatedCategory);
+    public void update(UpdateProductCategoryRequestDto dto) {
+        var productCategory = this.productCategoryDAO.getValidCategory(dto.productCategoryId());
+        if (productCategory != null) {
+            var updatedCategory = this.productCategoryMapper.toUpdatedCategory(productCategory, dto);
+            this.productCategoryDAO.update(updatedCategory);
+        }
     }
 
-    public void delete(int categoryId){
+    public void delete(int categoryId) {
         this.productCategoryDAO.delete(categoryId);
     }
 
-    public List<ProductCategoryResponseDto> getAllValidCategories(){
-        return this.productCategoryMapper.categoryResponseDtoList(this.productCategoryDAO.getAllValidCategories());
+    public List<ProductCategoryResponseDto> getAllValidProductCategories() {
+        return
+                this.productCategoryMapper
+                        .categoryResponseDtoList(this.productCategoryDAO.getAllValidCategories());
     }
 
-    public ProductCategory getValidCategory(int categoryId){
-        return this.productCategoryDAO.getValidCategory(categoryId);
-    }
 }

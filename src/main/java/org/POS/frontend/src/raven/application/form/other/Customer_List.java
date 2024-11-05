@@ -2,10 +2,7 @@
 package org.POS.frontend.src.raven.application.form.other;
 
 import org.POS.backend.cryptography.Base64Converter;
-import org.POS.backend.person.AddPersonRequestDto;
-import org.POS.backend.person.PersonService;
-import org.POS.backend.person.PersonStatus;
-import org.POS.backend.person.PersonType;
+import org.POS.backend.person.*;
 import org.POS.frontend.src.raven.application.Application;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
@@ -65,7 +62,7 @@ public class Customer_List extends javax.swing.JPanel {
                 String companyName = (String) model.getValueAt(row, 7);
                  // Update as needed based on your model
                 String address = ""; // Add logic to get address if it's in the model
-                String status = (String) model.getValueAt(row, 8); // Update as needed based on your model
+                PersonStatus status = (PersonStatus) model.getValueAt(row, 8); // Update as needed based on your model
 
                 // 1st Row: Name, Email, Contact Number
                 gbc.gridx = 0;
@@ -121,13 +118,16 @@ public class Customer_List extends javax.swing.JPanel {
                 taxField.setPreferredSize(fieldSize);
                 panel.add(taxField, gbc);
 
+                PersonService personService = new PersonService();
+                var client = personService.getValidPersonById(clientId);
+
                 gbc.gridx = 4;
                 JLabel addressLabel = new JLabel("Address:");
                 addressLabel.setFont(labelFont);
                 panel.add(addressLabel, gbc);
 
                 gbc.gridx = 5;
-                JTextField addressField = new JTextField(address);  // Retrieve address as needed
+                JTextField addressField = new JTextField(client.address());  // Retrieve address as needed
                 addressField.setPreferredSize(fieldSize);
                 panel.add(addressField, gbc);
 
@@ -141,7 +141,7 @@ public class Customer_List extends javax.swing.JPanel {
                 gbc.gridx = 1;
                 JButton imageButton = new JButton("Upload Image");
                 imageButton.setPreferredSize(fieldSize);
-
+                Base64Converter base64Converter = new Base64Converter();
                 // File Chooser for Image Upload
                 imageButton.addActionListener(e -> {
                     JFileChooser fileChooser = new JFileChooser();
@@ -150,7 +150,11 @@ public class Customer_List extends javax.swing.JPanel {
                     if (result == JFileChooser.APPROVE_OPTION) {
                         File selectedFile = fileChooser.getSelectedFile();
                         // Handle file upload logic here
-                        System.out.println("Selected file: " + selectedFile.getAbsolutePath());
+                        try {
+                            base64Converter.setConvertFileToBase64(selectedFile);
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
                     }
                 });
                 panel.add(imageButton, gbc);
@@ -162,7 +166,7 @@ public class Customer_List extends javax.swing.JPanel {
 
                 gbc.gridx = 3;
                 JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Active", "Inactive"});
-                statusCombo.setSelectedItem(status); // Set the current status
+                statusCombo.setSelectedItem(status.equals(PersonStatus.ACTIVE) ? "Active" : "Inactive"); // Set the current status
                 statusCombo.setPreferredSize(fieldSize);
                 panel.add(statusCombo, gbc);
 
@@ -170,16 +174,37 @@ public class Customer_List extends javax.swing.JPanel {
                 int result = JOptionPane.showConfirmDialog(null, panel, "Edit Record", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
                 if (result == JOptionPane.OK_OPTION) {
-                    // Submission logic
-                    // Update model with new values
-                    model.setValueAt(nameField.getText(), row, 3);
-                    model.setValueAt(emailField.getText(), row, 5);
-                    model.setValueAt(contactNumberField.getText(), row, 4);
-                    model.setValueAt(companyNameField.getText(), row, 6);
-                    model.setValueAt(taxField.getText(), row, 7);
-                    model.setValueAt(addressField.getText(), row, 8);
-                    model.setValueAt(statusCombo.getSelectedItem(), row, 9); // Update as needed
+                    // Update as needed
                     // Handle the image upload if needed
+
+                    String updatedName = nameField.getText();
+                    String updatedEmail = emailField.getText();
+                    String updatedContactNumber = contactNumberField.getText();
+                    String updatedCompanyName = companyNameField.getText();
+                    String updatedTaxRegistration = taxField.getText();
+                    String updatedAddress = addressField.getText();
+                    String updatedImage = base64Converter.getBase64();
+                    String updatedPersonStatus = (String) statusCombo.getSelectedItem();
+
+                    assert updatedPersonStatus != null;
+                    UpdatePersonRequestDto dto = new UpdatePersonRequestDto(
+                            clientId,
+                            updatedName,
+                            updatedEmail,
+                            updatedContactNumber,
+                            updatedCompanyName,
+                            updatedTaxRegistration,
+                            PersonType.CLIENT,
+                            updatedAddress,
+                            updatedImage != null ? updatedImage : client.image(),
+                            updatedPersonStatus.equals("Active") ? PersonStatus.ACTIVE : PersonStatus.INACTIVE
+                    );
+                    personService.update(dto);
+
+                    JOptionPane.showMessageDialog(null, "Product Updated Successfully",
+                            "Updated", JOptionPane.INFORMATION_MESSAGE);
+
+                    loadClients();
                 }
 
             }
@@ -236,7 +261,34 @@ public class Customer_List extends javax.swing.JPanel {
         PersonService personService = new PersonService();
         var people = personService.getAllValidPeopleByType(PersonType.CLIENT);
         for (int i = 0; i < people.size(); i++) {
-            model.addRow(new Object[]{i + 1, "Unavailable", people.get(i).id(), people.get(i).name(), people.get(i).taxRegistration(), people.get(i).contactNumber(), people.get(i).email(), people.get(i).companyName(), people.get(i).status()});
+            model.addRow(new Object[]{i + 1, getMediaTypeFromBase64(people.get(i).image()), people.get(i).id(), people.get(i).name(), people.get(i).taxRegistration(), people.get(i).contactNumber(), people.get(i).email(), people.get(i).companyName(), people.get(i).status()});
+        }
+    }
+
+    private String getMediaTypeFromBase64(String base64Data) {
+        String dataUri = "data:image/jpeg;base64," + base64Data;
+
+        if (base64Data == null) {
+            return "No image";
+        }
+
+        if(!base64Data.startsWith("data:")){
+            return "image/jpeg";
+        }
+
+        int commaIndex = dataUri.indexOf(',');
+        if (commaIndex == -1) {
+            return "No image";
+        }
+
+        // Extract the media type
+        String mediaTypeSection = dataUri.substring(5, commaIndex); // Skip "data:"
+        int semicolonIndex = mediaTypeSection.indexOf(';');
+
+        if (semicolonIndex != -1) {
+            return mediaTypeSection.substring(0, semicolonIndex); // Return the media type only
+        } else {
+            return mediaTypeSection; // In case there's no `;`, return the full mediaTypeSection
         }
     }
 

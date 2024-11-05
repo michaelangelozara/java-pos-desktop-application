@@ -13,7 +13,7 @@ public class ProductCategoryMapper {
         this.codeGeneratorService = new CodeGeneratorService();
     }
 
-    public ProductCategory toCategory(AddProductCategoryRequestDto dto){
+    public ProductCategory toProductCategory(AddProductCategoryRequestDto dto){
         ProductCategory productCategory = new ProductCategory();
         productCategory.setName(dto.name());
         productCategory.setStatus(dto.status());
@@ -22,9 +22,8 @@ public class ProductCategoryMapper {
         return productCategory;
     }
 
-    public ProductCategory toUpdatedCategory(UpdateProductCategoryRequestDto dto){
-        ProductCategory productCategory = new ProductCategory();
-        productCategory.setId(dto.categoryId());
+    public ProductCategory toUpdatedCategory(ProductCategory productCategory, UpdateProductCategoryRequestDto dto){
+        productCategory.setId(dto.productCategoryId());
         productCategory.setName(dto.name());
         productCategory.setStatus(dto.status());
         productCategory.setNote(dto.note());

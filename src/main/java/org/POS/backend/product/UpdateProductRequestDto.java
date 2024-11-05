@@ -6,7 +6,6 @@ public record UpdateProductRequestDto(
         int productId,
         String name,
         String model,
-        String code,
         int brandId,
         ProductUnit unit,
         int tax,
@@ -16,6 +15,8 @@ public record UpdateProductRequestDto(
         String note,
         int alertQuantity,
         ProductStatus status,
-        String image
+        String image,
+        BigDecimal purchasePrice,
+        int stock
 ) {
 }

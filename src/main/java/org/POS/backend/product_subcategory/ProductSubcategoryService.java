@@ -25,16 +25,21 @@ public class ProductSubcategoryService {
         if(category == null)
             return GlobalVariable.SUBCATEGORY_NOT_FOUND;
 
-        var subcategory = this.productSubcategoryMapper.toSubcategory(dto, category);
+        var subcategory = this.productSubcategoryMapper.toProductSubcategory(dto, category);
         this.productSubcategoryDAO.add(subcategory);
         return GlobalVariable.SUBCATEGORY_ADDED;
     }
 
     public String update(UpdateProductSubcategoryRequestDto dto){
         var category = this.productCategoryDAO.getValidCategory(dto.categoryId());
+        var productSubcategory = this.productSubcategoryDAO.getValidSubcategoryById(dto.subcategoryId());
         if(category == null)
             return GlobalVariable.SUBCATEGORY_NOT_FOUND;
-        var subcategory = this.productSubcategoryMapper.toUpdatedSubcategory(dto, category);
+
+        if(productSubcategory == null)
+            return GlobalVariable.SUBCATEGORY_NOT_FOUND;
+
+        var subcategory = this.productSubcategoryMapper.toUpdatedProductSubcategory(productSubcategory, dto, category);
         this.productSubcategoryDAO.update(subcategory);
         return GlobalVariable.SUBCATEGORY_UPDATED;
     }

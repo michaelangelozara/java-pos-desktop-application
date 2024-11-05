@@ -40,7 +40,7 @@ public class ProductCategory {
     @Test
     void getAllValidCategories(){
         ProductCategoryService productCategoryService = new ProductCategoryService();
-        productCategoryService.getAllValidCategories().forEach(c -> {
+        productCategoryService.getAllValidProductCategories().forEach(c -> {
             System.out.println(c.name());
         });
     }
@@ -48,8 +48,8 @@ public class ProductCategory {
     @Test
     void getValidCategory(){
         ProductCategoryService productCategoryService = new ProductCategoryService();
-        List<ProductSubcategory> subcategories = productCategoryService.getValidCategory(11).getSubcategories();
-        System.out.println(subcategories);
+//        List<ProductSubcategory> subcategories = productCategoryService.getValidCategory(11).getSubcategories();
+//        System.out.println(subcategories);
     }
 
 

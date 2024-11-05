@@ -16,15 +16,16 @@ public class Product {
                 "JSA-10",
                 1,
                 ProductUnit.PIECE,
-                0,
+                20,
                 ProductTaxType.INCLUSIVE,
                 BigDecimal.valueOf(95990),
-                BigDecimal.valueOf(1000),
-                0,
+                BigDecimal.valueOf(100),
+                20,
                 "No note yet",
                 10,
                 ProductStatus.ACTIVE,
-                "GVHBNKJKsLML<"
+                "GVHBNKJKsLML<",
+                0
         );
         productService.add(dto);
     }
@@ -37,7 +38,6 @@ public class Product {
                 1,
                 "Iphone 15",
                 "JSA-15",
-                "CODE",
                 1,
                 ProductUnit.PIECE,
                 0,
@@ -47,7 +47,9 @@ public class Product {
                 "No note yet",
                 10,
                 ProductStatus.ACTIVE,
-                "GVHBNKJKLML<"
+                "GVHBNKJKLML<",
+                BigDecimal.valueOf(0),
+                0
         );
         productService.update(dto);
     }

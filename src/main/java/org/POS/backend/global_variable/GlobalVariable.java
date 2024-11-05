@@ -77,7 +77,7 @@ public class GlobalVariable {
 
     // code generator prefixes
     public static String PRODUCT_PREFIX = "AEC-";
-    public static String SUBCATEGORY_PREFIX = "AES-";
+    public static String PRODUCT_SUBCATEGORY_PREFIX = "AES-";
     public static String BRAND_PREFIX = "APC-";
     public static String EXPENSE_CATEGORY_PREFIX = "EXP-";
     public static String EXPENSE_SUBCATEGORY_PREFIX = "EXPS-";

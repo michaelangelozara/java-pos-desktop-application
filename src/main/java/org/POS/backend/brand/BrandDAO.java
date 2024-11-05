@@ -5,6 +5,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 public class BrandDAO {
@@ -60,26 +61,43 @@ public class BrandDAO {
     }
 
     public List<Brand> getAllValidBrands(){
+        List<Brand> brands = new ArrayList<>();
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            List<Brand> brands = session.createQuery("SELECT b FROM Brand b WHERE b.isDeleted = FALSE", Brand.class)
+            brands = session.createQuery("SELECT b FROM Brand b WHERE b.isDeleted = FALSE", Brand.class)
                     .getResultList();
 
             session.getTransaction().commit();
-            return brands;
         }catch (Exception e){
             System.out.println(e.getMessage());
         }
 
-        return null;
+        return brands;
     }
 
-    public Brand getValidBrand(int brandId){
+    public List<Brand> getAllValidBrandsByProductSubcategoryId(int productSubcategoryId){
+        List<Brand> brands = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+            session.beginTransaction();
+            String hqlQuery = "SELECT b FROM Brand b LEFT JOIN FETCH b.productSubcategory WHERE b.productSubcategory.id =: productSubcategoryId AND b.isDeleted = FALSE";
+            brands = session.createQuery(hqlQuery, Brand.class)
+                    .setParameter("productSubcategoryId", productSubcategoryId)
+                    .getResultList();
+
+            session.getTransaction().commit();
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+
+        return brands;
+    }
+
+    public Brand getValidBrandById(int brandId){
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            Brand brand = session.createQuery("SELECT b FROM Brand b WHERE b.id = :brandId AND b.isDeleted = FALSE", Brand.class)
+            Brand brand = session.createQuery("SELECT b FROM Brand b LEFT JOIN FETCH b.productSubcategory WHERE b.id = :brandId AND b.isDeleted = FALSE", Brand.class)
                     .setParameter("brandId", brandId)
                     .getSingleResult();
 

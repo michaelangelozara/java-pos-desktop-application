@@ -20,7 +20,7 @@ public class ProductService {
     }
 
     public String add(AddProductRequestDto dto){
-        var brand = this.brandDAO.getValidBrand(dto.brandId());
+        var brand = this.brandDAO.getValidBrandById(dto.brandId());
         if(brand == null)
             return GlobalVariable.BRAND_NOT_FOUND;
 
@@ -30,11 +30,15 @@ public class ProductService {
     }
 
     public String update(UpdateProductRequestDto dto){
-        var brand = this.brandDAO.getValidBrand(dto.brandId());
+        var brand = this.brandDAO.getValidBrandById(dto.brandId());
+
+        var product = this.productDAO.getValidProduct(dto.productId());
         if(brand == null)
             return GlobalVariable.BRAND_NOT_FOUND;
-        var product = this.productMapper.toUpdatedProduct(dto, brand);
-        this.productDAO.update(product);
+
+
+        var updatedProduct = this.productMapper.toUpdatedProduct(product, dto, brand);
+        this.productDAO.update(updatedProduct);
         return GlobalVariable.PRODUCT_UPDATED;
     }
 

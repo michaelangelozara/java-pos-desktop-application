@@ -29,6 +29,8 @@ public class Customer_Details extends javax.swing.JPanel {
 
     private ImageIcon clientImage;
 
+    private boolean hasProfile = false;
+
     public Customer_Details(PersonResponseDto client) {
         this.client = client;
 
@@ -77,16 +79,19 @@ public class Customer_Details extends javax.swing.JPanel {
     }
 
     private void clientProfileInit(String imageBase64){
-        BufferedImage bufferedImage = null;
-        try {
-            byte[] imageBytes = Base64.getDecoder().decode(imageBase64);
-            bufferedImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        if(imageBase64 != null){
+            BufferedImage bufferedImage = null;
+            try {
+                byte[] imageBytes = Base64.getDecoder().decode(imageBase64);
+                bufferedImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
-        if (bufferedImage != null) {
-            this.clientImage = new ImageIcon(bufferedImage);
+            if (bufferedImage != null) {
+                this.clientImage = new ImageIcon(bufferedImage);
+                this.hasProfile = true;
+            }
         }
     }
 
@@ -161,11 +166,12 @@ public class Customer_Details extends javax.swing.JPanel {
         jPanel7.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         jLabel2.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0,0,0), 1, true));
-//        jLabel2.setIcon(this.clientImage);
-        jLabel2.setSize(200,200);
-        jLabel2.setHorizontalAlignment(JLabel.CENTER);
-        jLabel2.setVerticalAlignment(JLabel.CENTER);
-        setScaledImageIcon(jLabel2, this.clientImage);
+        if(hasProfile){
+            jLabel2.setSize(200,200);
+            jLabel2.setHorizontalAlignment(JLabel.CENTER);
+            jLabel2.setVerticalAlignment(JLabel.CENTER);
+            setScaledImageIcon(jLabel2, this.clientImage);
+        }
 
         jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel3.setText(this.client.name());

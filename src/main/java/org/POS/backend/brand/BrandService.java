@@ -54,8 +54,13 @@ public class BrandService {
         return this.brandMapper.brandResponseDtoList(brands);
     }
 
+    public List<BrandResponseDto> getAllBrandByProductSubcategoryId(int subcategoryId){
+        var brands = this.brandDAO.getAllValidBrandsByProductSubcategoryId(subcategoryId);
+        return this.brandMapper.brandResponseDtoList(brands);
+    }
+
     public BrandResponseDto getValidBrandById(int brandId){
-        var brand = this.brandDAO.getValidBrand(brandId);
+        var brand = this.brandDAO.getValidBrandById(brandId);
         if(brand == null)
             return null;
         return this.brandMapper.brandResponseDto(brand);

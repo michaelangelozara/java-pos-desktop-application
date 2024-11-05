@@ -46,13 +46,17 @@ public class Product {
     @Column(name = "tax_type")
     private ProductTaxType taxType;
 
+    @Column(name = "purchase_price", precision = 10, scale = 2)
+    private BigDecimal purchasePrice;
+
     @Column(name = "regular_price", precision = 10, scale = 2)
     private BigDecimal regularPrice;
 
     @Column(name = "selling_price", precision = 10, scale = 2)
     private BigDecimal sellingPrice;
 
-    private int discount;
+    @Column(name = "percentage_discount")
+    private int percentageDiscount;
 
     private String note;
 
