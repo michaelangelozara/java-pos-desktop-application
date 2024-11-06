@@ -1,4 +1,4 @@
-package zeusled.gui;
+package org.POS.frontend.src.zeusled.gui;
 
 public class Dashboard extends javax.swing.JFrame {
 

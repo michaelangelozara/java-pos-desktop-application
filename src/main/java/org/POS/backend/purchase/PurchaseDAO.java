@@ -61,39 +61,60 @@ public class PurchaseDAO {
     }
 
     public Purchase getValidPurchaseById(int purchaseId){
+        Purchase purchase = null;
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            Purchase purchase = session.createQuery("SELECT p FROM Purchase p WHERE p.id = : purchaseId AND p.isDeleted = FALSE ", Purchase.class)
+            purchase = session.createQuery("SELECT p FROM Purchase p WHERE p.id = : purchaseId AND p.isDeleted = FALSE ", Purchase.class)
                     .setParameter("purchaseId", purchaseId)
                     .getSingleResult();
 
 
             session.getTransaction().commit();
-            return purchase;
         }catch (Exception e){
             e.printStackTrace();
         }
-        return null;
+        return purchase;
     }
 
     public List<Purchase> getAllValidPurchases(){
         Transaction transaction = null;
+        List<Purchase> purchases = new ArrayList<>();
         try (Session session = sessionFactory.openSession()){
             transaction = session.beginTransaction();
 
-            List<Purchase> purchases = session.createQuery("SELECT p FROM Purchase p WHERE p.isDeleted = FALSE ", Purchase.class)
+            purchases = session.createQuery("SELECT p FROM Purchase p WHERE p.isDeleted = FALSE ", Purchase.class)
                     .getResultList();
 
             session.getTransaction().commit();
-            return purchases;
         }catch (Exception e){
             e.printStackTrace();
             if(transaction != null){
                 transaction.rollback();
             }
         }
-        return null;
+        return purchases;
+    }
+
+    public List<Purchase> getAllValidPurchaseBySupplierId(int supplierId){
+        List<Purchase> purchases = new ArrayList<>();
+        Transaction transaction = null;
+        try (Session session = sessionFactory.openSession()){
+            transaction = session.beginTransaction();
+
+            String hqlQuery = "SELECT p FROM Purchase p LEFT JOIN FETCH p.purchaseProducts WHERE p.person.id = :supplierId AND p.isDeleted = FALSE ";
+            purchases = session.createQuery(hqlQuery, Purchase.class)
+                            .setParameter("supplierId", supplierId)
+                                    .getResultList();
+
+            session.getTransaction().commit();
+        }catch (Exception e){
+            if(transaction != null){
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        }
+        return purchases;
     }
 
 

@@ -1,8 +1,14 @@
 package org.POS.frontend.src.javaswingdev.form;
 
+import org.POS.backend.product.ProductService;
 import org.POS.frontend.src.javaswingdev.card.ModelCard;
 import org.POS.frontend.src.raven.application.Application;
 import org.POS.frontend.src.raven.application.form.other.POS;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableCellRenderer;
 
 public class Form_Dashboard extends javax.swing.JPanel {
 
@@ -12,35 +18,62 @@ public class Form_Dashboard extends javax.swing.JPanel {
     }
 
     private void init() {
-//        table.fixTable(jScrollPane1);
-//        table.addRow(new Object[]{"1", "ITEM-001", "Steel Bar Wide", "243", "15"});
-//        table.addRow(new Object[]{"2", "ITEM-001", "Steel Bar Narrow", "21", "15"});
-//        table.addRow(new Object[]{"3", "ITEM-001", "Steel Bar", "342", "15"});
-//        table.addRow(new Object[]{"4", "ITEM-002", "Aluminum Sheet Large", "150", "20"});
-//        table.addRow(new Object[]{"5", "ITEM-002", "Aluminum Sheet Small", "45", "20"});
-//        table.addRow(new Object[]{"6", "ITEM-003", "Copper Wire Thick", "76", "30"});
-//        table.addRow(new Object[]{"7", "ITEM-003", "Copper Wire Thin", "135", "30"});
-//        table.addRow(new Object[]{"8", "ITEM-004", "Brass Pipe", "89", "25"});
-//        table.addRow(new Object[]{"9", "ITEM-005", "Iron Rod", "200", "10"});
-//        table.addRow(new Object[]{"10", "ITEM-006", "Plastic Tube", "300", "5"});
-//        table.addRow(new Object[]{"11", "ITEM-007", "Stainless Steel Bolt", "500", "8"});
-//        table.addRow(new Object[]{"12", "ITEM-008", "PVC Pipe", "230", "12"});
-//        table.addRow(new Object[]{"13", "ITEM-009", "Galvanized Nail", "750", "5"});
-//        table.addRow(new Object[]{"14", "ITEM-010", "Rubber Gasket", "125", "3"});
-//        table.addRow(new Object[]{"15", "ITEM-011", "Wooden Plank", "180", "10"});
-//        table.addRow(new Object[]{"16", "ITEM-012", "Ceramic Tile", "320", "7"});
-//        table.addRow(new Object[]{"17", "ITEM-013", "Glass Panel", "90", "25"});
-//        table.addRow(new Object[]{"18", "ITEM-014", "Concrete Block", "60", "50"});
-//        table.addRow(new Object[]{"19", "ITEM-015", "Iron Nail", "900", "4"});
-//        table.addRow(new Object[]{"20", "ITEM-016", "Brass Fitting", "130", "18"});
+        ProductService productService = new ProductService();
+        var productsBelowAlertQuantity = productService.getAllValidProductsBelowAlertQuantity();
+
+        DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer();
+        cellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < table1.getColumnCount(); i++) {
+            table1.getColumnModel().getColumn(i).setCellRenderer(cellRenderer);
+        }
+
+        // Center the column headers by setting a custom renderer for each column header
+        TableCellRenderer headerRenderer = table1.getTableHeader().getDefaultRenderer();
+        if (headerRenderer instanceof DefaultTableCellRenderer) {
+            DefaultTableCellRenderer defaultHeaderRenderer = (DefaultTableCellRenderer) headerRenderer;
+            defaultHeaderRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        }
+
+        table1.fixTable(jScrollPane1);
+        for(int i = 0; i < productsBelowAlertQuantity.size(); i++){
+            table1.addRow(new Object[]{
+                    i+1,
+                    productsBelowAlertQuantity.get(i).code(),
+                    productsBelowAlertQuantity.get(i).name(),
+                    productsBelowAlertQuantity.get(i).stock(),
+                    productsBelowAlertQuantity.get(i).alertQuantity()
+            });
+        }
+
+//        table1.addRow(new Object[]{"1", "ITEM-001", "Steel Bar Wide", "243", "15"});
+//        table1.addRow(new Object[]{"2", "ITEM-001", "Steel Bar Narrow", "21", "15"});
+//        table1.addRow(new Object[]{"3", "ITEM-001", "Steel Bar", "342", "15"});
+//        table1.addRow(new Object[]{"4", "ITEM-002", "Aluminum Sheet Large", "150", "20"});
+//        table1.addRow(new Object[]{"5", "ITEM-002", "Aluminum Sheet Small", "45", "20"});
+//        table1.addRow(new Object[]{"6", "ITEM-003", "Copper Wire Thick", "76", "30"});
+//        table1.addRow(new Object[]{"7", "ITEM-003", "Copper Wire Thin", "135", "30"});
+//        table1.addRow(new Object[]{"8", "ITEM-004", "Brass Pipe", "89", "25"});
+//        table1.addRow(new Object[]{"9", "ITEM-005", "Iron Rod", "200", "10"});
+//        table1.addRow(new Object[]{"10", "ITEM-006", "Plastic Tube", "300", "5"});
+//        table1.addRow(new Object[]{"11", "ITEM-007", "Stainless Steel Bolt", "500", "8"});
+//        table1.addRow(new Object[]{"12", "ITEM-008", "PVC Pipe", "230", "12"});
+//        table1.addRow(new Object[]{"13", "ITEM-009", "Galvanized Nail", "750", "5"});
+//        table1.addRow(new Object[]{"14", "ITEM-010", "Rubber Gasket", "125", "3"});
+//        table1.addRow(new Object[]{"15", "ITEM-011", "Wooden Plank", "180", "10"});
+//        table1.addRow(new Object[]{"16", "ITEM-012", "Ceramic Tile", "320", "7"});
+//        table1.addRow(new Object[]{"17", "ITEM-013", "Glass Panel", "90", "25"});
+//        table1.addRow(new Object[]{"18", "ITEM-014", "Concrete Block", "60", "50"});
+//        table1.addRow(new Object[]{"19", "ITEM-015", "Iron Nail", "900", "4"});
+//        table1.addRow(new Object[]{"20", "ITEM-016", "Brass Fitting", "130", "18"});
 
 
 
         //  init card data
-//        card1.setData(new ModelCard(null, null, null, "₱ 500.00", "Total Sales"));
-//        card2.setData(new ModelCard(null, null, null, "40", "Items Out of Stock"));
-//        card3.setData(new ModelCard(null, null, null, "100", "Inventory"));
-//        card4.setData(new ModelCard(null, null, null, "₱ 300.00", "Expenses"));
+        card1.setData(new ModelCard(null, null, null, "₱ 500.00", "Total Sales"));
+        card2.setData(new ModelCard(null, null, null, String.valueOf(productsBelowAlertQuantity.size()), "Items Out of Stock"));
+        card3.setData(new ModelCard(null, null, null, "100", "Inventory"));
+        card4.setData(new ModelCard(null, null, null, "₱ 300.00", "Expenses"));
     }
 
     @SuppressWarnings("unchecked")
@@ -80,15 +113,20 @@ public class Form_Dashboard extends javax.swing.JPanel {
 
         table1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+                "#", "Code", "Name", "Quantity", "Alert Quantity"
             }
-        ));
+        ) {
+            Class[] types = new Class [] {
+                java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Integer.class, java.lang.Integer.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
         jScrollPane1.setViewportView(table1);
 
         javax.swing.GroupLayout roundPanel1Layout = new javax.swing.GroupLayout(roundPanel1);

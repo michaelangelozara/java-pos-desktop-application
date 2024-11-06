@@ -62,4 +62,8 @@ public class ProductService {
         var products = this.productDAO.getAllValidProducts();
         return this.productMapper.productResponseDtoList(products);
     }
+
+    public List<ProductResponseDto> getAllValidProductsBelowAlertQuantity(){
+        return this.productMapper.productResponseDtoList(this.productDAO.getAllValidProductsBelowAlertQuantity());
+    }
 }

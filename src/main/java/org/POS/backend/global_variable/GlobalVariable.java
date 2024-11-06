@@ -65,11 +65,20 @@ public class GlobalVariable {
     public static String EXPENSE_SUBCATEGORY_NOT_FOUND = "Expense subcategory not found";
 
     // purchase
-
     public static String PURCHASE_ADDED = "Purchase successfully added";
     public static String PURCHASE_UPDATED = "Purchase successfully updated";
     public static String PURCHASE_DELETED = "Purchase successfully deleted";
     public static String PURCHASE_NOT_FOUND = "Purchase not found";
+
+    // purchase product
+    public static String PURCHASE_PRODUCT_ADDED = "Purchase product successfully added";
+    public static String PURCHASE_PRODUCT_UPDATED = "Purchase product successfully updated";
+    public static String PURCHASE_PRODUCT_DELETED = "Purchase product successfully deleted";
+    public static String PURCHASE_PRODUCT_NOT_FOUND = "Purchase product not found";
+
+    // stock
+    public static String STOCK_IN_ADDED = "Stock in successfully created";
+    public static String STOCK_OUT_ADDED = "Stock out successfully created";
 
     // code generator
     public static String GENERATING_CODE_ERROR = "Generating code error";
@@ -84,4 +93,6 @@ public class GlobalVariable {
     public static String CLIENT_PREFIX = "AC-";
     public static String SUPPLIER_PREFIX = "SP-";
     public static String PURCHASE_PREFIX = "PCH-";
+    public static String STOCK_IN_PREFIX = "STKI-";
+    public static String STOCK_OUT_PREFIX = "STKO-";
 }

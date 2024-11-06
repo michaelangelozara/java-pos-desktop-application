@@ -18,19 +18,18 @@ public class PurchaseService {
 
     private ProductDAO productDAO;
 
-    public PurchaseService(){
+    public PurchaseService() {
         this.purchaseDAO = new PurchaseDAO();
         this.purchaseMapper = new PurchaseMapper();
         this.personDAO = new PersonDAO();
         this.productDAO = new ProductDAO();
     }
 
-    public String add(AddPurchaseRequestDto dto){
+    public String add(AddPurchaseRequestDto dto) {
         var supplier = this.personDAO.getValidPersonByTypeAndId(dto.supplierId(), PersonType.SUPPLIER);
 
-        if(supplier == null)
+        if (supplier == null)
             return GlobalVariable.PERSON_NOT_FOUND;
-
 
 
         var purchase = this.purchaseMapper.toPurchase(dto, supplier);
@@ -39,12 +38,18 @@ public class PurchaseService {
         return GlobalVariable.PURCHASE_ADDED;
     }
 
-    private List<PurchaseProduct> computeProductsSubtotal(List<PurchaseProduct> purchaseProducts){
+    private List<PurchaseProduct> computeProductsSubtotal(List<PurchaseProduct> purchaseProducts) {
         return null;
     }
 
-    public List<PurchaseResponseDto> getAllValidPurchases(){
+    public List<PurchaseResponseDto> getAllValidPurchases() {
         return this.purchaseMapper.toPurchaseResponseDtoList(this.purchaseDAO.getAllValidPurchases());
+    }
+
+    public List<PurchaseResponseDto> getAllValidPurchaseBySupplierId(int supplierId) {
+        return
+                this.purchaseMapper
+                        .toPurchaseResponseDtoList(this.purchaseDAO.getAllValidPurchaseBySupplierId(supplierId));
     }
 
 }

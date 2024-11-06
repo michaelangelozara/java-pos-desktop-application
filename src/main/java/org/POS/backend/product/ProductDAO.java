@@ -5,6 +5,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -108,6 +109,20 @@ public class ProductDAO {
         }
         // Return the set of products, which may be empty if no products were found
         return productsSet;
+    }
+
+    public List<Product> getAllValidProductsBelowAlertQuantity() {
+        List<Product> products = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()) {
+            products = session.createQuery(
+                    "SELECT p FROM Product p WHERE p.stock <= p.alertQuantity AND p.isDeleted = FALSE",
+                    Product.class
+            ).getResultList();
+        } catch (Exception e) {
+            // Consider logging the exception
+            e.printStackTrace();
+        }
+        return products;
     }
 
 

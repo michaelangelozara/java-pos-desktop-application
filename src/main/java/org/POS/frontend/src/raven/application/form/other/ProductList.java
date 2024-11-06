@@ -182,17 +182,11 @@ public class ProductList extends javax.swing.JPanel {
 
                 gbc.gridx = 1;
                 Map<String, Integer> productTaxTypeMap = new HashMap<>();
-                productTaxTypeMap.put("VAT@0", 0);
-                productTaxTypeMap.put("VAT@5", 5);
-                productTaxTypeMap.put("VAT@10", 10);
-                productTaxTypeMap.put("VAT@20", 20);
+                productTaxTypeMap.put("VAT@12%", 12);
 
                 Map<Integer, String> productTempMap = new HashMap<>();
-                productTempMap.put(0, "VAT@0");
-                productTempMap.put(5, "VAT@5");
-                productTempMap.put(10, "VAT@10");
-                productTempMap.put(20, "VAT@20");
-                JComboBox<String> productTaxCombo = new JComboBox<>(new String[]{"Select Product Type", "VAT@0", "VAT@5", "VAT@10", "VAT@20"});
+                productTempMap.put(12, "VAT@12%");
+                JComboBox<String> productTaxCombo = new JComboBox<>(new String[]{"Select Product Type", "VAT@12%"});
                 productTaxCombo.setFont(regularFont);
                 productTaxCombo.setSelectedItem(productTempMap.get(product.tax())); // Preselect existing product productTax
                 panel.add(productTaxCombo, gbc);
@@ -870,13 +864,13 @@ public class ProductList extends javax.swing.JPanel {
 
         gbc.gridx = 1;
         Map<String, Integer> productTaxTypeMap = new HashMap<>();
-        productTaxTypeMap.put("VAT@0", 0);
-        productTaxTypeMap.put("VAT@5", 5);
-        productTaxTypeMap.put("VAT@10", 10);
-        productTaxTypeMap.put("VAT@20", 20);
-        JComboBox<String> productTaxCombo = new JComboBox<>(new String[]{"Select Product Type", "VAT@0", "VAT@5", "VAT@10", "VAT@20"});
-        productTaxCombo.setFont(regularFont);
-        panel.add(productTaxCombo, gbc);
+        productTaxTypeMap.put("VAT@12%", 12);
+
+        JTextField productTaxField = new JTextField();
+        productTaxField.setFont(regularFont);
+        productTaxField.setText("VAT@12%");
+        productTaxField.setEnabled(false);
+        panel.add(productTaxField, gbc);
 
         // Tax Type
         gbc.gridx = 2;
@@ -934,6 +928,8 @@ public class ProductList extends javax.swing.JPanel {
         JTextField sellingPriceField = new JTextField(15);
         sellingPriceField.setFont(regularFont);
         panel.add(sellingPriceField, gbc);
+        sellingPriceField.setEnabled(false);
+        sellingPriceField.setText("This will be automatically computed");
 
         // Note
         gbc.gridx = 0;
@@ -1009,10 +1005,10 @@ public class ProductList extends javax.swing.JPanel {
             String name = itemNameField.getText();
             String stock = itemStockField.getText();
             String regularPrice = regularPriceField.getText();
-            String productTaxType = (String) productTaxCombo.getSelectedItem();
+            String productTaxType = "12";
 
             // Validate the required fields
-            if (name.isEmpty() || Objects.equals(productTaxType, "Select Product Type") || regularPrice.isEmpty()) {
+            if (name.isEmpty() || regularPrice.isEmpty()) {
                 JOptionPane.showMessageDialog(null, "Please fill out all required fields.", "Error", JOptionPane.ERROR_MESSAGE);
             } else {
                 int brandSelectedIndex = brandCombo.getSelectedIndex();
@@ -1038,7 +1034,7 @@ public class ProductList extends javax.swing.JPanel {
                         model,
                         brandId,
                         unit.equals("Per Piece") ? ProductUnit.PIECE : ProductUnit.DOZEN,
-                        productTaxTypeMap.get(productTaxType),
+                        productTaxTypeMap.get("VAT@12%"),
                         taxType.equals("Exclusive") ? ProductTaxType.EXCLUSIVE : ProductTaxType.INCLUSIVE,
                         BigDecimal.valueOf(Double.parseDouble(purchasePrice)),
                         BigDecimal.valueOf(Double.parseDouble(regularPrice)),

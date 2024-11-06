@@ -30,7 +30,7 @@ public class ProductMapper {
         product.setTaxType(dto.taxType());
         product.setPurchasePrice(dto.purchasePrice());
         product.setRegularPrice(dto.regularPrice());
-        product.setSellingPrice(getSellingPrice(dto.regularPrice(), dto.productTax(), dto.percentageDiscount(), dto.taxType()));
+        product.setSellingPrice(getSellingPrice(dto.purchasePrice()));
         product.setPercentageDiscount(dto.percentageDiscount());
         product.setNote(dto.note());
         product.setAlertQuantity(dto.alertQuantity());
@@ -40,22 +40,20 @@ public class ProductMapper {
         return product;
     }
 
-    private BigDecimal getSellingPrice(
-            BigDecimal regularPrice,
-            int productTax,
-            int percentageDiscount,
+    public BigDecimal getSellingPrice(
+            BigDecimal purchasePrice
+    ) {
+        return purchasePrice.multiply(BigDecimal.valueOf(1.12));
+    }
+
+    public BigDecimal getPurchasePrice(
+            BigDecimal purchasePrice,
             ProductTaxType taxType
     ) {
-        BigDecimal discountPrice = regularPrice.multiply(BigDecimal.valueOf(percentageDiscount / 100.0));
-        BigDecimal discountedPrice = regularPrice.subtract(discountPrice);
-        BigDecimal vatTax = discountedPrice.multiply(BigDecimal.valueOf(productTax / 100.0));
-
-        if (taxType.equals(ProductTaxType.INCLUSIVE)) {
-            // If inclusive, VAT is already included, so we return the discounted price directly
-            return discountedPrice;
-        } else {
-            // If exclusive, VAT is added to the discounted price
-            return discountedPrice.add(vatTax);
+        if(taxType.equals(ProductTaxType.EXCLUSIVE)){
+            return purchasePrice.multiply(BigDecimal.valueOf(0.12));
+        }else{
+            return getSellingPrice(purchasePrice).divide(BigDecimal.valueOf(1.12)).multiply(BigDecimal.valueOf(0.12));
         }
     }
 

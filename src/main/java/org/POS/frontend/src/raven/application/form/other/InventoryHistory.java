@@ -1,60 +1,62 @@
 
 package org.POS.frontend.src.raven.application.form.other;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
+
 import javax.swing.table.DefaultTableModel;
+
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionEvent;
 
 public class InventoryHistory extends javax.swing.JPanel {
 
 
-public InventoryHistory() {
-    initComponents();
-    
-    TableActionEvent event = new TableActionEvent() {
-@Override
-        public void onEdit(int row) {
+    public InventoryHistory() {
+        initComponents();
 
-        }
+        TableActionEvent event = new TableActionEvent() {
+            @Override
+            public void onEdit(int row) {
 
-
-        @Override
-        public void onDelete(int row) {
-            if (table.isEditing()) {
-                table.getCellEditor().stopCellEditing();
             }
 
-            // Confirm before deleting
-            int confirmation = JOptionPane.showConfirmDialog(null, 
-                "Are you sure you want to delete this SubCategory?", 
-                "Confirm Delete", JOptionPane.YES_NO_OPTION);
 
-            if (confirmation == JOptionPane.YES_OPTION) {
-                DefaultTableModel model = (DefaultTableModel) table.getModel();
-                model.removeRow(row);
-                JOptionPane.showMessageDialog(null, "SubCategory Deleted Successfully", 
-                    "Deleted", JOptionPane.INFORMATION_MESSAGE);
+            @Override
+            public void onDelete(int row) {
+                if (table.isEditing()) {
+                    table.getCellEditor().stopCellEditing();
+                }
+
+                // Confirm before deleting
+                int confirmation = JOptionPane.showConfirmDialog(null,
+                        "Are you sure you want to delete this SubCategory?",
+                        "Confirm Delete", JOptionPane.YES_NO_OPTION);
+
+                if (confirmation == JOptionPane.YES_OPTION) {
+                    DefaultTableModel model = (DefaultTableModel) table.getModel();
+                    model.removeRow(row);
+                    JOptionPane.showMessageDialog(null, "SubCategory Deleted Successfully",
+                            "Deleted", JOptionPane.INFORMATION_MESSAGE);
+                }
             }
-        }
 
-        @Override
-        public void onView(int row) {
-        }
-    };
+            @Override
+            public void onView(int row) {
+            }
+        };
 
-    if (table.getColumnModel().getColumnCount() > 9) {
-        table.getColumnModel().getColumn(9).setCellRenderer(new TableActionCellRender());
-        table.getColumnModel().getColumn(9).setCellEditor(new TableActionCellEditor(event));
-    } else {
-        System.err.println("Error: Table does not have enough columns!");
+        if (table.getColumnModel().getColumnCount() > 9) {
+            table.getColumnModel().getColumn(9).setCellRenderer(new TableActionCellRender());
+            table.getColumnModel().getColumn(9).setCellEditor(new TableActionCellEditor(event));
+        } else {
+            System.err.println("Error: Table does not have enough columns!");
+        }
     }
-}
-
-
 
 
     @SuppressWarnings("unchecked")
@@ -98,16 +100,16 @@ public InventoryHistory() {
 
         table.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null}
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null}
             },
             new String [] {
-                "#", "Date", "Stock In", "Price", "Type", "Code", "Supplier/Client"
+                "#", "Date", "Stock In", "Price", "Code", "Supplier/Client"
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, true, false, false
+                false, false, false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -123,21 +125,20 @@ public InventoryHistory() {
             table.getColumnModel().getColumn(3).setResizable(false);
             table.getColumnModel().getColumn(4).setResizable(false);
             table.getColumnModel().getColumn(5).setResizable(false);
-            table.getColumnModel().getColumn(6).setResizable(false);
         }
 
         table1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null}
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null}
             },
             new String [] {
-                "#", "Date", "Stock Out", "Price", "Type", "Code", "Supplier/Client"
+                "#", "Date", "Stock Out", "Price", "Code", "Supplier/Client"
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, true, false, false
+                false, false, false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -153,7 +154,6 @@ public InventoryHistory() {
             table1.getColumnModel().getColumn(3).setResizable(false);
             table1.getColumnModel().getColumn(4).setResizable(false);
             table1.getColumnModel().getColumn(5).setResizable(false);
-            table1.getColumnModel().getColumn(6).setResizable(false);
         }
 
         jLabel4.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
@@ -195,7 +195,7 @@ public InventoryHistory() {
 
         jPanel3.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/raven/icon/png/logogroup.png"))); // NOI18N
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/png/logogroup.png"))); // NOI18N
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
         jLabel2.setText("ZEUSLED");

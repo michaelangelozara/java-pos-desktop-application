@@ -5,7 +5,10 @@ import org.POS.backend.person.PersonType;
 import org.POS.backend.product.Product;
 import org.POS.backend.product.ProductResponseDto;
 import org.POS.backend.product.ProductService;
+import org.POS.backend.product.ProductTaxType;
 import org.POS.backend.purchase.PurchaseService;
+import org.POS.backend.purchased_product.AddPurchaseProductRequestDto;
+import org.POS.backend.purchased_product.PurchaseProduct;
 import org.POS.frontend.src.raven.application.Application;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
@@ -19,14 +22,13 @@ import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
+import java.util.List;
 
 public class Purchases_List extends javax.swing.JPanel {
 
@@ -539,9 +541,9 @@ public class Purchases_List extends javax.swing.JPanel {
         Map<Integer, Integer> supplierMap = new HashMap<>();
         PersonService personService = new PersonService();
         var suppliers = personService.getAllValidPeopleByType(PersonType.SUPPLIER);
-        for(int i = 0; i < suppliers.size(); i++){
+        for (int i = 0; i < suppliers.size(); i++) {
             supplierCombo.addItem(suppliers.get(i).name() + suppliers.get(i).id());
-            supplierMap.put(i+1, suppliers.get(i).id());
+            supplierMap.put(i + 1, suppliers.get(i).id());
         }
 
         gbc.gridx = 2;
@@ -559,9 +561,9 @@ public class Purchases_List extends javax.swing.JPanel {
         // Populate ComboBox with product names
         productsCombo.addItem("Select Product");
 
-        for(int i = 0; i < products.size(); i++){
+        for (int i = 0; i < products.size(); i++) {
             productsCombo.addItem(products.get(i).name());
-            productMap.put(i+1, products.get(i).id());
+            productMap.put(i + 1, products.get(i).id());
         }
 
         // Table setup below Supplier and Select Products
@@ -571,11 +573,11 @@ public class Purchases_List extends javax.swing.JPanel {
         gbc.fill = GridBagConstraints.BOTH;
 
         // Define a custom table model to make specific columns non-editable
-        DefaultTableModel tableModel = new DefaultTableModel(new Object[]{"#", "Code", "Name", "Quantity", "Purchase Price", "Unit Cost", "Tax", "Action"}, 0) {
+        DefaultTableModel tableModel = new DefaultTableModel(new Object[]{"#", "ID", "Code", "Name", "Quantity", "Purchase Price", "Selling Price", "Tax Value", "Tax Type", "Action"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 // Only "Quantity" and "Purchase Price" columns are editable (indexes 3 and 4)
-                return column == 3 || column == 4;
+                return column == 4 || column == 5;
             }
         };
 
@@ -590,39 +592,52 @@ public class Purchases_List extends javax.swing.JPanel {
         }
 
         // Highlight editable cells
-        productsTable.getColumnModel().getColumn(3).setCellEditor(new DefaultCellEditor(new JTextField())); // Quantity as JTextField
-        productsTable.getColumnModel().getColumn(4).setCellEditor(new DefaultCellEditor(new JTextField())); // Purchase Price as JTextField
-        productsTable.getColumnModel().getColumn(3).setCellRenderer(new EditableCellRenderer()); // Custom renderer for Quantity
-        productsTable.getColumnModel().getColumn(4).setCellRenderer(new EditableCellRenderer()); // Custom renderer for Purchase Price
+        productsTable.getColumnModel().getColumn(4).setCellEditor(new DefaultCellEditor(new JTextField())); // Quantity as JTextField
+        productsTable.getColumnModel().getColumn(5).setCellEditor(new DefaultCellEditor(new JTextField())); // Purchase Price as JTextField
+        productsTable.getColumnModel().getColumn(4).setCellRenderer(new EditableCellRenderer()); // Custom renderer for Quantity
+        productsTable.getColumnModel().getColumn(5).setCellRenderer(new EditableCellRenderer()); // Custom renderer for Purchase Price
 
-        productsTable.getColumnModel().getColumn(7).setCellRenderer(new ButtonRenderer());
+        productsTable.getColumnModel().getColumn(9).setCellRenderer(new ButtonRenderer());
 
         // Add JScrollPane around the table
         JScrollPane scrollPane = new JScrollPane(productsTable);
         scrollPane.setPreferredSize(new Dimension(800, 150));
         panel.add(scrollPane, gbc);
 
+
+        tableModel.addTableModelListener(e -> {
+            int row = e.getFirstRow();
+            int column = e.getColumn();
+
+            if (column == 4 || column == 5) { // Check if it's the "Quantity" or "Purchase Price" column
+                Object newValue = tableModel.getValueAt(row, column);
+                System.out.println("Cell updated in row " + row + ", column " + column + " with value: " + newValue);
+            }
+        });
+
         // Add ActionListener to ComboBox
         productsCombo.addActionListener(e -> {
             String selectedProduct = (String) productsCombo.getSelectedItem();
+            int productIndex = productsCombo.getSelectedIndex();
+            int productId = productMap.get(productIndex);
+            assert selectedProduct != null;
             if (!selectedProduct.equals("Select Product")) {
                 for (ProductResponseDto product : products) {
-                    if (product.name().equals(selectedProduct)) {
-//                        double subtotal = product.getUnitCost() * 1; // Default quantity is 1
-//
-//                        // Add a new row to the table with the product's data
-//                        tableModel.addRow(new Object[]{
-//                                tableModel.getRowCount() + 1, // Row number
-//                                product.getCode(),
-//                                product.getName(),
-//                                "1",  // Quantity as default text
-//                                String.valueOf(product.getUnitCost()),
-//                                product.getUnitCost(),
-//                                product.getTax(),
-//                                subtotal,
-//                                "Remove"
-//                        });
-//                        break;
+                    if (product.id() == productId) {
+                        // Add a new row to the table with the product's data
+                        tableModel.addRow(new Object[]{
+                                tableModel.getRowCount() + 1, // Row number
+                                product.id(),
+                                product.code(),
+                                product.name(),
+                                product.stock(),
+                                product.purchasePrice(),
+                                product.sellingPrice(),
+                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().multiply(BigDecimal.valueOf(0.12)) : product.sellingPrice().divide(BigDecimal.valueOf(1.12)).multiply(BigDecimal.valueOf(0.12)),
+                                product.taxType().name(),
+                                "Remove"
+                        });
+                        break;
                     }
                 }
             }
@@ -634,7 +649,7 @@ public class Purchases_List extends javax.swing.JPanel {
                 int column = productsTable.columnAtPoint(e.getPoint());
                 int row = productsTable.rowAtPoint(e.getPoint());
 
-                if (column == 8) { // "Action" column index for "Remove" button
+                if (column == 9) { // "Action" column index for "Remove" button
                     tableModel.removeRow(row);
                 }
             }
@@ -779,6 +794,12 @@ public class Purchases_List extends javax.swing.JPanel {
         int result = JOptionPane.showConfirmDialog(null, panel, "Create Purchase Order", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {
+            List<List<Object>> insertedRows = getAllRows(tableModel);
+
+            for(List<Object> row : insertedRows){
+                System.out.println(row);
+            }
+
             // Handle form submission logic here
             String supplier = (String) supplierCombo.getSelectedItem();
             String product = (String) productsCombo.getSelectedItem();
@@ -792,7 +813,20 @@ public class Purchases_List extends javax.swing.JPanel {
             String status = (String) statusCombo.getSelectedItem();
 
             // Process the collected data...
+
         }
+    }
+
+    private List<List<Object>> getAllRows(DefaultTableModel model){
+        List<List<Object>> rows = new ArrayList<>();
+        for(int i = 0; i < model.getRowCount(); i++){
+            List<Object> row = new ArrayList<>();
+            for(int j = 0; j < model.getColumnCount(); j++){
+                row.add(model.getValueAt(i, j));
+            }
+            rows.add(row);
+        }
+        return rows;
     }
 
     class EditableCellRenderer extends DefaultTableCellRenderer {

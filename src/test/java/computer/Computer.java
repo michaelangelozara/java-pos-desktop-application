@@ -1,6 +1,10 @@
 package computer;
 
+import org.POS.backend.product.ProductMapper;
+import org.POS.backend.product.ProductTaxType;
 import org.junit.jupiter.api.Test;
+
+import java.math.BigDecimal;
 
 public class Computer {
 
@@ -12,5 +16,25 @@ public class Computer {
         double discountedValue = (((regularPrice * vat) + regularPrice) * discount);
         double sellingPrice = ((regularPrice * vat) + regularPrice) - discountedValue;
 
+    }
+
+    @Test
+    void computeVatWithExclusive(){
+        ProductMapper productMapper = new ProductMapper();
+        System.out.println(productMapper.getPurchasePrice(BigDecimal.valueOf(150), ProductTaxType.INCLUSIVE));
+    }
+
+    @Test
+    void computeVatWithInclusive(){
+        double product = 1000;
+        double vat = (product/1.12)*((double) 12 /100);
+        System.out.println(vat);
+    }
+
+    @Test
+    void computeExclusiveTax(){
+        double product = 1000;
+        double exclusiveTax = (product/1.12);
+        System.out.println(exclusiveTax);
     }
 }

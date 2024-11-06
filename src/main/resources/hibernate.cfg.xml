@@ -27,5 +27,6 @@
         <mapping class="org.POS.backend.purchase.Purchase"/>
         <mapping class="org.POS.backend.purchased_product.PurchaseProduct"/>
         <mapping class="org.POS.backend.return_product.ReturnProduct"/>
+        <mapping class="org.POS.backend.stock.Stock"/>
     </session-factory>
 </hibernate-configuration>

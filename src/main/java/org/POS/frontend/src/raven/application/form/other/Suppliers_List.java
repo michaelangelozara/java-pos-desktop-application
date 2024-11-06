@@ -2,10 +2,7 @@
 package org.POS.frontend.src.raven.application.form.other;
 
 import org.POS.backend.cryptography.Base64Converter;
-import org.POS.backend.person.PersonService;
-import org.POS.backend.person.PersonStatus;
-import org.POS.backend.person.PersonType;
-import org.POS.backend.person.UpdatePersonRequestDto;
+import org.POS.backend.person.*;
 import org.POS.frontend.src.raven.application.Application;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
@@ -199,7 +196,7 @@ public class Suppliers_List extends javax.swing.JPanel {
 
                     personService.update(dto);
 
-                    JOptionPane.showMessageDialog(null, "Product Updated Successfully",
+                    JOptionPane.showMessageDialog(null, "Supplier Updated Successfully",
                             "Updated", JOptionPane.INFORMATION_MESSAGE);
                     loadSuppliers();
                 }
@@ -224,7 +221,7 @@ public class Suppliers_List extends javax.swing.JPanel {
                     PersonService personService = new PersonService();
                     personService.delete(supplierId);
 
-                    JOptionPane.showMessageDialog(null, "Product Deleted Successfully",
+                    JOptionPane.showMessageDialog(null, "Supplier Deleted Successfully",
                             "Deleted", JOptionPane.INFORMATION_MESSAGE);
                     loadSuppliers();
                 }
@@ -515,7 +512,8 @@ public class Suppliers_List extends javax.swing.JPanel {
         JButton imageButton = new JButton("Upload Image");
         imageButton.setPreferredSize(fieldSize);
 
-// File Chooser for Image Upload
+        // File Chooser for Image Upload
+        Base64Converter base64Converter = new Base64Converter();
         imageButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setDialogTitle("Select Image");
@@ -523,7 +521,11 @@ public class Suppliers_List extends javax.swing.JPanel {
             if (result == JFileChooser.APPROVE_OPTION) {
                 File selectedFile = fileChooser.getSelectedFile();
                 // Handle file upload logic here
-                System.out.println("Selected file: " + selectedFile.getAbsolutePath());
+                try {
+                    base64Converter.setConvertFileToBase64(selectedFile);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         });
         panel.add(imageButton, gbc);
@@ -542,6 +544,7 @@ public class Suppliers_List extends javax.swing.JPanel {
         int result = JOptionPane.showConfirmDialog(null, panel, "Create Record", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {
+            PersonService personService = new PersonService();
             // Submission logic
             String name = nameField.getText();
             String email = emailField.getText();
@@ -550,9 +553,23 @@ public class Suppliers_List extends javax.swing.JPanel {
             String taxRegistrationNumber = taxField.getText();
             String address = addressField.getText();
             String status = (String) statusCombo.getSelectedItem();
+            String image  = base64Converter.getBase64();
 
-            // Handle the image upload if needed
-            // selectedFile would be processed here after image upload
+            AddPersonRequestDto dto = new AddPersonRequestDto(
+                    name,
+                    email,
+                    contactNumber,
+                    companyName,
+                    taxRegistrationNumber,
+                    PersonType.SUPPLIER,
+                    address,
+                    image,
+                    status.equals("Active") ? PersonStatus.ACTIVE : PersonStatus.INACTIVE
+            );
+            personService.add(dto);
+            JOptionPane.showMessageDialog(null, "Supplier Added Successfully",
+                    "Added", JOptionPane.INFORMATION_MESSAGE);
+            loadSuppliers();
         }
     }
 
