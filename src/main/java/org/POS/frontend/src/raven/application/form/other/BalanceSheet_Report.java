@@ -81,7 +81,7 @@ public class BalanceSheet_Report extends javax.swing.JPanel {
         jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
         jLabel2.setText("ZEUSLED");
 
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/raven/icon/png/logogroup.png"))); // NOI18N
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/png/logogroup.png"))); // NOI18N
 
         jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel3.setText("Phone:");

@@ -745,6 +745,7 @@ public class Expenses_List extends javax.swing.JPanel {
 
             ExpenseService expenseService = new ExpenseService();
 
+            assert status != null;
             AddExpenseRequestDto dto = new AddExpenseRequestDto(
                     subcategoryId,
                     expenseReason,
@@ -765,6 +766,7 @@ public class Expenses_List extends javax.swing.JPanel {
             } else {
                 JOptionPane.showMessageDialog(null, "Expense Created Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             }
+            loadExpenses();
         }
 
     }//GEN-LAST:event_jButton1ActionPerformed

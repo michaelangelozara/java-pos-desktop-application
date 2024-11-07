@@ -1,0 +1,2 @@
+Purchase
+    getting/casting values from table error

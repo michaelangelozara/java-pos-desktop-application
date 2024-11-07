@@ -1,5 +1,9 @@
 package org.POS.frontend.src.raven.application.form.other;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.POS.backend.person.PersonService;
 import org.POS.backend.person.PersonType;
 import org.POS.backend.product.Product;
@@ -338,6 +342,7 @@ public class Purchases_List extends javax.swing.JPanel {
             }
 
         };
+
         table.getColumnModel().getColumn(11).setCellRenderer(new TableActionCellRender());
         table.getColumnModel().getColumn(11).setCellEditor(new TableActionCellEditor(event));
         loadPurchases();
@@ -574,11 +579,25 @@ public class Purchases_List extends javax.swing.JPanel {
         gbc.fill = GridBagConstraints.BOTH;
 
         // Define a custom table model to make specific columns non-editable
-        DefaultTableModel tableModel = new DefaultTableModel(new Object[]{"#", "ID", "Code", "Name", "Quantity", "Purchase Price", "Selling Price", "Tax Value", "Tax Type", "Action"}, 0) {
+        DefaultTableModel tableModel = new DefaultTableModel(new Object[]{"#", "ID", "Code", "Name", "Quantity", "Purchase Price", "Selling Price", "Tax Value", "Tax Type", "Subtotal", "Action"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                // Only "Quantity" and "Purchase Price" columns are editable (indexes 3 and 4)
-                return column == 4 || column == 5;
+//                // Only "Quantity" and "Purchase Price" columns are editable (indexes 3 and 4)
+//                return column == 4 || column == 5 || column == 6;
+
+                // Get the value from the "Tax Type" column (column 8)
+                Object taxTypeValue = getValueAt(row, 8);  // Assuming Tax Type is at index 8
+                // Check if tax type is "exclusive" or "inclusive"
+                if (taxTypeValue != null && taxTypeValue.equals("EXCLUSIVE")) {
+                    // If Tax Type is "exclusive", make only "Quantity" (index 4) and "Purchase Price" (index 5) editable
+                    return column == 4 || column == 5;
+                } else if (taxTypeValue != null && taxTypeValue.equals("INCLUSIVE")) {
+                    // If Tax Type is "inclusive", make only "Quantity" (index 4) and "Selling Price" (index 6) editable
+                    return column == 4 || column == 6;
+                }
+
+                // Default case: no cells are editable if tax type is neither "exclusive" nor "inclusive"
+                return false;
             }
         };
 
@@ -595,10 +614,12 @@ public class Purchases_List extends javax.swing.JPanel {
         // Highlight editable cells
         productsTable.getColumnModel().getColumn(4).setCellEditor(new DefaultCellEditor(new JTextField())); // Quantity as JTextField
         productsTable.getColumnModel().getColumn(5).setCellEditor(new DefaultCellEditor(new JTextField())); // Purchase Price as JTextField
+        productsTable.getColumnModel().getColumn(6).setCellEditor(new DefaultCellEditor(new JTextField())); // Selling Price as JTextField
         productsTable.getColumnModel().getColumn(4).setCellRenderer(new EditableCellRenderer()); // Custom renderer for Quantity
         productsTable.getColumnModel().getColumn(5).setCellRenderer(new EditableCellRenderer()); // Custom renderer for Purchase Price
+        productsTable.getColumnModel().getColumn(6).setCellRenderer(new EditableCellRenderer()); // Custom renderer for Selling Price
 
-        productsTable.getColumnModel().getColumn(9).setCellRenderer(new ButtonRenderer());
+        productsTable.getColumnModel().getColumn(10).setCellRenderer(new ButtonRenderer());
 
         // Add JScrollPane around the table
         JScrollPane scrollPane = new JScrollPane(productsTable);
@@ -609,22 +630,26 @@ public class Purchases_List extends javax.swing.JPanel {
             int row = e.getFirstRow();
             int column = e.getColumn();
 
-            if (column == 4 || column == 5) { // Check if it's the "Quantity" or "Purchase Price" column
-                List<List<Object>> insertedRows = getAllRows(tableModel);
+            if (column == 4 || column == 5 || column == 6) { // Check if it's the "Quantity" or "Purchase Price" column
+                List<PurchaseListedProduct> insertedRows = getAllRows(tableModel);
+
                 Object newValue = tableModel.getValueAt(row, column);
-                System.out.println("Cell updated in row " + row + ", column " + column + " with value: " + newValue);
-                for (List<Object> r : insertedRows) {
-                    System.out.println(r);
-                }
                 tableModel.setRowCount(0);
 
-                List<List<Object>> updatedRows = new ArrayList<>();
+                List<PurchaseListedProduct> updatedRows = new ArrayList<>();
                 for (int i = 0; i < insertedRows.size(); i++) {
-                    if ((row + 1) == (Integer) insertedRows.get(i).get(0)) {
-                        List<Object> editRow = insertedRows.get(i);
+                    if ((row + 1) == insertedRows.get(i).getNumber()) {
+                        PurchaseListedProduct editRow = insertedRows.get(i);
+                        if(editRow.getTaxType().equals("EXCLUSIVE")){
+                            BigDecimal updatedSubtotal = BigDecimal.valueOf(editRow.getQuantity()).multiply(editRow.getPurchasePrice().multiply(BigDecimal.valueOf(1.12)));
+                            editRow.setSubtotal(updatedSubtotal);
+                            editRow.setTaxValue(updatedSubtotal.subtract((BigDecimal.valueOf(editRow.getQuantity()).multiply(editRow.getPurchasePrice()))));
+                            editRow.setSellingPrice(editRow.getPurchasePrice().multiply(BigDecimal.valueOf(1.12)));
+                        }else{
 
-                        // get the value
-                        System.out.println(editRow.get(7));
+                        }
+
+                        String asd  = "";
 
                         // updated or compute the value
 
@@ -637,16 +662,6 @@ public class Purchases_List extends javax.swing.JPanel {
 
                 // update the tableModel using the data of updatedRows
 //                for loop
-            }
-        });
-
-        tableModel.addTableModelListener(e -> {
-            int row = e.getFirstRow();
-            int column = e.getColumn();
-
-            if (column == 4 || column == 5) { // Check if it's the "Quantity" or "Purchase Price" column
-                Object newValue = tableModel.getValueAt(row, column);
-                System.out.println("Cell updated in row " + row + ", column " + column + " with value: " + newValue);
             }
         });
 
@@ -668,8 +683,9 @@ public class Purchases_List extends javax.swing.JPanel {
                                 product.stock(),
                                 product.purchasePrice(),
                                 product.sellingPrice(),
-                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().multiply(BigDecimal.valueOf(0.12)) : product.sellingPrice().divide(BigDecimal.valueOf(1.12)).multiply(BigDecimal.valueOf(0.12)),
+                                product.sellingPrice().subtract(product.purchasePrice()),
                                 product.taxType().name(),
+                                product.sellingPrice().multiply(BigDecimal.valueOf(product.stock())),
                                 "Remove"
                         });
                         break;
@@ -684,22 +700,17 @@ public class Purchases_List extends javax.swing.JPanel {
                 int column = productsTable.columnAtPoint(e.getPoint());
                 int row = productsTable.rowAtPoint(e.getPoint());
 
-                if (column == 9) { // "Action" column index for "Remove" button
+                if (column == 10) { // "Action" column index for "Remove" button
                     tableModel.removeRow(row);
                 }
             }
         });
-
 
         // Table setup below Supplier and Select Products
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.gridwidth = 8;
         gbc.fill = GridBagConstraints.BOTH;
-
-        // Table data and columns
-        String[] columnNames = {"#", "Code", "Name", "Quantity", "Purchase Price", "Unit Cost", "Tax", "Subtotal", "Action"};
-        Object[][] data = {}; // Initialize with empty data
 
         // Increment row for the rest of the fields
         gbc.gridy = 2;
@@ -740,7 +751,6 @@ public class Purchases_List extends javax.swing.JPanel {
         gbc.gridy = 2; // Position summary panel right below the table
         gbc.gridwidth = 8;
         panel.add(summaryPanel, gbc);
-
 
         // PO Reference, Payment Terms, Purchase Tax, Total Tax - same row
         gbc.gridy = 3;
@@ -926,39 +936,89 @@ public class Purchases_List extends javax.swing.JPanel {
         int result = JOptionPane.showConfirmDialog(null, panel, "Create Purchase Order", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {
-            List<List<Object>> insertedRows = getAllRows(tableModel);
+//            List<PurchaseListedProduct> insertedRows = getAllRows(tableModel);
 
-            for (List<Object> row : insertedRows) {
-                System.out.println(row);
-            }
+//            for (PurchaseListedProduct row : insertedRows) {
+//                System.out.println(row);
+//            }
 
             // Handle form submission logic here
-            String supplier = (String) supplierCombo.getSelectedItem();
-            String product = (String) productsCombo.getSelectedItem();
-            String poReference = poReferenceField.getText();
-            String paymentTerms = paymentTermsField.getText();
-            String purchaseTax = (String) purchaseTaxCombo.getSelectedItem();
-            String totalTax = totalTaxField.getText();
-            String note = noteArea.getText();
-            String purchaseDate = purchaseDatePicker.getJFormattedTextField().getText();
-            String poDate = poDatePicker.getJFormattedTextField().getText();
-            String status = (String) statusCombo.getSelectedItem();
+//            String supplier = (String) supplierCombo.getSelectedItem();
+//            String product = (String) productsCombo.getSelectedItem();
+//            String poReference = poReferenceField.getText();
+//            String paymentTerms = paymentTermsField.getText();
+//            String purchaseTax = (String) purchaseTaxCombo.getSelectedItem();
+//            String totalTax = totalTaxField.getText();
+//            String note = noteArea.getText();
+//            String purchaseDate = purchaseDatePicker.getJFormattedTextField().getText();
+//            String poDate = poDatePicker.getJFormattedTextField().getText();
+//            String status = (String) statusCombo.getSelectedItem();
 
             // Process the collected data...
 
         }
     }
 
-    private List<List<Object>> getAllRows(DefaultTableModel model) {
-        List<List<Object>> rows = new ArrayList<>();
+    private List<PurchaseListedProduct> getAllRows(DefaultTableModel model) {
+        List<PurchaseListedProduct> rows = new ArrayList<>();
         for (int i = 0; i < model.getRowCount(); i++) {
-            List<Object> row = new ArrayList<>();
-            for (int j = 0; j < model.getColumnCount(); j++) {
-                row.add(model.getValueAt(i, j));
-            }
-            rows.add(row);
+
+            int number = model.getValueAt(i, 0) != null ? (Integer) model.getValueAt(i, 0) : 0;
+            int id = model.getValueAt(i, 1) != null ? (Integer) model.getValueAt(i, 1) : 0;
+            String code = model.getValueAt(i, 2) != null ? (String) model.getValueAt(i, 2) : "";
+            String name = model.getValueAt(i, 3) != null ? (String) model.getValueAt(i, 3) : "";
+            String quantity = model.getValueAt(i, 4) != null ? (String) model.getValueAt(i, 4) : "0";
+            String purchasePrice = model.getValueAt(i, 5) != null ? model.getValueAt(i, 5).toString() : "0";
+            String sellingPrice = model.getValueAt(i, 6) != null ? model.getValueAt(i, 6).toString() : "0";
+            String taxValue = model.getValueAt(i, 7) != null ? model.getValueAt(i, 7).toString() : "0";
+            String taxType = model.getValueAt(i, 8) != null ? (String) model.getValueAt(i, 8) : "";
+            String subtotal = model.getValueAt(i, 9) != null ? model.getValueAt(i, 9).toString() : "0";
+
+            BigDecimal purchasePriceBD = safeParseBigDecimal(purchasePrice);
+            BigDecimal sellingPriceBD = safeParseBigDecimal(sellingPrice);
+            BigDecimal taxValueBD = safeParseBigDecimal(taxValue);
+            BigDecimal subtotalBD = safeParseBigDecimal(subtotal);
+
+            PurchaseListedProduct purchaseListedProduct = new PurchaseListedProduct(
+                    number,
+                    id,
+                    code,
+                    name,
+                    Integer.parseInt(quantity),
+                    purchasePriceBD,
+                    sellingPriceBD,
+                    taxValueBD,
+                    taxType,
+                    subtotalBD
+            );
+            rows.add(purchaseListedProduct);
         }
         return rows;
+    }
+
+    private BigDecimal safeParseBigDecimal(String value) {
+        try {
+            return value != null && !value.isEmpty() ? BigDecimal.valueOf(Double.parseDouble(value)) : BigDecimal.ZERO;
+        } catch (NumberFormatException e) {
+            return BigDecimal.ZERO;
+        }
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    class PurchaseListedProduct {
+        private int number;
+        private int id;
+        private String code;
+        private String name;
+        private int quantity;
+        private BigDecimal purchasePrice;
+        private BigDecimal sellingPrice;
+        private BigDecimal taxValue;
+        private String taxType;
+        private BigDecimal subtotal;
     }
 
     class EditableCellRenderer extends DefaultTableCellRenderer {

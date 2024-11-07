@@ -66,4 +66,8 @@ public class ProductService {
     public List<ProductResponseDto> getAllValidProductsBelowAlertQuantity(){
         return this.productMapper.productResponseDtoList(this.productDAO.getAllValidProductsBelowAlertQuantity());
     }
+
+    public List<ProductResponseDto> getAllValidProductByProductSubcategoryId(int productSubcategoryId){
+        return this.productMapper.productResponseDtoList(this.productDAO.getAllValidProductsByProductSubcategoryId(productSubcategoryId));
+    }
 }

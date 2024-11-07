@@ -3,6 +3,7 @@ package org.POS.frontend.src.raven.application.form;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.util.UIScale;
+
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
@@ -15,9 +16,9 @@ import javax.swing.JButton;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+
 import org.POS.frontend.src.raven.application.Application;
-import org.POS.frontend.src.javaswingdev.form.Form_Dashboard;
-import org.POS.frontend.src.raven.application.form.other.POS;
+import org.POS.frontend.src.zeusled.gui.Dashboard;
 import org.POS.frontend.src.raven.application.form.other.Products_Category;
 import org.POS.frontend.src.raven.application.form.other.Expenses_Category;
 import org.POS.frontend.src.raven.application.form.other.Products_Sub_Category;
@@ -41,9 +42,9 @@ import org.POS.frontend.src.raven.application.form.other.Inventory_Report;
 import org.POS.frontend.src.raven.application.form.other.CurrentValueandStock_Report;
 import org.POS.frontend.src.raven.menu.Menu;
 import org.POS.frontend.src.raven.menu.MenuAction;
+import org.POS.frontend.src.raven.application.form.other.POS;
 
 /**
- *
  * @author Raven
  */
 public class MainForm extends JLayeredPane {
@@ -87,113 +88,111 @@ public class MainForm extends JLayeredPane {
         menuButton.setIcon(new FlatSVGIcon("/svg" + icon, 0.8f));
     }
 
-private void initMenuEvent() {
-    menu.addMenuEvent((int index, int subIndex, MenuAction action) -> {
-        switch (index) {
-            case 0:
-                Application.showForm(new Form_Dashboard());
-                break;
-            case 1:
-                 if (subIndex == 1) {
-                    Application.showForm(new Expenses_Category());
-                } else if (subIndex == 2) {
-                    Application.showForm(new Expenses_Sub_Category());
-                } else if (subIndex == 3) {
-                    Application.showForm(new Expenses_List());
-                } 
-                else {
-                    action.cancel();
-                }
-                break;
-            case 2:
-                if (subIndex == 1) {
-                   Application.showForm(new Purchases_List());
-                } else if (subIndex == 2) {
-                   Application.showForm(new Return_List());
-                } else {
-                    action.cancel(); 
-                }
-                break;
-            case 3:
-                if (subIndex == 1) {
-                   Application.showForm(new Quotation_List());
-                } else if (subIndex == 2) {
-                    Application.showForm(new Invoice_List());
-                } else if (subIndex == 3) {
-                    Application.showForm(new POS());
-                } else {
-                    action.cancel();
-                }
-                break;
-            case 4:
-                 Application.showForm(new Customer_List());
-                break;
-            case 5:
-                Application.showForm(new Suppliers_List());
-                break;
-            case 6:
-                if (subIndex == 1) {
-                    Application.showForm(new Products_Category());
-                } else if (subIndex == 2) {
-                    Application.showForm(new Products_Sub_Category());
-                } else if (subIndex == 3) {
-                    Application.showForm(new ProductList());
-                } 
-                else {
-                    action.cancel();
-                }
-                break;
-            case 7:
-                if (subIndex == 1) {
-                    Application.showForm(new Inventory());
-                } else if (subIndex == 2) {
-                    Application.showForm(new InventoryAdjustment());
-                } else {
-                    action.cancel();
-                }
-                break;
-            case 8:
-               
-                   Application.showForm(new BalanceSheet_Report());                
-                
-                break;
-            case 9:
-                    Application.showForm(new Sales_Report());
-               
-                break;
-            case 10:
-                  Application.showForm(new ProfitLoss_Report());
-               
-                break;
-            case 11:
-               
-                Application.showForm(new Expense_Report());
-                
-                break;
-            case 12:
-               
-                Application.showForm(new CollectionByUser_Report());
-                
-                break;
-            case 13:
-                
-                 Application.showForm(new Inventory_Report());
+    private void initMenuEvent() {
+        menu.addMenuEvent((int index, int subIndex, MenuAction action) -> {
+            switch (index) {
+                case 0:
+                    Application.showForm(new Dashboard());
+                    break;
+                case 1:
+                    if (subIndex == 1) {
+                        Application.showForm(new Expenses_Category());
+                    } else if (subIndex == 2) {
+                        Application.showForm(new Expenses_Sub_Category());
+                    } else if (subIndex == 3) {
+                        Application.showForm(new Expenses_List());
+                    } else {
+                        action.cancel();
+                    }
+                    break;
+                case 2:
+                    if (subIndex == 1) {
+                        Application.showForm(new Purchases_List());
+                    } else if (subIndex == 2) {
+                        Application.showForm(new Return_List());
+                    } else {
+                        action.cancel();
+                    }
+                    break;
+                case 3:
+                    if (subIndex == 1) {
+                        Application.showForm(new Quotation_List());
+                    } else if (subIndex == 2) {
+                        Application.showForm(new Invoice_List());
+                    } else if (subIndex == 3) {
+                        Application.showForm(new POS());
+                    } else {
+                        action.cancel();
+                    }
+                    break;
+                case 4:
+                    Application.showForm(new Customer_List());
+                    break;
+                case 5:
+                    Application.showForm(new Suppliers_List());
+                    break;
+                case 6:
+                    if (subIndex == 1) {
+                        Application.showForm(new Products_Category());
+                    } else if (subIndex == 2) {
+                        Application.showForm(new Products_Sub_Category());
+                    } else if (subIndex == 3) {
+                        Application.showForm(new ProductList());
+                    } else {
+                        action.cancel();
+                    }
+                    break;
+                case 7:
+                    if (subIndex == 1) {
+                        Application.showForm(new Inventory());
+                    } else if (subIndex == 2) {
+                        Application.showForm(new InventoryAdjustment());
+                    } else {
+                        action.cancel();
+                    }
+                    break;
+                case 8:
 
-                break;
-            case 14:
-              
-                 Application.showForm(new CurrentValueandStock_Report());
-               
-                break;
-            case 15:
-                Application.logout();
-                break;
-            default:
-                action.cancel();
-                break;
-        }
-    });
-}
+                    Application.showForm(new BalanceSheet_Report());
+
+                    break;
+                case 9:
+                    Application.showForm(new Sales_Report());
+
+                    break;
+                case 10:
+                    Application.showForm(new ProfitLoss_Report());
+
+                    break;
+                case 11:
+
+                    Application.showForm(new Expense_Report());
+
+                    break;
+                case 12:
+
+                    Application.showForm(new CollectionByUser_Report());
+
+                    break;
+                case 13:
+
+                    Application.showForm(new Inventory_Report());
+
+                    break;
+                case 14:
+
+                    Application.showForm(new CurrentValueandStock_Report());
+
+                    break;
+                case 15:
+                    Application.logout();
+                    break;
+                default:
+                    action.cancel();
+                    break;
+            }
+        });
+    }
 
 
     private void setMenuFull(boolean full) {

@@ -24,6 +24,7 @@ import org.POS.frontend.src.raven.cell.TableActionCellRender;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.Document;
 
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionEvent;
@@ -911,8 +912,6 @@ public class ProductList extends javax.swing.JPanel {
         sellingPriceField.setEnabled(false);
         panel.add(sellingPriceField, gbc);
 
-        boolean isPurchaseOperate = false, isSellingOperate = false;
-
         purchasePriceField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -930,22 +929,24 @@ public class ProductList extends javax.swing.JPanel {
             }
 
             private void onTextChanged() {
-                if(purchasePriceField.getText().isEmpty())
+
+                if (purchasePriceField.getText().isEmpty())
                     return;
 
-                for(int i = 0; i < purchasePriceField.getText().length(); i++){
-                    if(Character.isLetter(purchasePriceField.getText().charAt(i))){
+                for (int i = 0; i < purchasePriceField.getText().length(); i++) {
+                    if (Character.isLetter(purchasePriceField.getText().charAt(i))) {
                         return;
                     }
                 }
 
-                if(purchasePriceField.getText().isEmpty())
+                if (purchasePriceField.getText().isEmpty())
                     sellingPriceField.setText("");
 
                 double purchase = Double.parseDouble(purchasePriceField.getText());
                 sellingPriceField.setText(String.format("%.2f", purchase * 1.12));
             }
         });
+
 
         sellingPriceField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
@@ -963,17 +964,18 @@ public class ProductList extends javax.swing.JPanel {
 
             }
 
-            private void onChange(){
-                if(sellingPriceField.getText().isEmpty())
+            private void onChange() {
+
+                if (sellingPriceField.getText().isEmpty())
                     return;
 
-                for(int i = 0; i < sellingPriceField.getText().length(); i++){
-                    if(Character.isLetter(sellingPriceField.getText().charAt(i))){
+                for (int i = 0; i < sellingPriceField.getText().length(); i++) {
+                    if (Character.isLetter(sellingPriceField.getText().charAt(i))) {
                         return;
                     }
                 }
 
-                if(sellingPriceField.getText().isEmpty())
+                if (sellingPriceField.getText().isEmpty())
                     purchasePriceField.setText("");
 
                 double purchase = Double.parseDouble(sellingPriceField.getText());

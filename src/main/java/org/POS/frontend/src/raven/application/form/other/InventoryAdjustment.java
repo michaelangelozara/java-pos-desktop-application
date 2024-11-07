@@ -216,7 +216,7 @@ public void onEdit(int row) {
 
         @Override
         public void onView(int row) {
-        Application.showForm(new InventoryHistory());
+//        Application.showForm(new InventoryHistory());
 
         }
     };

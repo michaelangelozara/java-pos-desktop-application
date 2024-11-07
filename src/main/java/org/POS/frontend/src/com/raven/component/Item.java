@@ -85,7 +85,6 @@ public class Item extends javax.swing.JPanel {
         lbBrand.setText("Brand");
 
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/png/logogroup.png"))); // NOI18N
         pic.add(jLabel1);
         jLabel1.setBounds(0, 0, 180, 130);
 

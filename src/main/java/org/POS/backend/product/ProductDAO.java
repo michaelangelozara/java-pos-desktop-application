@@ -125,5 +125,19 @@ public class ProductDAO {
         return products;
     }
 
+    public List<Product> getAllValidProductsByProductSubcategoryId(int productSubcategoryId) {
+        List<Product> products = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()) {
+            products = session.createQuery(
+                            "SELECT p FROM Product p WHERE p.brand.productSubcategory.id = :productSubcategoryId AND p.isDeleted = FALSE",
+                            Product.class
+                    ).setParameter("productSubcategoryId", productSubcategoryId)
+                    .getResultList();
+        } catch (Exception e) {
+            // Consider logging the exception
+            e.printStackTrace();
+        }
+        return products;
+    }
 
 }

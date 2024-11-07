@@ -91,12 +91,12 @@ public class ProductSubcategoryDAO {
         return productSubcategory;
     }
 
-    public List<ProductSubcategory> getAllValidSubcategoriesByCategoryId(int categoryId) {
+    public List<ProductSubcategory> getAllValidSubcategoriesByCategoryId(int subcategoryId) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
-            List<ProductSubcategory> subcategories = session.createQuery("SELECT s FROM ProductSubcategory s WHERE s.category.id = :categoryId AND s.isDeleted = FALSE", ProductSubcategory.class)
-                    .setParameter("productCategoryId", categoryId)
+            List<ProductSubcategory> subcategories = session.createQuery("SELECT s FROM ProductSubcategory s WHERE s.productCategory.id = :subcategoryId AND s.isDeleted = FALSE", ProductSubcategory.class)
+                    .setParameter("subcategoryId", subcategoryId)
                     .getResultList();
 
             session.getTransaction().commit();

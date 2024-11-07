@@ -53,7 +53,9 @@ public class Inventory extends javax.swing.JPanel {
 
             @Override
             public void onView(int row) {
-                Application.showForm(new InventoryHistory());
+                DefaultTableModel model = (DefaultTableModel) table.getModel();
+                int productId = (Integer) model.getValueAt(row, 1);
+                Application.showForm(new InventoryHistory(productId));
 
             }
         };
