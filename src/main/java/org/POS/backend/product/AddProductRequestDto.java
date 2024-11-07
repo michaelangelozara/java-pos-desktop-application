@@ -11,6 +11,7 @@ public record AddProductRequestDto(
         ProductTaxType taxType,
         BigDecimal purchasePrice,
         BigDecimal regularPrice,
+        BigDecimal sellingPrice,
         int percentageDiscount,
         String note,
         int alertQuantity,

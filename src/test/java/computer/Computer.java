@@ -21,7 +21,7 @@ public class Computer {
     @Test
     void computeVatWithExclusive(){
         ProductMapper productMapper = new ProductMapper();
-        System.out.println(productMapper.getPurchasePrice(BigDecimal.valueOf(150), ProductTaxType.INCLUSIVE));
+//        System.out.println(productMapper.getSellingPrice(BigDecimal.valueOf(1000), ProductTaxType.EXCLUSIVE));
     }
 
     @Test

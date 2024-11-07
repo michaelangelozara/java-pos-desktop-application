@@ -3,8 +3,8 @@ package org.POS.backend.purchase;
 import org.POS.backend.global_variable.GlobalVariable;
 import org.POS.backend.person.PersonDAO;
 import org.POS.backend.person.PersonType;
-import org.POS.backend.product.ProductDAO;
 import org.POS.backend.purchased_product.PurchaseProduct;
+import org.POS.backend.purchased_product.PurchaseProductService;
 
 import java.util.List;
 
@@ -16,13 +16,13 @@ public class PurchaseService {
 
     private PersonDAO personDAO;
 
-    private ProductDAO productDAO;
+    private PurchaseProductService purchaseProductService;
 
     public PurchaseService() {
         this.purchaseDAO = new PurchaseDAO();
         this.purchaseMapper = new PurchaseMapper();
         this.personDAO = new PersonDAO();
-        this.productDAO = new ProductDAO();
+        this.purchaseProductService = new PurchaseProductService();
     }
 
     public String add(AddPurchaseRequestDto dto) {
@@ -34,6 +34,8 @@ public class PurchaseService {
 
         var purchase = this.purchaseMapper.toPurchase(dto, supplier);
         this.purchaseDAO.add(purchase);
+
+//        this.purchaseProductService.add(purchase, );
 
         return GlobalVariable.PURCHASE_ADDED;
     }

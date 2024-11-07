@@ -18,6 +18,7 @@ import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -604,6 +605,40 @@ public class Purchases_List extends javax.swing.JPanel {
         scrollPane.setPreferredSize(new Dimension(800, 150));
         panel.add(scrollPane, gbc);
 
+        tableModel.addTableModelListener(e -> {
+            int row = e.getFirstRow();
+            int column = e.getColumn();
+
+            if (column == 4 || column == 5) { // Check if it's the "Quantity" or "Purchase Price" column
+                List<List<Object>> insertedRows = getAllRows(tableModel);
+                Object newValue = tableModel.getValueAt(row, column);
+                System.out.println("Cell updated in row " + row + ", column " + column + " with value: " + newValue);
+                for (List<Object> r : insertedRows) {
+                    System.out.println(r);
+                }
+                tableModel.setRowCount(0);
+
+                List<List<Object>> updatedRows = new ArrayList<>();
+                for (int i = 0; i < insertedRows.size(); i++) {
+                    if ((row + 1) == (Integer) insertedRows.get(i).get(0)) {
+                        List<Object> editRow = insertedRows.get(i);
+
+                        // get the value
+                        System.out.println(editRow.get(7));
+
+                        // updated or compute the value
+
+                        //save to the updatedRows (List)
+
+                        continue;
+                    }
+                    updatedRows.add(insertedRows.get(i));
+                }
+
+                // update the tableModel using the data of updatedRows
+//                for loop
+            }
+        });
 
         tableModel.addTableModelListener(e -> {
             int row = e.getFirstRow();
@@ -678,13 +713,13 @@ public class Purchases_List extends javax.swing.JPanel {
         GridBagConstraints gbcSummary = new GridBagConstraints();
         gbcSummary.insets = new Insets(5, 10, 5, 10);
 
-        Font summaryFont = new Font("Arial", Font.BOLD, 14);
+        Font summaryFont = new Font("Arial", Font.BOLD, 22); // Larger font size for better visibility
 
         gbcSummary.gridx = 0;
         gbcSummary.gridy = 0;
         gbcSummary.anchor = GridBagConstraints.EAST;
 
-        JLabel subtotalLabel = new JLabel("Subtotal: ₱123.00");
+        JLabel subtotalLabel = new JLabel("Subtotal");
         subtotalLabel.setFont(summaryFont);
         subtotalLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         summaryPanel.add(subtotalLabel, gbcSummary);
@@ -706,7 +741,8 @@ public class Purchases_List extends javax.swing.JPanel {
         gbc.gridwidth = 8;
         panel.add(summaryPanel, gbc);
 
-        // PO Reference, Payment Terms, Purchase Tax, Total Tax - next row
+
+        // PO Reference, Payment Terms, Purchase Tax, Total Tax - same row
         gbc.gridy = 3;
         gbc.gridwidth = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -734,7 +770,7 @@ public class Purchases_List extends javax.swing.JPanel {
         panel.add(purchaseTaxLabel, gbc);
 
         gbc.gridx = 5;
-        JComboBox<String> purchaseTaxCombo = new JComboBox<>(new String[]{"VAT@0", "VAT@10", "VAT@20"});
+        JComboBox<String> purchaseTaxCombo = new JComboBox<>(new String[]{"VAT@12%"});
         panel.add(purchaseTaxCombo, gbc);
 
         gbc.gridx = 6;
@@ -747,9 +783,61 @@ public class Purchases_List extends javax.swing.JPanel {
         panel.add(totalTaxField, gbc);
         totalTaxField.setEnabled(false);
 
-// Note - move to the next row
+        // New row for Discount and Transport Cost
         gbc.gridx = 0;
         gbc.gridy = 4;
+        gbc.gridwidth = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JLabel discountLabel = new JLabel("Discount:");
+        discountLabel.setFont(labelFont);
+        panel.add(discountLabel, gbc);
+
+        gbc.gridx = 1;
+        JTextField discountField = new JTextField(10);
+        panel.add(discountField, gbc);
+
+        gbc.gridx = 2;
+        JLabel transportCostLabel = new JLabel("Transport Cost:");
+        transportCostLabel.setFont(labelFont);
+        panel.add(transportCostLabel, gbc);
+
+        gbc.gridx = 3;
+        JTextField transportCostField = new JTextField(10);
+        panel.add(transportCostField, gbc);
+
+        gbc.gridy = 5; // Position it right below the Discount and Transport Cost row
+        gbc.gridx = 0;
+
+        JLabel accountLabel = new JLabel("Account:");
+        accountLabel.setFont(labelFont);
+        panel.add(accountLabel, gbc);
+
+        gbc.gridx = 1;
+        JComboBox<String> accountCombo = new JComboBox<>(new String[]{"Select Account", "Onhand Cash", "BDO", "Landbank"});
+        panel.add(accountCombo, gbc);
+
+        gbc.gridx = 2;
+        JLabel chequeNoLabel = new JLabel("Cheque No:");
+        chequeNoLabel.setFont(labelFont);
+        panel.add(chequeNoLabel, gbc);
+
+        gbc.gridx = 3;
+        JTextField chequeNoField = new JTextField(10);
+        panel.add(chequeNoField, gbc);
+
+        gbc.gridx = 4;
+        JLabel receiptNoLabel = new JLabel("Receipt No:");
+        receiptNoLabel.setFont(labelFont);
+        panel.add(receiptNoLabel, gbc);
+
+        gbc.gridx = 5;
+        JTextField receiptNoField = new JTextField(10);
+        panel.add(receiptNoField, gbc);
+
+        // Shift remaining rows down by one row
+        gbc.gridx = 0;
+        gbc.gridy = 6;
         gbc.gridwidth = 2;
         JLabel noteLabel = new JLabel("Note:");
         noteLabel.setFont(labelFont);
@@ -760,9 +848,9 @@ public class Purchases_List extends javax.swing.JPanel {
         JTextArea noteArea = new JTextArea(3, 50);
         panel.add(new JScrollPane(noteArea), gbc);
 
-        // Purchase Date, PO Date, Status - next row
+        // Adjusting other elements to fit below the new Discount and Transport Cost row
         gbc.gridx = 0;
-        gbc.gridy = 5;
+        gbc.gridy = 7;
         gbc.gridwidth = 1;
         JLabel purchaseDateLabel = new JLabel("Purchase Date:");
         purchaseDateLabel.setFont(labelFont);
@@ -790,13 +878,57 @@ public class Purchases_List extends javax.swing.JPanel {
         JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Active", "Inactive"});
         panel.add(statusCombo, gbc);
 
+        // Shift remaining elements down one row to make space for the new panel
+        gbc.gridy++;
+
+        // New Panel for Total Paid and Net Total
+        JPanel totalPanel = new JPanel(new GridBagLayout());
+        totalPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "TOTAL AMOUNT", TitledBorder.LEFT, TitledBorder.TOP));
+        GridBagConstraints totalGbc = new GridBagConstraints();
+        totalGbc.insets = new Insets(5, 5, 5, 5);
+
+        // Total Paid Label and Text Field
+        totalGbc.gridx = 0;
+        totalGbc.gridy = 0;
+        totalGbc.gridwidth = 1;
+        JLabel totalPaidLabel = new JLabel("Total Paid:");
+        totalPaidLabel.setFont(labelFont);
+        totalPanel.add(totalPaidLabel, totalGbc);
+
+        totalGbc.gridx = 1;
+        totalGbc.gridwidth = 2;
+        JTextField totalPaidField = new JTextField(10); // Regular text field for Total Paid
+        totalPanel.add(totalPaidField, totalGbc);
+
+        // Add gap between Total Paid and Net Total
+        totalGbc.gridx = 3;
+        totalGbc.gridwidth = 1;
+        totalPanel.add(Box.createHorizontalStrut(20), totalGbc); // Adds horizontal gap
+
+        // Net Total Label and Display Label
+        totalGbc.gridx = 4;
+        JLabel netTotalLabel = new JLabel("Net Total:");
+        netTotalLabel.setFont(labelFont);
+        totalPanel.add(netTotalLabel, totalGbc);
+
+        totalGbc.gridx = 5;
+        JLabel netTotalDisplay = new JLabel("0.00"); // Placeholder for Net Total display
+        netTotalDisplay.setFont(new Font("Arial", Font.BOLD, 24)); // Set to larger, bold font
+        totalPanel.add(netTotalDisplay, totalGbc);
+
+        // Add the new Total Panel to the main panel
+        gbc.gridx = 0;
+        gbc.gridy = 8;
+        gbc.gridwidth = 8; // Span the entire row for alignment
+        panel.add(totalPanel, gbc);
+
         // Show the panel in a dialog
         int result = JOptionPane.showConfirmDialog(null, panel, "Create Purchase Order", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {
             List<List<Object>> insertedRows = getAllRows(tableModel);
 
-            for(List<Object> row : insertedRows){
+            for (List<Object> row : insertedRows) {
                 System.out.println(row);
             }
 
@@ -817,11 +949,11 @@ public class Purchases_List extends javax.swing.JPanel {
         }
     }
 
-    private List<List<Object>> getAllRows(DefaultTableModel model){
+    private List<List<Object>> getAllRows(DefaultTableModel model) {
         List<List<Object>> rows = new ArrayList<>();
-        for(int i = 0; i < model.getRowCount(); i++){
+        for (int i = 0; i < model.getRowCount(); i++) {
             List<Object> row = new ArrayList<>();
-            for(int j = 0; j < model.getColumnCount(); j++){
+            for (int j = 0; j < model.getColumnCount(); j++) {
                 row.add(model.getValueAt(i, j));
             }
             rows.add(row);

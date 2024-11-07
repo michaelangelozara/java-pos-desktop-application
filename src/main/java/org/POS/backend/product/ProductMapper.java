@@ -26,11 +26,16 @@ public class ProductMapper {
         product.setCode(codeGeneratorService.generateProductCode(GlobalVariable.PRODUCT_PREFIX));
         product.setBrand(brand);
         product.setUnit(dto.unit());
-        product.setProductTax(dto.productTax());
+        product.setProductTax(12);
         product.setTaxType(dto.taxType());
-        product.setPurchasePrice(dto.purchasePrice());
-        product.setRegularPrice(dto.regularPrice());
-        product.setSellingPrice(getSellingPrice(dto.purchasePrice()));
+
+        if(dto.taxType().equals(ProductTaxType.EXCLUSIVE)){
+            product.setSellingPrice(getSellingPrice(dto.purchasePrice()));
+            product.setPurchasePrice(dto.purchasePrice());
+        }else{
+            product.setSellingPrice(dto.sellingPrice());
+            product.setPurchasePrice(getPurchasePrice(dto.sellingPrice()));
+        }
         product.setPercentageDiscount(dto.percentageDiscount());
         product.setNote(dto.note());
         product.setAlertQuantity(dto.alertQuantity());
@@ -47,14 +52,9 @@ public class ProductMapper {
     }
 
     public BigDecimal getPurchasePrice(
-            BigDecimal purchasePrice,
-            ProductTaxType taxType
+            BigDecimal sellingPrice
     ) {
-        if(taxType.equals(ProductTaxType.EXCLUSIVE)){
-            return purchasePrice.multiply(BigDecimal.valueOf(0.12));
-        }else{
-            return getSellingPrice(purchasePrice).divide(BigDecimal.valueOf(1.12)).multiply(BigDecimal.valueOf(0.12));
-        }
+        return sellingPrice.multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12));
     }
 
     public Product toUpdatedProduct(Product product, UpdateProductRequestDto dto, Brand brand) {
@@ -62,15 +62,14 @@ public class ProductMapper {
         product.setModel(dto.model());
         product.setBrand(brand);
         product.setUnit(dto.unit());
-        product.setProductTax(dto.tax());
+        product.setProductTax(12);
         product.setTaxType(dto.taxType());
-        product.setRegularPrice(dto.regularPrice());
+//        product.setSellingPrice(getSellingPrice(dto.purchasePrice(), dto.taxType()));
         product.setPercentageDiscount(dto.discount());
         product.setNote(dto.note());
         product.setAlertQuantity(dto.alertQuantity());
         product.setStatus(dto.status());
         product.setImage(dto.image());
-        product.setPercentageDiscount(dto.discount());
         product.setPurchasePrice(dto.purchasePrice());
         product.setStock(dto.stock());
         return product;
@@ -86,7 +85,6 @@ public class ProductMapper {
                 product.getUnit(),
                 product.getProductTax(),
                 product.getTaxType(),
-                product.getRegularPrice(),
                 product.getPercentageDiscount(),
                 product.getNote(),
                 product.getAlertQuantity(),

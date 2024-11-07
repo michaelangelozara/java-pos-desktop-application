@@ -21,6 +21,8 @@ import org.POS.backend.product_subcategory.ProductSubcategoryService;
 import org.POS.backend.string_checker.StringChecker;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
 
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
@@ -225,7 +227,8 @@ public class ProductList extends javax.swing.JPanel {
                 gbc.gridx = 3;
                 JTextField regularPriceField = new JTextField(15);
                 regularPriceField.setFont(regularFont);
-                regularPriceField.setText(String.valueOf(product.regularPrice())); // Prepopulate with existing value
+                regularPriceField.setEnabled(false);
+                regularPriceField.setText(""); // Prepopulate with existing value
                 panel.add(regularPriceField, gbc);
 
                 // Discount
@@ -543,7 +546,7 @@ public class ProductList extends javax.swing.JPanel {
                 label.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 label.setOpaque(true);
                 detailsPanel.add(label);
-                detail = new JLabel(String.valueOf(product.regularPrice()), horizontalAlignment);
+                detail = new JLabel(String.valueOf("Unavailable"), horizontalAlignment);
                 detail.setFont(new Font("Arial", Font.PLAIN, 16));
                 detail.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 detail.setOpaque(true);
@@ -891,20 +894,111 @@ public class ProductList extends javax.swing.JPanel {
         panel.add(purchasePriceLabel, gbc);
 
         gbc.gridx = 1;
-        JTextField purchasePriceField = new JTextField(15);
+        final JTextField purchasePriceField = new JTextField(15);
         purchasePriceField.setFont(regularFont);
+        purchasePriceField.setEnabled(false);
         panel.add(purchasePriceField, gbc);
 
         // Regular Price *
         gbc.gridx = 2;
-        JLabel regularPriceLabel = new JLabel("Regular Price *");
-        regularPriceLabel.setFont(boldFont);
-        panel.add(regularPriceLabel, gbc);
+        JLabel sellingPriceLabel = new JLabel("Selling Price *");
+        sellingPriceLabel.setFont(boldFont);
+        panel.add(sellingPriceLabel, gbc);
 
         gbc.gridx = 3;
-        JTextField regularPriceField = new JTextField(15);
-        regularPriceField.setFont(regularFont);
-        panel.add(regularPriceField, gbc);
+        JTextField sellingPriceField = new JTextField(15);
+        sellingPriceField.setFont(regularFont);
+        sellingPriceField.setEnabled(false);
+        panel.add(sellingPriceField, gbc);
+
+        boolean isPurchaseOperate = false, isSellingOperate = false;
+
+        purchasePriceField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                onTextChanged();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                onTextChanged();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+
+            }
+
+            private void onTextChanged() {
+                if(purchasePriceField.getText().isEmpty())
+                    return;
+
+                for(int i = 0; i < purchasePriceField.getText().length(); i++){
+                    if(Character.isLetter(purchasePriceField.getText().charAt(i))){
+                        return;
+                    }
+                }
+
+                if(purchasePriceField.getText().isEmpty())
+                    sellingPriceField.setText("");
+
+                double purchase = Double.parseDouble(purchasePriceField.getText());
+                sellingPriceField.setText(String.format("%.2f", purchase * 1.12));
+            }
+        });
+
+        sellingPriceField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                onChange();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                onChange();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+
+            }
+
+            private void onChange(){
+                if(sellingPriceField.getText().isEmpty())
+                    return;
+
+                for(int i = 0; i < sellingPriceField.getText().length(); i++){
+                    if(Character.isLetter(sellingPriceField.getText().charAt(i))){
+                        return;
+                    }
+                }
+
+                if(sellingPriceField.getText().isEmpty())
+                    purchasePriceField.setText("");
+
+                double purchase = Double.parseDouble(sellingPriceField.getText());
+                purchasePriceField.setText(String.format("%.2f", purchase * 0.12 / 1.12));
+            }
+        });
+
+        taxTypeCombo.addActionListener(e -> {
+            String selectedItem = (String) taxTypeCombo.getSelectedItem();
+            assert selectedItem != null;
+            if (selectedItem.equals("Exclusive")) {
+                sellingPriceField.setText("");
+                sellingPriceField.setEnabled(false);
+                purchasePriceField.setEnabled(true);
+            } else if (selectedItem.equals("Inclusive")) {
+                sellingPriceField.setEnabled(true);
+                purchasePriceField.setEnabled(false);
+                purchasePriceField.setText("");
+            } else {
+                sellingPriceField.setEnabled(false);
+                purchasePriceField.setEnabled(false);
+                purchasePriceField.setText("");
+                sellingPriceField.setText("");
+            }
+        });
 
         // Discount
         gbc.gridx = 0;
@@ -917,19 +1011,6 @@ public class ProductList extends javax.swing.JPanel {
         JTextField discountField = new JTextField(15);
         discountField.setFont(regularFont);
         panel.add(discountField, gbc);
-
-        // Selling Price
-        gbc.gridx = 2;
-        JLabel sellingPriceLabel = new JLabel("Selling Price");
-        sellingPriceLabel.setFont(boldFont);
-        panel.add(sellingPriceLabel, gbc);
-
-        gbc.gridx = 3;
-        JTextField sellingPriceField = new JTextField(15);
-        sellingPriceField.setFont(regularFont);
-        panel.add(sellingPriceField, gbc);
-        sellingPriceField.setEnabled(false);
-        sellingPriceField.setText("This will be automatically computed");
 
         // Note
         gbc.gridx = 0;
@@ -1004,11 +1085,10 @@ public class ProductList extends javax.swing.JPanel {
         if (result == JOptionPane.OK_OPTION) {
             String name = itemNameField.getText();
             String stock = itemStockField.getText();
-            String regularPrice = regularPriceField.getText();
-            String productTaxType = "12";
+            String sellingPrice = sellingPriceField.getText();
 
             // Validate the required fields
-            if (name.isEmpty() || regularPrice.isEmpty()) {
+            if (name.isEmpty()) {
                 JOptionPane.showMessageDialog(null, "Please fill out all required fields.", "Error", JOptionPane.ERROR_MESSAGE);
             } else {
                 int brandSelectedIndex = brandCombo.getSelectedIndex();
@@ -1024,7 +1104,6 @@ public class ProductList extends javax.swing.JPanel {
                 String status = (String) statusCombo.getSelectedItem();
                 String image = base64Converter.getBase64();
 
-//                "Per Piece", "12 pcs"
                 ProductService productService = new ProductService();
                 assert unit != null;
                 assert taxType != null;
@@ -1037,7 +1116,8 @@ public class ProductList extends javax.swing.JPanel {
                         productTaxTypeMap.get("VAT@12%"),
                         taxType.equals("Exclusive") ? ProductTaxType.EXCLUSIVE : ProductTaxType.INCLUSIVE,
                         BigDecimal.valueOf(Double.parseDouble(purchasePrice)),
-                        BigDecimal.valueOf(Double.parseDouble(regularPrice)),
+                        BigDecimal.valueOf(Double.parseDouble(sellingPrice)),
+                        BigDecimal.valueOf(10),
                         Integer.parseInt(discount),
                         note,
                         Integer.parseInt(alertQuantity),
