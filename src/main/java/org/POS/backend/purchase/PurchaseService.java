@@ -1,9 +1,9 @@
 package org.POS.backend.purchase;
 
+import jakarta.transaction.Transactional;
 import org.POS.backend.global_variable.GlobalVariable;
 import org.POS.backend.person.PersonDAO;
 import org.POS.backend.person.PersonType;
-import org.POS.backend.purchased_product.PurchaseProduct;
 import org.POS.backend.purchased_product.PurchaseProductService;
 
 import java.util.List;
@@ -25,6 +25,7 @@ public class PurchaseService {
         this.purchaseProductService = new PurchaseProductService();
     }
 
+    @Transactional
     public String add(AddPurchaseRequestDto dto) {
         var supplier = this.personDAO.getValidPersonByTypeAndId(dto.supplierId(), PersonType.SUPPLIER);
 
@@ -33,15 +34,23 @@ public class PurchaseService {
 
 
         var purchase = this.purchaseMapper.toPurchase(dto, supplier);
-        this.purchaseDAO.add(purchase);
-
-//        this.purchaseProductService.add(purchase, );
-
+        var savedPurchase = this.purchaseDAO.add(purchase);
+        purchaseProductService.add(savedPurchase, dto.purchaseProducts());
         return GlobalVariable.PURCHASE_ADDED;
     }
 
-    private List<PurchaseProduct> computeProductsSubtotal(List<PurchaseProduct> purchaseProducts) {
-        return null;
+    public void update(UpdatePurchaseRequestDto dto){
+        var purchase = this.purchaseDAO.getValidPurchaseById(dto.purchaseId());
+
+        if(purchase != null){
+            var updatedPurchase = this.purchaseMapper.toUpdatedPurchase(purchase, dto);
+            this.purchaseDAO.update(updatedPurchase);
+            purchaseProductService.update(dto.purchaseProducts(), updatedPurchase);
+        }
+    }
+
+    public PurchaseResponseDto getValidPurchaseByPurchaseId(int purchaseId){
+        return this.purchaseMapper.toPurchaseResponseDto(this.purchaseDAO.getValidPurchaseById(purchaseId));
     }
 
     public List<PurchaseResponseDto> getAllValidPurchases() {

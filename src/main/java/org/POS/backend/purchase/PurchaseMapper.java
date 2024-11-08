@@ -10,6 +10,7 @@ import org.POS.backend.purchased_product.PurchaseProduct;
 import org.POS.backend.purchased_product.PurchaseProductMapper;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,26 +30,55 @@ public class PurchaseMapper {
     }
 
     public Purchase toPurchase(AddPurchaseRequestDto dto, Person supplier) {
-        BigDecimal netTotal = computeNetTotal(dto.productQuantity(), dto.productPurchasePrice(), dto.purchaseTax(), dto.discount(), dto.transportCost());
-
         Purchase purchase = new Purchase();
-        purchase.setPerson(supplier);
         purchase.setPoReference(dto.purchaseOrderReference());
+
         purchase.setPaymentTerm(dto.paymentTerm());
-        purchase.setPurchaseTax(dto.purchaseTax());
+        purchase.setPurchaseTax(12);
+        purchase.setDiscount(dto.discount());
+        purchase.setTransportCost(dto.transportCost());
+        purchase.setAccount(dto.account());
+        purchase.setChequeNumber(dto.chequeNumber());
+        purchase.setReceiptNumber(dto.receiptNumber());
         purchase.setNote(dto.note());
-        purchase.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.PURCHASE_PREFIX));
-        purchase.setCreatedDate(LocalDate.now());
         purchase.setPurchaseDate(dto.purchaseDate());
         purchase.setPurchaseOrderDate(dto.purchaseOrderDate());
         purchase.setStatus(dto.status());
+        purchase.setPerson(supplier);
+        purchase.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.PURCHASE_PREFIX));
+
+        BigDecimal netTotal = (dto.subtotalTax().add(dto.netSubtotal()).add(dto.transportCost()).add(dto.totalTax())).subtract(dto.discount()).setScale(2, RoundingMode.HALF_UP);
+        purchase.setBalance(netTotal.subtract(dto.totalPaid()));
+        purchase.setTotalPaid(dto.totalPaid());
+        purchase.setSubtotalTax(dto.subtotalTax());
+        purchase.setTotalTax(dto.netSubtotal().multiply(BigDecimal.valueOf(0.12)));
+        purchase.setSubtotal(dto.netSubtotal());
+        purchase.setNetTotal(netTotal);
+
+        return purchase;
+    }
+
+    public Purchase toUpdatedPurchase(Purchase purchase, UpdatePurchaseRequestDto dto) {
+        purchase.setPoReference(dto.purchaseOrderReference());
+        purchase.setPaymentTerm(dto.paymentTerm());
+        purchase.setPurchaseTax(12);
         purchase.setDiscount(dto.discount());
         purchase.setTransportCost(dto.transportCost());
-        purchase.setTotalTax(computeTotalTax(dto.productQuantity(), dto.productPurchasePrice(), dto.purchaseTax()));
+        purchase.setAccount(dto.account());
+        purchase.setChequeNumber(dto.chequeNumber());
+        purchase.setReceiptNumber(dto.receiptNumber());
+        purchase.setNote(dto.note());
+        purchase.setPurchaseDate(dto.purchaseDate());
+        purchase.setPurchaseOrderDate(dto.purchaseOrderDate());
+        purchase.setStatus(dto.status());
+
+        BigDecimal netTotal = (dto.subtotalTax().add(dto.netSubtotal()).add(dto.transportCost()).add(dto.totalTax())).subtract(dto.discount()).setScale(2, RoundingMode.HALF_UP);
+        purchase.setBalance(netTotal.subtract(dto.totalPaid()));
+        purchase.setTotalPaid(dto.totalPaid());
+        purchase.setSubtotalTax(dto.subtotalTax());
+        purchase.setTotalTax(dto.netSubtotal().multiply(BigDecimal.valueOf(0.12)));
+        purchase.setSubtotal(dto.netSubtotal());
         purchase.setNetTotal(netTotal);
-        purchase.setTotalPaid(BigDecimal.ZERO);
-        purchase.setTotalDue(netTotal);
-        purchase.setSubtotal(computeProductSubtotal(dto.productQuantity(), dto.productPurchasePrice()));
         return purchase;
     }
 
@@ -87,12 +117,6 @@ public class PurchaseMapper {
         return productPurchasePrice.multiply(BigDecimal.valueOf(Long.parseLong(String.valueOf(productQuantity))));
     }
 
-    public Purchase toUpdatedPurchase(Purchase purchase, UpdatePurchaseRequestDto dto) {
-
-
-        return purchase;
-    }
-
     public PurchaseResponseDto toPurchaseResponseDto(Purchase purchase) {
         List<PurchaseProduct> productList = new ArrayList<>(purchase.getPurchaseProducts());
         return new PurchaseResponseDto(
@@ -105,9 +129,20 @@ public class PurchaseMapper {
                 purchase.getDiscount(),
                 purchase.getNetTotal(),
                 purchase.getTotalPaid(),
-                purchase.getTotalDue(),
+                purchase.getBalance(),
                 purchase.getStatus(),
-                this.purchaseProductMapper.toPurchaseResponseDtoList(productList)
+                this.purchaseProductMapper.toPurchaseResponseDtoList(productList),
+                purchase.getSubtotalTax(),
+                purchase.getNetTotal(),
+                purchase.getPoReference(),
+                purchase.getPaymentTerm(),
+                purchase.getPurchaseDate(),
+                purchase.getPurchaseOrderDate(),
+                purchase.getTotalTax(),
+                purchase.getAccount(),
+                purchase.getChequeNumber(),
+                purchase.getReceiptNumber(),
+                purchase.getNote()
         );
     }
 

@@ -140,4 +140,19 @@ public class ProductDAO {
         return products;
     }
 
+    public List<Product> getAllValidProductByProductCode(List<String> codes) {
+        List<Product> products = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()) {
+            products = session.createQuery(
+                            "SELECT p FROM Product p WHERE p.code IN: codes  AND p.isDeleted = FALSE",
+                            Product.class
+                    )
+                    .setParameter("codes", codes).getResultList();
+        } catch (Exception e) {
+            // Consider logging the exception
+            e.printStackTrace();
+        }
+        return products;
+    }
+
 }

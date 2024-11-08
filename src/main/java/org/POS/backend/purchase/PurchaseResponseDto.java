@@ -19,6 +19,17 @@ public record PurchaseResponseDto(
         BigDecimal totalPaid,
         BigDecimal totalDue,
         PurchaseStatus status,
-        List<PurchaseProductResponseDto> purchaseProducts
+        List<PurchaseProductResponseDto> purchaseProducts,
+        BigDecimal subtotalTax,
+        BigDecimal netSubtotal,
+        String purchaseOrderReference,
+        String paymentTerm,
+        LocalDate purchaseDate,
+        LocalDate poDate,
+        BigDecimal totalTax,
+        String account,
+        String chequeNumber,
+        String receiptNumber,
+        String note
 ) {
 }

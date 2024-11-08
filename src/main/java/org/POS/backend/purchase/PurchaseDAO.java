@@ -19,16 +19,18 @@ public class PurchaseDAO {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public void add(Purchase purchase){
+    public Purchase add(Purchase purchase){
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
             session.persist(purchase);
+            session.flush();
 
             session.getTransaction().commit();
         }catch (Exception e){
             e.printStackTrace();
         }
+        return purchase;
     }
 
     public void update(Purchase purchase){
@@ -36,6 +38,7 @@ public class PurchaseDAO {
             session.beginTransaction();
 
             session.merge(purchase);
+            session.flush();
 
             session.getTransaction().commit();
         }catch (Exception e){
@@ -65,7 +68,7 @@ public class PurchaseDAO {
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            purchase = session.createQuery("SELECT p FROM Purchase p WHERE p.id = : purchaseId AND p.isDeleted = FALSE ", Purchase.class)
+            purchase = session.createQuery("SELECT p FROM Purchase p LEFT JOIN FETCH p.purchaseProducts pp WHERE p.id = : purchaseId AND p.isDeleted = FALSE AND pp.isDelete = FALSE ", Purchase.class)
                     .setParameter("purchaseId", purchaseId)
                     .getSingleResult();
 
@@ -83,7 +86,7 @@ public class PurchaseDAO {
         try (Session session = sessionFactory.openSession()){
             transaction = session.beginTransaction();
 
-            purchases = session.createQuery("SELECT p FROM Purchase p WHERE p.isDeleted = FALSE ", Purchase.class)
+            purchases = session.createQuery("SELECT p FROM Purchase p LEFT JOIN FETCH p.purchaseProducts WHERE p.isDeleted = FALSE ", Purchase.class)
                     .getResultList();
 
             session.getTransaction().commit();

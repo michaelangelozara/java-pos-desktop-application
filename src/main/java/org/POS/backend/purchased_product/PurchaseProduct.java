@@ -8,6 +8,7 @@ import org.POS.backend.product.Product;
 import org.POS.backend.purchase.Purchase;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "purchase_products")
@@ -22,6 +23,12 @@ public class PurchaseProduct {
 
     private int quantity;
 
+    @Column(name = "is_deleted")
+    private boolean isDelete;
+
+    @Column(name = "deleted_at")
+    private LocalDate deletedAt;
+
     @Column(name = "purchase_price", precision = 10, scale = 2)
     private BigDecimal purchasePrice;
 
@@ -33,6 +40,8 @@ public class PurchaseProduct {
 
     @Column(precision = 10, scale = 2)
     private BigDecimal subtotal;
+
+    private String productCode;
 
     @ManyToOne
     @JoinColumn(name = "purchase_id")

@@ -9,6 +9,7 @@ import org.POS.backend.purchased_product.PurchaseProduct;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -48,6 +49,12 @@ public class Purchase {
     @Column(name = "created_date")
     private LocalDate createdDate;
 
+    @Column(precision = 10, scale = 2)
+    private BigDecimal balance;
+
+    @Column(name = "subtotal_tax", precision = 10, scale = 2)
+    private BigDecimal subtotalTax;
+
     @Column(name = "total_tax", precision = 10, scale = 2)
     private BigDecimal totalTax;
 
@@ -66,19 +73,29 @@ public class Purchase {
     @Column(name = "total_paid", precision = 10, scale = 2)
     private BigDecimal totalPaid;
 
-    @Column(name = "total_due", precision = 10, scale = 2)
-    private BigDecimal totalDue;
-
     @Column(name = "is_deleted")
     private boolean isDeleted;
 
     @Column(name = "deleted_at")
     private LocalDate deletedAt;
 
+    @Column(name = "receipt_number")
+    private String receiptNumber;
+
+    private String account;
+
+    @Column(name = "cheque_number")
+    private String chequeNumber;
+
     @ManyToOne
     @JoinColumn(name = "person_id")
     private Person person;
 
-    @OneToMany(mappedBy = "purchase")
-    private Set<PurchaseProduct> purchaseProducts;
+    @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<PurchaseProduct> purchaseProducts = new HashSet<>();
+
+    public void addPurchaseProduct(PurchaseProduct purchaseProduct){
+        purchaseProducts.add(purchaseProduct);
+        purchaseProduct.setPurchase(this);
+    }
 }

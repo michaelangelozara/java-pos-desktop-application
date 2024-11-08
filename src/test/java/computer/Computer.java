@@ -15,6 +15,10 @@ public class Computer {
         double regularPrice = 100D;
         double discountedValue = (((regularPrice * vat) + regularPrice) * discount);
         double sellingPrice = ((regularPrice * vat) + regularPrice) - discountedValue;
+        BigDecimal one = BigDecimal.ONE;
+
+        BigDecimal ten = BigDecimal.TEN;
+        System.out.println(one.compareTo(ten));
 
     }
 

@@ -5,6 +5,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class PurchaseProductDAO {
@@ -20,11 +21,51 @@ public class PurchaseProductDAO {
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
 
-            session.persist(purchaseProducts);
+            for (PurchaseProduct purchaseProduct : purchaseProducts) {
+                session.persist(purchaseProduct);
+            }
+
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        }
+    }
+
+    public void delete(int purchaseProductId){
+        try (Session session = sessionFactory.openSession()){
+            session.beginTransaction();
+
+            PurchaseProduct purchaseProduct = session.createQuery("SELECT pp FROM PurchaseProduct pp WHERE pp.id = :purchaseProductId AND pp.isDelete = FALSE ", PurchaseProduct.class)
+                            .setParameter("purchaseProductId", purchaseProductId)
+                                    .getSingleResult();
+            purchaseProduct.setDelete(true);
+            purchaseProduct.setDeletedAt(LocalDate.now());
+            session.merge(purchaseProduct);
 
             session.getTransaction().commit();
         }catch (Exception e){
-            if(transaction != null){
+            e.printStackTrace();
+        }
+    }
+
+    public void update(List<PurchaseProduct> purchaseProducts){
+        Transaction transaction = null;
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.beginTransaction();
+
+            for (PurchaseProduct purchaseProduct : purchaseProducts) {
+                if(purchaseProduct.getId() != null){
+                    session.merge(purchaseProduct);
+                }else{
+                    session.persist(purchaseProduct);
+                }
+            }
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null && transaction.isActive()) {
                 transaction.rollback();
             }
             e.printStackTrace();

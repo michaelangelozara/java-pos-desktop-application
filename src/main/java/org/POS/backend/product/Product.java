@@ -10,6 +10,7 @@ import org.POS.backend.purchased_product.PurchaseProduct;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -76,6 +77,6 @@ public class Product {
     @JoinColumn(name = "product_subcategory_id")
     private ProductSubcategory productSubcategory;
 
-    @OneToMany(mappedBy = "product")
-    private List<PurchaseProduct> purchaseProducts;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PurchaseProduct> purchaseProducts = new ArrayList<>();
 }
