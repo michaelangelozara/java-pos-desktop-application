@@ -755,6 +755,7 @@ public class ProductList extends javax.swing.JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.WEST;
 
+
         // Create a bold and larger font for the labels
         Font boldFont = new Font("Arial", Font.BOLD, 14);
         Font regularFont = new Font("Arial", Font.PLAIN, 14);
@@ -912,77 +913,6 @@ public class ProductList extends javax.swing.JPanel {
         sellingPriceField.setEnabled(false);
         panel.add(sellingPriceField, gbc);
 
-        purchasePriceField.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                onTextChanged();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                onTextChanged();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-
-            }
-
-            private void onTextChanged() {
-
-                if (purchasePriceField.getText().isEmpty())
-                    return;
-
-                for (int i = 0; i < purchasePriceField.getText().length(); i++) {
-                    if (Character.isLetter(purchasePriceField.getText().charAt(i))) {
-                        return;
-                    }
-                }
-
-                if (purchasePriceField.getText().isEmpty())
-                    sellingPriceField.setText("");
-
-                double purchase = Double.parseDouble(purchasePriceField.getText());
-                sellingPriceField.setText(String.format("%.2f", purchase * 1.12));
-            }
-        });
-
-
-        sellingPriceField.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                onChange();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                onChange();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-
-            }
-
-            private void onChange() {
-
-                if (sellingPriceField.getText().isEmpty())
-                    return;
-
-                for (int i = 0; i < sellingPriceField.getText().length(); i++) {
-                    if (Character.isLetter(sellingPriceField.getText().charAt(i))) {
-                        return;
-                    }
-                }
-
-                if (sellingPriceField.getText().isEmpty())
-                    purchasePriceField.setText("");
-
-                double purchase = Double.parseDouble(sellingPriceField.getText());
-                purchasePriceField.setText(String.format("%.2f", purchase * 0.12 / 1.12));
-            }
-        });
-
         taxTypeCombo.addActionListener(e -> {
             String selectedItem = (String) taxTypeCombo.getSelectedItem();
             assert selectedItem != null;
@@ -1087,7 +1017,6 @@ public class ProductList extends javax.swing.JPanel {
         if (result == JOptionPane.OK_OPTION) {
             String name = itemNameField.getText();
             String stock = itemStockField.getText();
-            String sellingPrice = sellingPriceField.getText();
 
             // Validate the required fields
             if (name.isEmpty()) {
@@ -1096,6 +1025,7 @@ public class ProductList extends javax.swing.JPanel {
                 int brandSelectedIndex = brandCombo.getSelectedIndex();
                 int brandId = brandMap.get(brandSelectedIndex);
 
+                String sellingPrice = sellingPriceField.getText();
                 String model = itemModelField.getText();
                 String unit = (String) unitCombo.getSelectedItem();
                 String taxType = (String) taxTypeCombo.getSelectedItem();
@@ -1117,9 +1047,8 @@ public class ProductList extends javax.swing.JPanel {
                         unit.equals("Per Piece") ? ProductUnit.PIECE : ProductUnit.DOZEN,
                         productTaxTypeMap.get("VAT@12%"),
                         taxType.equals("Exclusive") ? ProductTaxType.EXCLUSIVE : ProductTaxType.INCLUSIVE,
-                        BigDecimal.valueOf(Double.parseDouble(purchasePrice)),
-                        BigDecimal.valueOf(Double.parseDouble(sellingPrice)),
-                        BigDecimal.valueOf(10),
+                        purchasePrice.isEmpty() ? BigDecimal.ZERO : BigDecimal.valueOf(Double.parseDouble(purchasePrice)),
+                        sellingPrice.isEmpty() ? BigDecimal.ZERO : BigDecimal.valueOf(Double.parseDouble(sellingPrice)),
                         Integer.parseInt(discount),
                         note,
                         Integer.parseInt(alertQuantity),

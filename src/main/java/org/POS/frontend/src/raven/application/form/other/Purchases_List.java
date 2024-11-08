@@ -28,6 +28,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -36,6 +37,10 @@ import java.util.*;
 import java.util.List;
 
 public class Purchases_List extends javax.swing.JPanel {
+
+    private JLabel taxLabel;
+
+    private JLabel totalLabel;
 
     public Purchases_List() {
         initComponents();
@@ -579,21 +584,23 @@ public class Purchases_List extends javax.swing.JPanel {
         gbc.fill = GridBagConstraints.BOTH;
 
         // Define a custom table model to make specific columns non-editable
-        DefaultTableModel tableModel = new DefaultTableModel(new Object[]{"#", "ID", "Code", "Name", "Quantity", "Purchase Price", "Selling Price", "Tax Value", "Tax Type", "Subtotal", "Action"}, 0) {
+        DefaultTableModel tableModel = new DefaultTableModel(
+                new Object[]{"#", "ID", "Code", "Name", "Quantity", "Purchase Price", "Selling Price", "Tax Value", "Tax Type", "Subtotal", "Action"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-//                // Only "Quantity" and "Purchase Price" columns are editable (indexes 3 and 4)
-//                return column == 4 || column == 5 || column == 6;
-
                 // Get the value from the "Tax Type" column (column 8)
-                Object taxTypeValue = getValueAt(row, 8);  // Assuming Tax Type is at index 8
-                // Check if tax type is "exclusive" or "inclusive"
-                if (taxTypeValue != null && taxTypeValue.equals("EXCLUSIVE")) {
-                    // If Tax Type is "exclusive", make only "Quantity" (index 4) and "Purchase Price" (index 5) editable
-                    return column == 4 || column == 5;
-                } else if (taxTypeValue != null && taxTypeValue.equals("INCLUSIVE")) {
-                    // If Tax Type is "inclusive", make only "Quantity" (index 4) and "Selling Price" (index 6) editable
-                    return column == 4 || column == 6;
+                Object taxTypeValue = getValueAt(row, 8); // Assuming Tax Type is at index 8
+
+                // Check if taxTypeValue is a String and has the expected value
+                if (taxTypeValue instanceof String) {
+                    String taxType = (String) taxTypeValue;
+                    if (taxType.equals("EXCLUSIVE")) {
+                        // Make "Quantity" (index 4) and "Purchase Price" (index 5) editable
+                        return column == 4 || column == 5;
+                    } else if (taxType.equals("INCLUSIVE")) {
+                        // Make "Quantity" (index 4) and "Selling Price" (index 6) editable
+                        return column == 4 || column == 6;
+                    }
                 }
 
                 // Default case: no cells are editable if tax type is neither "exclusive" nor "inclusive"
@@ -633,64 +640,133 @@ public class Purchases_List extends javax.swing.JPanel {
             if (column == 4 || column == 5 || column == 6) { // Check if it's the "Quantity" or "Purchase Price" column
                 List<PurchaseListedProduct> insertedRows = getAllRows(tableModel);
 
-                Object newValue = tableModel.getValueAt(row, column);
+                // this is for specific selected column or cell
+//                Object newValue = tableModel.getValueAt(row, column);
                 tableModel.setRowCount(0);
 
                 List<PurchaseListedProduct> updatedRows = new ArrayList<>();
+
                 for (int i = 0; i < insertedRows.size(); i++) {
                     if ((row + 1) == insertedRows.get(i).getNumber()) {
                         PurchaseListedProduct editRow = insertedRows.get(i);
-                        if(editRow.getTaxType().equals("EXCLUSIVE")){
+                        if (editRow.getTaxType().equals("EXCLUSIVE")) {
                             BigDecimal updatedSubtotal = BigDecimal.valueOf(editRow.getQuantity()).multiply(editRow.getPurchasePrice().multiply(BigDecimal.valueOf(1.12)));
                             editRow.setSubtotal(updatedSubtotal);
                             editRow.setTaxValue(updatedSubtotal.subtract((BigDecimal.valueOf(editRow.getQuantity()).multiply(editRow.getPurchasePrice()))));
                             editRow.setSellingPrice(editRow.getPurchasePrice().multiply(BigDecimal.valueOf(1.12)));
-                        }else{
+                        } else {
+                            editRow.setTaxValue(
+                                    editRow.getSellingPrice()
+                                            .multiply(BigDecimal.valueOf(0.12))
+                                            .divide(BigDecimal.valueOf(1.12), 2, RoundingMode.HALF_UP) // Specify scale and rounding mode here
+                            );
 
+                            editRow.setPurchasePrice(editRow.getSellingPrice().subtract(editRow.getTaxValue()));
+                            editRow.setSubtotal(BigDecimal.valueOf(editRow.getQuantity()).multiply(editRow.getSellingPrice()));
                         }
-
-                        String asd  = "";
-
-                        // updated or compute the value
-
-                        //save to the updatedRows (List)
-
+                        updatedRows.add(editRow);
                         continue;
                     }
                     updatedRows.add(insertedRows.get(i));
                 }
 
-                // update the tableModel using the data of updatedRows
-//                for loop
+                for(int i = 0; i < updatedRows.size(); i++){
+                    BigDecimal updatedSubtotal = BigDecimal.valueOf(updatedRows.get(i).getQuantity()).multiply(updatedRows.get(i).getPurchasePrice().multiply(BigDecimal.valueOf(1.12)));
+                    BigDecimal taxValueForInclusive = (updatedRows.get(i).getSellingPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP));
+                    tableModel.addRow(new Object[]{
+                            tableModel.getRowCount() + 1, // Row number
+                            updatedRows.get(i).getId(),
+                            updatedRows.get(i).getCode(),
+                            updatedRows.get(i).getName(),
+                            String.valueOf(updatedRows.get(i).getQuantity()), // Ensuring stock is a String
+                            updatedRows.get(i).getTaxType().equals("EXCLUSIVE") ? updatedRows.get(i).getPurchasePrice().setScale(2, RoundingMode.HALF_UP) : updatedRows.get(i).getSellingPrice().subtract(taxValueForInclusive).setScale(2, RoundingMode.HALF_UP),
+                            updatedRows.get(i).getTaxType().equals("EXCLUSIVE") ? updatedRows.get(i).getPurchasePrice().multiply(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP) : updatedRows.get(i).getSellingPrice().setScale(2, RoundingMode.HALF_UP),
+                            updatedRows.get(i).getTaxType().equals("EXCLUSIVE") ? updatedSubtotal.subtract((BigDecimal.valueOf(updatedRows.get(i).getQuantity()).multiply(updatedRows.get(i).getPurchasePrice()))).setScale(2, RoundingMode.HALF_UP) : taxValueForInclusive.setScale(2, RoundingMode.HALF_UP),
+                            updatedRows.get(i).getTaxType(), // Assuming taxType() returns an enum, use name() to get String
+                            updatedRows.get(i).getTaxType().equals("EXCLUSIVE") ? updatedSubtotal.setScale(2, RoundingMode.HALF_UP) : BigDecimal.valueOf(updatedRows.get(i).getQuantity()).multiply(updatedRows.get(i).getSellingPrice()).setScale(2, RoundingMode.HALF_UP), // Subtotal calculation
+                            "Remove"
+                    });
+                }
+
+                // update the Subtotal and total tax value
+                BigDecimal totalTaxSummation = BigDecimal.ZERO;
+                BigDecimal SubtotalSummation = BigDecimal.ZERO;
+                for(int i = 0; i < tableModel.getRowCount(); i++){
+                    BigDecimal totalTax = (BigDecimal) tableModel.getValueAt(i, 7);
+                    BigDecimal subTotal = (BigDecimal) tableModel.getValueAt(i, 9);
+                    totalTaxSummation = totalTaxSummation.add(totalTax);
+                    SubtotalSummation = SubtotalSummation.add(subTotal);
+                }
+
+                // update the computed total tax and computed subtotal
+                computeSubtotal(SubtotalSummation);
+                computeTotalTax(totalTaxSummation);
+
+
+
             }
         });
 
         // Add ActionListener to ComboBox
         productsCombo.addActionListener(e -> {
+
             String selectedProduct = (String) productsCombo.getSelectedItem();
             int productIndex = productsCombo.getSelectedIndex();
             int productId = productMap.get(productIndex);
+
+
+            List<PurchaseListedProduct> rows = getAllRows(tableModel);
+            for(int i = 0; i < rows.size(); i++){
+                // check if that product is already added
+                if(productId == rows.get(i).getId()){
+                    JOptionPane.showMessageDialog(null, "This product is already added.");
+                    return;
+                }
+            }
+
+            if (productMap.get(productIndex) == null) return;
+
             assert selectedProduct != null;
             if (!selectedProduct.equals("Select Product")) {
+                BigDecimal totalTaxSummation = BigDecimal.ZERO;
+                BigDecimal SubtotalSummation = BigDecimal.ZERO;
+
+
                 for (ProductResponseDto product : products) {
+
                     if (product.id() == productId) {
-                        // Add a new row to the table with the product's data
+                        BigDecimal updatedSubtotal = BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice().multiply(BigDecimal.valueOf(1.12)));
+
+                        BigDecimal taxValueForInclusive = (product.sellingPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP));
+
                         tableModel.addRow(new Object[]{
                                 tableModel.getRowCount() + 1, // Row number
                                 product.id(),
                                 product.code(),
                                 product.name(),
-                                product.stock(),
-                                product.purchasePrice(),
-                                product.sellingPrice(),
-                                product.sellingPrice().subtract(product.purchasePrice()),
-                                product.taxType().name(),
-                                product.sellingPrice().multiply(BigDecimal.valueOf(product.stock())),
+                                String.valueOf(product.stock()), // Ensuring stock is a String
+                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().subtract(taxValueForInclusive).setScale(2, RoundingMode.HALF_UP),
+                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().multiply(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().setScale(2, RoundingMode.HALF_UP),
+                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.subtract((BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice()))).setScale(2, RoundingMode.HALF_UP) : taxValueForInclusive.setScale(2, RoundingMode.HALF_UP),
+                                product.taxType().name(), // Assuming taxType() returns an enum, use name() to get String
+                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.setScale(2, RoundingMode.HALF_UP) : BigDecimal.valueOf(product.stock()).multiply(product.sellingPrice()).setScale(2, RoundingMode.HALF_UP), // Subtotal calculation
                                 "Remove"
                         });
                         break;
                     }
                 }
+
+                for(int i = 0; i < tableModel.getRowCount(); i++){
+                    BigDecimal totalTax = (BigDecimal) tableModel.getValueAt(i, 7);
+                    BigDecimal subTotal = (BigDecimal) tableModel.getValueAt(i, 9);
+                    totalTaxSummation = totalTaxSummation.add(totalTax);
+                    SubtotalSummation = SubtotalSummation.add(subTotal);
+                }
+
+                // update the computed total tax and computed subtotal
+                computeSubtotal(SubtotalSummation);
+                computeTotalTax(totalTaxSummation);
+
             }
         });
 
@@ -702,6 +778,20 @@ public class Purchases_List extends javax.swing.JPanel {
 
                 if (column == 10) { // "Action" column index for "Remove" button
                     tableModel.removeRow(row);
+
+                    BigDecimal totalTaxSummation = BigDecimal.ZERO;
+                    BigDecimal SubtotalSummation = BigDecimal.ZERO;
+
+                    for(int i = 0; i < tableModel.getRowCount(); i++){
+                        BigDecimal totalTax = (BigDecimal) tableModel.getValueAt(i, 7);
+                        BigDecimal subTotal = (BigDecimal) tableModel.getValueAt(i, 9);
+                        totalTaxSummation = totalTaxSummation.add(totalTax);
+                        SubtotalSummation = SubtotalSummation.add(subTotal);
+                    }
+
+                    // update the computed total tax and computed subtotal
+                    computeSubtotal(SubtotalSummation);
+                    computeTotalTax(totalTaxSummation);
                 }
             }
         });
@@ -730,19 +820,14 @@ public class Purchases_List extends javax.swing.JPanel {
         gbcSummary.gridy = 0;
         gbcSummary.anchor = GridBagConstraints.EAST;
 
-        JLabel subtotalLabel = new JLabel("Subtotal");
-        subtotalLabel.setFont(summaryFont);
-        subtotalLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        summaryPanel.add(subtotalLabel, gbcSummary);
-
         gbcSummary.gridx = 1;
-        JLabel taxLabel = new JLabel("Tax: ₱456.00");
+        taxLabel = new JLabel("Tax: ₱ 0");
         taxLabel.setFont(summaryFont);
         taxLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         summaryPanel.add(taxLabel, gbcSummary);
 
         gbcSummary.gridx = 2;
-        JLabel totalLabel = new JLabel("Total: ₱789.00");
+        totalLabel = new JLabel("Subtotal: ₱ 0");
         totalLabel.setFont(summaryFont);
         totalLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         summaryPanel.add(totalLabel, gbcSummary);
@@ -959,49 +1044,49 @@ public class Purchases_List extends javax.swing.JPanel {
         }
     }
 
+    private void computeSubtotal(BigDecimal subtotals){
+        taxLabel.setText("Subtotal: ₱ " + subtotals.setScale(2, RoundingMode.HALF_UP));
+    }
+
+    private void computeTotalTax(BigDecimal totalTaxes){
+        totalLabel.setText("Total Tax: ₱ " + totalTaxes.setScale(2, RoundingMode.HALF_UP));
+    }
+
     private List<PurchaseListedProduct> getAllRows(DefaultTableModel model) {
         List<PurchaseListedProduct> rows = new ArrayList<>();
         for (int i = 0; i < model.getRowCount(); i++) {
+            int number = (Integer) model.getValueAt(i, 0);
+            int id = (Integer) model.getValueAt(i, 1);
+            String code = (String) model.getValueAt(i, 2);
+            String name = (String) model.getValueAt(i, 3);
 
-            int number = model.getValueAt(i, 0) != null ? (Integer) model.getValueAt(i, 0) : 0;
-            int id = model.getValueAt(i, 1) != null ? (Integer) model.getValueAt(i, 1) : 0;
-            String code = model.getValueAt(i, 2) != null ? (String) model.getValueAt(i, 2) : "";
-            String name = model.getValueAt(i, 3) != null ? (String) model.getValueAt(i, 3) : "";
-            String quantity = model.getValueAt(i, 4) != null ? (String) model.getValueAt(i, 4) : "0";
-            String purchasePrice = model.getValueAt(i, 5) != null ? model.getValueAt(i, 5).toString() : "0";
-            String sellingPrice = model.getValueAt(i, 6) != null ? model.getValueAt(i, 6).toString() : "0";
-            String taxValue = model.getValueAt(i, 7) != null ? model.getValueAt(i, 7).toString() : "0";
-            String taxType = model.getValueAt(i, 8) != null ? (String) model.getValueAt(i, 8) : "";
-            String subtotal = model.getValueAt(i, 9) != null ? model.getValueAt(i, 9).toString() : "0";
+            // Check if `quantity` and `purchasePrice` are stored as `String`; otherwise, safely convert them.
+            int quantity = Integer.parseInt(model.getValueAt(i, 4).toString());
+            BigDecimal purchasePrice = new BigDecimal(model.getValueAt(i, 5).toString());
 
-            BigDecimal purchasePriceBD = safeParseBigDecimal(purchasePrice);
-            BigDecimal sellingPriceBD = safeParseBigDecimal(sellingPrice);
-            BigDecimal taxValueBD = safeParseBigDecimal(taxValue);
-            BigDecimal subtotalBD = safeParseBigDecimal(subtotal);
+            // Ensure `sellingPrice`, `taxValue`, and `subtotal` are `BigDecimal` values; otherwise, convert them.
+            BigDecimal sellingPrice = new BigDecimal(model.getValueAt(i, 6).toString());
+            BigDecimal taxValue = new BigDecimal(model.getValueAt(i, 7).toString());
 
+            String taxType = (String) model.getValueAt(i, 8);
+            BigDecimal subtotal = new BigDecimal(model.getValueAt(i, 9).toString());
+
+            // Create a new `PurchaseListedProduct` instance with the parsed values and add it to the list
             PurchaseListedProduct purchaseListedProduct = new PurchaseListedProduct(
                     number,
                     id,
                     code,
                     name,
-                    Integer.parseInt(quantity),
-                    purchasePriceBD,
-                    sellingPriceBD,
-                    taxValueBD,
+                    quantity,
+                    purchasePrice,
+                    sellingPrice,
+                    taxValue,
                     taxType,
-                    subtotalBD
+                    subtotal
             );
             rows.add(purchaseListedProduct);
         }
         return rows;
-    }
-
-    private BigDecimal safeParseBigDecimal(String value) {
-        try {
-            return value != null && !value.isEmpty() ? BigDecimal.valueOf(Double.parseDouble(value)) : BigDecimal.ZERO;
-        } catch (NumberFormatException e) {
-            return BigDecimal.ZERO;
-        }
     }
 
     @AllArgsConstructor

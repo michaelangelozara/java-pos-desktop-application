@@ -6,6 +6,7 @@ import org.POS.backend.code_generator.CodeGeneratorService;
 import org.POS.backend.global_variable.GlobalVariable;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 public class ProductMapper {
@@ -54,7 +55,7 @@ public class ProductMapper {
     public BigDecimal getPurchasePrice(
             BigDecimal sellingPrice
     ) {
-        return sellingPrice.multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12));
+        return sellingPrice.multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP);
     }
 
     public Product toUpdatedProduct(Product product, UpdateProductRequestDto dto, Brand brand) {

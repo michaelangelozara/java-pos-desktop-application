@@ -1,12 +1,13 @@
 
 package org.POS.frontend.src.raven.application.form.other;
 
+import org.POS.backend.brand.BrandService;
 import org.POS.backend.cryptography.Base64Converter;
 import org.POS.backend.person.AddPersonRequestDto;
 import org.POS.backend.person.PersonService;
 import org.POS.backend.person.PersonStatus;
 import org.POS.backend.person.PersonType;
-import org.POS.backend.product.ProductService;
+import org.POS.backend.product.*;
 import org.POS.backend.product_category.ProductCategoryService;
 import org.POS.backend.product_subcategory.ProductSubcategoryService;
 import org.POS.frontend.src.com.raven.component.Item;
@@ -14,7 +15,11 @@ import org.POS.frontend.src.com.raven.model.ModelItem;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -22,6 +27,7 @@ import java.awt.event.MouseEvent;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.*;
 
@@ -39,20 +45,22 @@ public class POS extends JPanel {
 
     public POS() {
         selectedItems = new ArrayList<>();
+
         initComponents();
     }
 
-    private void reloadProductTable(){
+    private void reloadProductTable() {
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         model.setRowCount(0);
 
-        for(int i = 0; i < selectedItems.size(); i++){
+        for (int i = 0; i < selectedItems.size(); i++) {
             model.addRow(new Object[]{
                     selectedItems.get(i).getItemID(),
                     selectedItems.get(i).getItemName(),
                     selectedItems.get(i).getPrice(),
                     "0",
-                    "0"
+                    "0",
+                    "remove"
             });
         }
 
@@ -68,7 +76,7 @@ public class POS extends JPanel {
                     Item clickedItem = (Item) me.getSource();
 
                     ModelItem itemData = clickedItem.getData();
-                    if(selectedItems.contains(itemData)){
+                    if (selectedItems.contains(itemData)) {
                         JOptionPane.showMessageDialog(null, "Product is already added");
                         return;
                     }
@@ -281,30 +289,73 @@ public class POS extends JPanel {
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
-                        {null, null, null, null, null},
-                        {null, null, null, null, null},
-                        {null, null, null, null, null},
-                        {null, null, null, null, null}
                 },
                 new String[]{
-                        "Product", "Price", "Quantity", "Subtotal", "Action"
+                        "ID", "Product", "Price", "Quantity", "Subtotal", "Action"
                 }
         ) {
             boolean[] canEdit = new boolean[]{
-                    false, false, false, false, true
+                    false, false, false, true, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit[columnIndex];
             }
         });
+
         jScrollPane1.setViewportView(jTable1);
         if (jTable1.getColumnModel().getColumnCount() > 0) {
             jTable1.getColumnModel().getColumn(0).setResizable(false);
             jTable1.getColumnModel().getColumn(1).setResizable(false);
             jTable1.getColumnModel().getColumn(2).setResizable(false);
             jTable1.getColumnModel().getColumn(3).setResizable(false);
+            jTable1.getColumnModel().getColumn(4).setResizable(false);
         }
+
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        TableColumn actionColumn = jTable1.getColumnModel().getColumn(5);
+//        actionColumn.setCellRenderer(new ButtonRenderer());
+        jTable1.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer());
+        actionColumn.setCellEditor(new ButtonEditor(new JCheckBox(), jTable1, model)); // Pass model to editor for row removal
+
+
+        // Add MouseListener to handle "Remove" button clicks in the table
+        jTable1.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                int column = jTable1.columnAtPoint(e.getPoint());
+                int row = jTable1.rowAtPoint(e.getPoint());
+
+                if (column == 5) { // "Action" column index for "Remove" button
+                    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+                    int id = (Integer) model.getValueAt(row, 0);
+                    System.out.println(id);
+                    for (var selectedItem : selectedItems) {
+                        if (selectedItem.getItemID() == id) {
+                            selectedItems.remove(selectedItem);
+                            reloadProductTable();
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+
+        model.addTableModelListener(e -> {
+            int row = e.getFirstRow();
+            int column = e.getColumn();
+
+            if (column == 3) {
+                // this is for specific selected column or cell
+                Object modifiedQuantity = model.getValueAt(row, column);
+
+                double price = (Double) model.getValueAt(row, 2);
+
+
+
+                JOptionPane.showMessageDialog(null, "Quantity midified" + price);
+            }
+        });
+
 
         scroll.setBorder(null);
         scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -491,6 +542,20 @@ public class POS extends JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    static class ButtonRenderer extends JButton implements TableCellRenderer {
+        public ButtonRenderer() {
+            setOpaque(true);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            setText((value == null) ? "" : value.toString());
+            setBackground(Color.RED);
+            setForeground(Color.WHITE);
+            return this;
+        }
+    }
+
     private Image getImage(String imageBase64) {
 
         byte[] imageBytes = Base64.getDecoder().decode(imageBase64);
@@ -653,8 +718,6 @@ public class POS extends JPanel {
             personService.add(dto);
             JOptionPane.showMessageDialog(null, "Client added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             loadClients(personService);
-            // Handle the image upload if needed
-            // selectedFile would be processed here after image upload
         }
     }//GEN-LAST:event_jButton3ActionPerformed
 
@@ -676,207 +739,389 @@ public class POS extends JPanel {
     }//GEN-LAST:event_jComboBox2ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // Create a JPanel with GridBagLayout to hold the custom form (2 columns)
-        JPanel panel = new JPanel(new GridBagLayout());
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridBagLayout()); // Use GridBagLayout for a more flexible layout
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);  // Add padding between components for better spacing
+        gbc.insets = new Insets(10, 10, 10, 10); // Add padding
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
 
-        // Font for bold and larger labels
+
+        // Create a bold and larger font for the labels
         Font boldFont = new Font("Arial", Font.BOLD, 14);
+        Font regularFont = new Font("Arial", Font.PLAIN, 14);
 
-        // Row 1 - Item Name and Item Model
-        JLabel itemNameLabel = new JLabel("Item Name *:");
-        itemNameLabel.setFont(boldFont);
+        // Item Name *
         gbc.gridx = 0;
         gbc.gridy = 0;
+        JLabel itemNameLabel = new JLabel("Item Name *");
+        itemNameLabel.setFont(boldFont);
         panel.add(itemNameLabel, gbc);
 
-        JTextField itemNameField = new JTextField(15);
         gbc.gridx = 1;
-        gbc.gridy = 0;
+        JTextField itemNameField = new JTextField(15);
+        itemNameField.setFont(regularFont);
         panel.add(itemNameField, gbc);
 
-        JLabel itemModelLabel = new JLabel("Item Model:");
-        itemModelLabel.setFont(boldFont);
+        // Item Model
         gbc.gridx = 2;
-        gbc.gridy = 0;
+        JLabel itemModelLabel = new JLabel("Item Model");
+        itemModelLabel.setFont(boldFont);
         panel.add(itemModelLabel, gbc);
 
-        JTextField itemModelField = new JTextField(15);
         gbc.gridx = 3;
-        gbc.gridy = 0;
+        JTextField itemModelField = new JTextField(15);
+        itemModelField.setFont(regularFont);
         panel.add(itemModelField, gbc);
 
-        // Row 2 - Item Code
-        JLabel itemCodeLabel = new JLabel("Item Code *:");
-        itemCodeLabel.setFont(boldFont);
+        // Item Code *
         gbc.gridx = 0;
         gbc.gridy = 1;
-        panel.add(itemCodeLabel, gbc);
+        JLabel itemStock = new JLabel("Stock *");
+        itemStock.setFont(boldFont);
+        panel.add(itemStock, gbc);
 
-        JTextField itemCodeField = new JTextField(15);
         gbc.gridx = 1;
-        gbc.gridy = 1;
-        panel.add(itemCodeField, gbc);
+        JTextField itemStockField = new JTextField(15);
+        itemStockField.setFont(regularFont);
+        panel.add(itemStockField, gbc);
 
-        // Row 3 - Sub Category and Brand
-        JLabel subCategoryLabel = new JLabel("Sub Category *:");
-        subCategoryLabel.setFont(boldFont);
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        panel.add(subCategoryLabel, gbc);
-
-        JComboBox<String> subCategoryCombo = new JComboBox<>(new String[]{"Category 1", "Category 2", "Category 3"});
-        gbc.gridx = 1;
-        gbc.gridy = 2;
-        panel.add(subCategoryCombo, gbc);
-
-        JLabel brandLabel = new JLabel("Brand:");
-        brandLabel.setFont(boldFont);
+        // Category
         gbc.gridx = 2;
+        JLabel categoryLabel = new JLabel("Subcategory");
+        categoryLabel.setFont(boldFont);
+        panel.add(categoryLabel, gbc);
+
+        gbc.gridx = 3;
+        Vector<String> productSubcategoryNames = new Vector<>();
+        productSubcategoryNames.add("Select Subcategory");
+        Map<Integer, Integer> productSubcategoryMap = new HashMap<>();
+        ProductSubcategoryService productSubcategoryService = new ProductSubcategoryService();
+        var productSubcategories = productSubcategoryService.getAllValidSubcategories();
+        for (int i = 0; i < productSubcategories.size(); i++) {
+            productSubcategoryNames.add(productSubcategories.get(i).name());
+            productSubcategoryMap.put(i + 1, productSubcategories.get(i).id());
+        }
+        JComboBox<String> categoryCombo = new JComboBox<>(productSubcategoryNames);
+        categoryCombo.setFont(regularFont);
+        panel.add(categoryCombo, gbc);
+
+        // Brand
+        gbc.gridx = 0;
         gbc.gridy = 2;
+        JLabel brandLabel = new JLabel("Brand");
+        brandLabel.setFont(boldFont);
         panel.add(brandLabel, gbc);
 
-        JComboBox<String> brandCombo = new JComboBox<>(new String[]{"Brand 1", "Brand 2", "Brand 3"});
-        gbc.gridx = 3;
-        gbc.gridy = 2;
+        gbc.gridx = 1;
+        Vector<String> brandNames = new Vector<>();
+        brandNames.add("Select Brand");
+        BrandService brandService = new BrandService();
+        Map<Integer, Integer> brandMap = new HashMap<>();
+
+        JComboBox<String> brandCombo = new JComboBox<>(brandNames);
+        brandCombo.setFont(regularFont);
+        brandCombo.setSelectedItem("Select Brand");
         panel.add(brandCombo, gbc);
 
-        // Row 4 - Unit and Product Tax
-        JLabel unitLabel = new JLabel("Unit *:");
-        unitLabel.setFont(boldFont);
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        panel.add(unitLabel, gbc);
 
-        JComboBox<String> unitCombo = new JComboBox<>(new String[]{"Unit 1", "Unit 2", "Unit 3"});
-        gbc.gridx = 1;
-        gbc.gridy = 3;
-        panel.add(unitCombo, gbc);
+        categoryCombo.addActionListener(e -> {
+            int productSubcategorySelectedIndex = categoryCombo.getSelectedIndex();
+            int productSubcategoryId = productSubcategoryMap.get(productSubcategorySelectedIndex);
 
-        JLabel taxLabel = new JLabel("Product Tax *:");
-        taxLabel.setFont(boldFont);
-        gbc.gridx = 2;
-        gbc.gridy = 3;
-        panel.add(taxLabel, gbc);
+            brandCombo.removeAllItems();
 
-        JComboBox<String> taxCombo = new JComboBox<>(new String[]{"VAT@0", "VAT@10", "VAT@20"});
-        gbc.gridx = 3;
-        gbc.gridy = 3;
-        panel.add(taxCombo, gbc);
-
-        // Row 5 - Tax Type and Regular Price
-        JLabel taxTypeLabel = new JLabel("Tax Type *:");
-        taxTypeLabel.setFont(boldFont);
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        panel.add(taxTypeLabel, gbc);
-
-        JComboBox<String> taxTypeCombo = new JComboBox<>(new String[]{"Exclusive", "Inclusive"});
-        gbc.gridx = 1;
-        gbc.gridy = 4;
-        panel.add(taxTypeCombo, gbc);
-
-        JLabel priceLabel = new JLabel("Regular Price *:");
-        priceLabel.setFont(boldFont);
-        gbc.gridx = 2;
-        gbc.gridy = 4;
-        panel.add(priceLabel, gbc);
-
-        JTextField priceField = new JTextField(15);
-        gbc.gridx = 3;
-        gbc.gridy = 4;
-        panel.add(priceField, gbc);
-
-        // Row 6 - Discount and Selling Price
-        JLabel discountLabel = new JLabel("Discount:");
-        discountLabel.setFont(boldFont);
-        gbc.gridx = 0;
-        gbc.gridy = 5;
-        panel.add(discountLabel, gbc);
-
-        JTextField discountField = new JTextField(5);
-        gbc.gridx = 1;
-        gbc.gridy = 5;
-        panel.add(discountField, gbc);
-
-        JLabel sellingPriceLabel = new JLabel("Selling Price:");
-        sellingPriceLabel.setFont(boldFont);
-        gbc.gridx = 2;
-        gbc.gridy = 5;
-        panel.add(sellingPriceLabel, gbc);
-
-        JTextField sellingPriceField = new JTextField(15);
-        gbc.gridx = 3;
-        gbc.gridy = 5;
-        panel.add(sellingPriceField, gbc);
-
-        // Row 7 - Note and Alert Quantity (as JSpinner)
-        JLabel noteLabel = new JLabel("Note:");
-        noteLabel.setFont(boldFont);
-        gbc.gridx = 0;
-        gbc.gridy = 6;
-        panel.add(noteLabel, gbc);
-
-        JTextArea noteArea = new JTextArea(3, 20);
-        gbc.gridx = 1;
-        gbc.gridy = 6;
-        panel.add(new JScrollPane(noteArea), gbc);
-
-        JLabel alertQtyLabel = new JLabel("Alert Quantity:");
-        alertQtyLabel.setFont(boldFont);
-        gbc.gridx = 2;
-        gbc.gridy = 6;
-        panel.add(alertQtyLabel, gbc);
-
-        // JSpinner for alert quantity
-        JSpinner alertQtySpinner = new JSpinner(new SpinnerNumberModel(1, 1, 1000, 1));
-        gbc.gridx = 3;
-        gbc.gridy = 6;
-        panel.add(alertQtySpinner, gbc);
-
-        // Row 8 - Status
-        JLabel statusLabel = new JLabel("Status:");
-        statusLabel.setFont(boldFont);
-        gbc.gridx = 0;
-        gbc.gridy = 7;
-        panel.add(statusLabel, gbc);
-
-        JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Active", "Inactive"});
-        gbc.gridx = 1;
-        gbc.gridy = 7;
-        panel.add(statusCombo, gbc);
-
-        // Row 9 - Image Upload
-        JLabel imageLabel = new JLabel("Image:");
-        imageLabel.setFont(boldFont);
-        gbc.gridx = 0;
-        gbc.gridy = 8;
-        panel.add(imageLabel, gbc);
-
-        JButton uploadButton = new JButton("Browse");
-        gbc.gridx = 1;
-        gbc.gridy = 8;
-        panel.add(uploadButton, gbc);
-
-        uploadButton.addActionListener(e -> {
-            JFileChooser fileChooser = new JFileChooser();
-            int option = fileChooser.showOpenDialog(null);
-            if (option == JFileChooser.APPROVE_OPTION) {
-                File selectedFile = fileChooser.getSelectedFile();
-                System.out.println("Selected file: " + selectedFile.getAbsolutePath());
+            var brands = brandService.getAllBrandByProductSubcategoryId(productSubcategoryId);
+            brandNames.add("Select Brand");
+            brandCombo.setSelectedItem("Select Brand");
+            for (int i = 0; i < brands.size(); i++) {
+                brandNames.add(brands.get(i).name());
+                brandMap.put(i + 1, brands.get(i).id());
             }
         });
 
-        // Show the panel inside a larger JOptionPane
+        // Unit - Change to JComboBox with options
+        gbc.gridx = 2;
+        JLabel unitLabel = new JLabel("Unit");
+        unitLabel.setFont(boldFont);
+        panel.add(unitLabel, gbc);
+
+        gbc.gridx = 3;
+        JComboBox<String> unitCombo = new JComboBox<>(new String[]{"Per Piece", "12 pcs"});
+        unitCombo.setFont(regularFont);
+        panel.add(unitCombo, gbc);
+
+        // Product Tax *
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        JLabel productTaxLabel = new JLabel("Product Tax *");
+        productTaxLabel.setFont(boldFont);
+        panel.add(productTaxLabel, gbc);
+
+        gbc.gridx = 1;
+        Map<String, Integer> productTaxTypeMap = new HashMap<>();
+        productTaxTypeMap.put("VAT@12%", 12);
+
+        JTextField productTaxField = new JTextField();
+        productTaxField.setFont(regularFont);
+        productTaxField.setText("VAT@12%");
+        productTaxField.setEnabled(false);
+        panel.add(productTaxField, gbc);
+
+        // Tax Type
+        gbc.gridx = 2;
+        JLabel taxTypeLabel = new JLabel("Tax Type");
+        taxTypeLabel.setFont(boldFont);
+        panel.add(taxTypeLabel, gbc);
+
+        gbc.gridx = 3;
+        JComboBox<String> taxTypeCombo = new JComboBox<>(new String[]{"Select Tax Type", "Exclusive", "Inclusive"});
+        taxTypeCombo.setFont(regularFont);
+        panel.add(taxTypeCombo, gbc);
+
+        // Purchase Price
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        JLabel purchasePriceLabel = new JLabel("Purchase Price");
+        purchasePriceLabel.setFont(boldFont);
+        panel.add(purchasePriceLabel, gbc);
+
+        gbc.gridx = 1;
+        final JTextField purchasePriceField = new JTextField(15);
+        purchasePriceField.setFont(regularFont);
+        purchasePriceField.setEnabled(false);
+        panel.add(purchasePriceField, gbc);
+
+        // Regular Price *
+        gbc.gridx = 2;
+        JLabel sellingPriceLabel = new JLabel("Selling Price *");
+        sellingPriceLabel.setFont(boldFont);
+        panel.add(sellingPriceLabel, gbc);
+
+        gbc.gridx = 3;
+        JTextField sellingPriceField = new JTextField(15);
+        sellingPriceField.setFont(regularFont);
+        sellingPriceField.setEnabled(false);
+        panel.add(sellingPriceField, gbc);
+
+        purchasePriceField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                onTextChanged();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                onTextChanged();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+
+            }
+
+            private void onTextChanged() {
+
+                if (purchasePriceField.getText().isEmpty())
+                    return;
+
+                for (int i = 0; i < purchasePriceField.getText().length(); i++) {
+                    if (Character.isLetter(purchasePriceField.getText().charAt(i))) {
+                        return;
+                    }
+                }
+
+                if (purchasePriceField.getText().isEmpty())
+                    sellingPriceField.setText("");
+
+
+
+                double purchase = Double.parseDouble(purchasePriceField.getText());
+                sellingPriceField.setText(String.format("%.2f", purchase * 1.12));
+            }
+        });
+
+        sellingPriceField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                onChange();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                onChange();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+
+            }
+
+            private void onChange() {
+
+                if (sellingPriceField.getText().isEmpty())
+                    return;
+
+                for (int i = 0; i < sellingPriceField.getText().length(); i++) {
+                    if (Character.isLetter(sellingPriceField.getText().charAt(i))) {
+                        return;
+                    }
+                }
+
+                if (sellingPriceField.getText().isEmpty())
+                    purchasePriceField.setText("");
+
+                double purchase = Double.parseDouble(sellingPriceField.getText());
+                purchasePriceField.setText(String.format("%.2f", purchase * 0.12 / 1.12));
+            }
+        });
+
+        taxTypeCombo.addActionListener(e -> {
+            String selectedItem = (String) taxTypeCombo.getSelectedItem();
+            assert selectedItem != null;
+            if (selectedItem.equals("Exclusive")) {
+                sellingPriceField.setText("");
+                sellingPriceField.setEnabled(false);
+                purchasePriceField.setEnabled(true);
+            } else if (selectedItem.equals("Inclusive")) {
+                sellingPriceField.setEnabled(true);
+                purchasePriceField.setEnabled(false);
+                purchasePriceField.setText("");
+            } else {
+                sellingPriceField.setEnabled(false);
+                purchasePriceField.setEnabled(false);
+                purchasePriceField.setText("");
+                sellingPriceField.setText("");
+            }
+        });
+
+        // Discount
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        JLabel discountLabel = new JLabel("Discount");
+        discountLabel.setFont(boldFont);
+        panel.add(discountLabel, gbc);
+
+        gbc.gridx = 1;
+        JTextField discountField = new JTextField(15);
+        discountField.setFont(regularFont);
+        panel.add(discountField, gbc);
+
+        // Note
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        JLabel noteLabel = new JLabel("Note");
+        noteLabel.setFont(boldFont);
+        panel.add(noteLabel, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridwidth = 3;
+        JTextArea noteArea = new JTextArea(3, 15);
+        noteArea.setFont(regularFont);
+        JScrollPane noteScrollPane = new JScrollPane(noteArea);
+        panel.add(noteScrollPane, gbc);
+        gbc.gridwidth = 1;
+
+        // Alert Quantity
+        gbc.gridx = 0;
+        gbc.gridy = 7;
+        JLabel alertQuantityLabel = new JLabel("Alert Quantity");
+        alertQuantityLabel.setFont(boldFont);
+        panel.add(alertQuantityLabel, gbc);
+
+        gbc.gridx = 1;
+        JTextField alertQuantityField = new JTextField(15);
+        alertQuantityField.setFont(regularFont);
+        panel.add(alertQuantityField, gbc);
+
+        // Status
+        gbc.gridx = 2;
+        JLabel statusLabel = new JLabel("Status");
+        statusLabel.setFont(boldFont);
+        panel.add(statusLabel, gbc);
+
+        gbc.gridx = 3;
+        JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Select status", "Active", "Inactive"});
+        statusCombo.setFont(regularFont);
+        panel.add(statusCombo, gbc);
+
+        // Image - Modify to use JFileChooser for file upload
+        gbc.gridx = 0;
+        gbc.gridy = 8;
+        JLabel imageLabel = new JLabel("Image");
+        imageLabel.setFont(boldFont);
+        panel.add(imageLabel, gbc);
+
+        gbc.gridx = 1;
+        JButton imageButton = new JButton("Choose File");
+        imageButton.setFont(regularFont);
+
+        // Add action listener for the imageButton to open file explorer
+        Base64Converter base64Converter = new Base64Converter();
+        imageButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            int returnValue = fileChooser.showOpenDialog(null);
+            if (returnValue == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = fileChooser.getSelectedFile();
+                try {
+                    base64Converter.setConvertFileToBase64(selectedFile);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
+        panel.add(imageButton, gbc);
+
+        // Display the form in a dialog
         int result = JOptionPane.showConfirmDialog(null, panel, "Create Product", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-        // Handle form submission
+        // If the user clicks OK, process the input
         if (result == JOptionPane.OK_OPTION) {
-            JOptionPane.showMessageDialog(null, "Product added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(null, "Product creation cancelled.", "Cancelled", JOptionPane.WARNING_MESSAGE);
+            String name = itemNameField.getText();
+            String stock = itemStockField.getText();
+
+            // Validate the required fields
+            if (name.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Please fill out all required fields.", "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                int brandSelectedIndex = brandCombo.getSelectedIndex();
+                int brandId = brandMap.get(brandSelectedIndex);
+
+                String model = itemModelField.getText();
+                String unit = (String) unitCombo.getSelectedItem();
+                String taxType = (String) taxTypeCombo.getSelectedItem();
+                String purchasePrice = purchasePriceField.getText();
+                String discount = discountField.getText();
+                String note = noteArea.getText();
+                String alertQuantity = alertQuantityField.getText();
+                String status = (String) statusCombo.getSelectedItem();
+                String image = base64Converter.getBase64();
+                String sellingPrice = sellingPriceField.getText();
+
+                ProductService productService = new ProductService();
+                assert unit != null;
+                assert taxType != null;
+                assert status != null;
+                AddProductRequestDto dto = new AddProductRequestDto(
+                        name,
+                        model,
+                        brandId,
+                        unit.equals("Per Piece") ? ProductUnit.PIECE : ProductUnit.DOZEN,
+                        productTaxTypeMap.get("VAT@12%"),
+                        taxType.equals("Exclusive") ? ProductTaxType.EXCLUSIVE : ProductTaxType.INCLUSIVE,
+                        BigDecimal.valueOf(Double.parseDouble(purchasePrice)),
+                        BigDecimal.valueOf(Double.parseDouble(sellingPrice)),
+                        Integer.parseInt(discount),
+                        note,
+                        Integer.parseInt(alertQuantity),
+                        status.equals("Active") ? ProductStatus.ACTIVE : ProductStatus.INACTIVE,
+                        image,
+                        Integer.parseInt(stock)
+                );
+                productService.add(dto);
+                JOptionPane.showMessageDialog(null, "Product Created Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            }
         }
     }//GEN-LAST:event_jButton2ActionPerformed
 
