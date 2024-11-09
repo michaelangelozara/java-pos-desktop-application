@@ -1,6 +1,10 @@
 
 package org.POS.frontend.src.raven.application.form.other;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.POS.backend.brand.BrandService;
 import org.POS.backend.cryptography.Base64Converter;
 import org.POS.backend.person.AddPersonRequestDto;
@@ -21,13 +25,14 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.*;
 
@@ -41,7 +46,7 @@ public class POS extends JPanel {
 
     private ActionListener clientActionListener;
 
-    private List<ModelItem> selectedItems;
+    private List<PurchaseListedProduct> selectedItems;
 
     public POS() {
         selectedItems = new ArrayList<>();
@@ -51,19 +56,43 @@ public class POS extends JPanel {
 
     private void reloadProductTable() {
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        List<PurchaseListedProduct> rows = getAllRows();
+
         model.setRowCount(0);
 
-        for (int i = 0; i < selectedItems.size(); i++) {
-            model.addRow(new Object[]{
-                    selectedItems.get(i).getItemID(),
-                    selectedItems.get(i).getItemName(),
-                    selectedItems.get(i).getPrice(),
-                    "0",
-                    "0",
-                    "remove"
-            });
-        }
+        int i = 1;
+        for (PurchaseListedProduct product : selectedItems) {
+            boolean isEqual = false;
 
+            for (var dataInTheTable : rows) {
+                if (Objects.equals(product.getId(), dataInTheTable.getId())) {
+                    model.addRow(new Object[]{
+                            i,
+                            dataInTheTable.getId(),
+                            dataInTheTable.getName(),
+                            dataInTheTable.getPrice(),
+                            dataInTheTable.getQuantity(),
+                            dataInTheTable.getSubtotal(),
+                            "Remove"
+                    });
+                    isEqual = true;
+                    break;
+                }
+            }
+
+            if (!isEqual) {
+                model.addRow(new Object[]{
+                        i,
+                        product.getId(),
+                        product.getName(),
+                        product.getPrice(),
+                        product.getQuantity(),
+                        product.getSubtotal(),
+                        "Remove"
+                });
+            }
+            i++;
+        }
     }
 
     public void addItem(ModelItem data) {
@@ -76,12 +105,23 @@ public class POS extends JPanel {
                     Item clickedItem = (Item) me.getSource();
 
                     ModelItem itemData = clickedItem.getData();
-                    if (selectedItems.contains(itemData)) {
-                        JOptionPane.showMessageDialog(null, "Product is already added");
-                        return;
+
+                    for (int i = 0; i < selectedItems.size(); i++) {
+                        if (selectedItems.get(i).getId() == itemData.getItemID()) {
+                            JOptionPane.showMessageDialog(null, "Product is already added");
+                            return;
+                        }
                     }
-                    selectedItems.add(itemData);
+
+                    selectedItems.add(new PurchaseListedProduct(
+                            data.getItemID(),
+                            data.getItemName(),
+                            1,
+                            BigDecimal.valueOf(data.getPrice()),
+                            BigDecimal.valueOf(data.getPrice())
+                    ));
                     reloadProductTable();
+                    loadNetTotal();
                 }
             }
         });
@@ -89,18 +129,6 @@ public class POS extends JPanel {
         panelItem.repaint();
         panelItem.revalidate();
     }
-
-//    private void testData() {
-//        int ID = 1;
-//        for (int i = 0; i <= 5; i++) {
-//            addItem(new ModelItem(ID++, "HollowBlocks", "description", 160, "HOLCIM", new ImageIcon(getClass().getResource("/image/img1.png"))));
-//            addItem(new ModelItem(ID++, "Cement", "description", 160, "HOLCIM", new ImageIcon(getClass().getResource("/image/img2.png"))));
-//            addItem(new ModelItem(ID++, "Plywood", "description", 160, "HOLCIM", new ImageIcon(getClass().getResource("/image/img3.png"))));
-//            addItem(new ModelItem(ID++, "Steel", "description", 160, "HOLCIM", new ImageIcon(getClass().getResource("/image/img4.png"))));
-//            addItem(new ModelItem(ID++, "Tire", "description", 160, "HOLCIM", new ImageIcon(getClass().getResource("/image/img5.png"))));
-//            addItem(new ModelItem(ID++, "PVC Pipes", "description", 160, "HOLCIM", new ImageIcon(getClass().getResource("/image/img6.png"))));
-//        }
-//    }
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -152,9 +180,7 @@ public class POS extends JPanel {
 
         clientActionListener = e -> {
             JComboBox<String> clientCombo = new JComboBox<>(clientComboModel);
-            int clientSelectedIndex = clientCombo.getSelectedIndex();
-            int clientId = clientMap.get(clientSelectedIndex);
-            JOptionPane.showMessageDialog(null, "Client id : " + clientId);
+            JOptionPane.showMessageDialog(null, "Client : " + clientCombo.getSelectedItem());
         };
 
         var clients = personService.getAllValidPeopleByType(PersonType.CLIENT);
@@ -200,9 +226,6 @@ public class POS extends JPanel {
         ProductService productService = new ProductService();
         ActionListener subcategoryActionListener = e -> {
             this.panelItem.removeAll();
-            panelItem.repaint();
-            panelItem.revalidate();
-
             JComboBox<String> productSubcategoryCombo = new JComboBox<>(subcategoryCombo);
             int productSubcategorySelectedIndex = productSubcategoryCombo.getSelectedIndex();
             int productSubcategoryId = productSubcategoryMap.get(productSubcategorySelectedIndex);
@@ -217,6 +240,8 @@ public class POS extends JPanel {
                         productsUnderSubcategory.get(i).image() != null ? new ImageIcon(getImage(productsUnderSubcategory.get(i).image())) : new ImageIcon()
                 ));
             }
+            panelItem.repaint();
+            panelItem.revalidate();
         };
 
         jComboBox2.addActionListener(evt -> {
@@ -234,7 +259,6 @@ public class POS extends JPanel {
             }
             jComboBox3.addActionListener(subcategoryActionListener);
 
-//            jComboBox2ActionPerformed(evt);
         });
 
         jButton2.setBackground(new java.awt.Color(204, 255, 204));
@@ -291,11 +315,11 @@ public class POS extends JPanel {
                 new Object[][]{
                 },
                 new String[]{
-                        "ID", "Product", "Price", "Quantity", "Subtotal", "Action"
+                        "#", "ID", "Product", "Price", "Quantity", "Subtotal", "Action"
                 }
         ) {
             boolean[] canEdit = new boolean[]{
-                    false, false, false, true, false, false
+                    false, false, false, false, true, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -310,14 +334,14 @@ public class POS extends JPanel {
             jTable1.getColumnModel().getColumn(2).setResizable(false);
             jTable1.getColumnModel().getColumn(3).setResizable(false);
             jTable1.getColumnModel().getColumn(4).setResizable(false);
+            jTable1.getColumnModel().getColumn(5).setResizable(false);
         }
 
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         TableColumn actionColumn = jTable1.getColumnModel().getColumn(5);
 //        actionColumn.setCellRenderer(new ButtonRenderer());
-        jTable1.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer());
+        jTable1.getColumnModel().getColumn(6).setCellRenderer(new ButtonRenderer());
         actionColumn.setCellEditor(new ButtonEditor(new JCheckBox(), jTable1, model)); // Pass model to editor for row removal
-
 
         // Add MouseListener to handle "Remove" button clicks in the table
         jTable1.addMouseListener(new MouseAdapter() {
@@ -325,14 +349,14 @@ public class POS extends JPanel {
                 int column = jTable1.columnAtPoint(e.getPoint());
                 int row = jTable1.rowAtPoint(e.getPoint());
 
-                if (column == 5) { // "Action" column index for "Remove" button
+                if (column == 6) { // "Action" column index for "Remove" button
                     DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-                    int id = (Integer) model.getValueAt(row, 0);
-                    System.out.println(id);
+                    int id = (Integer) model.getValueAt(row, 1);
                     for (var selectedItem : selectedItems) {
-                        if (selectedItem.getItemID() == id) {
+                        if (selectedItem.getId() == id) {
                             selectedItems.remove(selectedItem);
                             reloadProductTable();
+                            loadNetTotal();
                             break;
                         }
                     }
@@ -344,15 +368,31 @@ public class POS extends JPanel {
             int row = e.getFirstRow();
             int column = e.getColumn();
 
-            if (column == 3) {
-                // this is for specific selected column or cell
-                Object modifiedQuantity = model.getValueAt(row, column);
+            if (column == 4) {
+                int productId = (Integer) model.getValueAt(row, 1);
+                List<PurchaseListedProduct> products = getAllRows();
 
-                double price = (Double) model.getValueAt(row, 2);
+                model.setRowCount(0);
 
+                for (int i = 0; i < products.size(); i++) {
+                    if (products.get(i).getId() == productId) {
+                        products.get(i).setSubtotal((BigDecimal.valueOf(products.get(i).getQuantity()).multiply(products.get(i).getPrice())).setScale(2, RoundingMode.HALF_UP));
+                    }
+                }
 
+                for (int i = 0; i < products.size(); i++) {
+                    model.addRow(new Object[]{
+                            i+1,
+                            products.get(i).getId(),
+                            products.get(i).getName(),
+                            products.get(i).getPrice(),
+                            products.get(i).getQuantity(),
+                            products.get(i).getSubtotal(),
+                            "Remove"
+                    });
+                }
 
-                JOptionPane.showMessageDialog(null, "Quantity midified" + price);
+                loadNetTotal();
             }
         });
 
@@ -386,20 +426,69 @@ public class POS extends JPanel {
 
         jLabel1.setFont(new Font("Segoe UI", 1, 14)); // NOI18N
         jLabel1.setText("Discount Type");
-
-        jComboBox4.setModel(new DefaultComboBoxModel<>(new String[]{"Select Discount Type", "Fixed", "Percentage %"}));
+        String[] discountComboArr = new String[]{"Select Discount Type", "Fixed", "Percentage %"};
+        DefaultComboBoxModel<String> discountCombo = new DefaultComboBoxModel<>(discountComboArr);
+        jComboBox4.setModel(discountCombo);
 
         jLabel2.setFont(new Font("Segoe UI", 1, 14)); // NOI18N
         jLabel2.setText("Transport Cost");
 
-        jTextField2.setText("Enter Transport Cost");
+        jTextField2.setText("0");
 
-        jComboBox5.setModel(new DefaultComboBoxModel<>(new String[]{"Select Tax", "10% Tax", "20% Tax", "30% Tax"}));
+        jTextField2.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                String currentText = jTextField2.getText();
+                for (char c : currentText.toCharArray()) {
+                    if (Character.isLetter(c)) {
+                        JOptionPane.showMessageDialog(null, "Letter is not allow for this field");
+                        jTextField2.setText("0");
+                        return;
+                    }
+                }
+
+                loadNetTotal();
+            }
+        });
+
+        jComboBox5.setModel(new DefaultComboBoxModel<>(new String[]{"0"}));
+        jComboBox5.setSelectedItem("0");
+        jComboBox5.setEnabled(false);
 
         jLabel4.setFont(new Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel4.setText("Invoice Tax");
+        jLabel4.setText("Total Tax");
 
-        jTextField3.setText("Enter Discount");
+        jTextField3.setText("0");
+        jTextField3.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                String currentText = jTextField3.getText();
+                for (char c : currentText.toCharArray()) {
+                    if (Character.isLetter(c)) {
+                        JOptionPane.showMessageDialog(null, "Letter is not allow for this field");
+                        jTextField3.setText("0");
+                        return;
+                    }
+                }
+
+                if (discountCombo.getSelectedItem().equals("Select Discount Type")) {
+                    JOptionPane.showMessageDialog(null, "Select discount type first");
+                    jTextField3.setText("0");
+                    return;
+                }
+                loadNetTotal();
+            }
+        });
 
         jLabel3.setFont(new Font("Segoe UI", 1, 14)); // NOI18N
         jLabel3.setText("Discount");
@@ -454,7 +543,7 @@ public class POS extends JPanel {
         jPanel3.setBorder(BorderFactory.createEtchedBorder());
 
         jLabel7.setFont(new Font("Segoe UI", 1, 36)); // NOI18N
-        jLabel7.setText("10,000");
+        jLabel7.setText("0.00");
 
         jLabel6.setFont(new Font("Segoe UI", 1, 36)); // NOI18N
         jLabel6.setText("Net Total:");
@@ -541,6 +630,79 @@ public class POS extends JPanel {
                         .addComponent(jPanel1, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void computeTotalTax() {
+        BigDecimal netTotal = new BigDecimal(jLabel7.getText());
+        String totalValue = String.valueOf((netTotal.multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP));
+        jComboBox5.addItem(totalValue);
+        jComboBox5.setSelectedItem(totalValue);
+    }
+
+    private List<PurchaseListedProduct> getAllRows() {
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        List<PurchaseListedProduct> rows = new ArrayList<>();
+        for (int i = 0; i < model.getRowCount(); i++) {
+            int id = (Integer) model.getValueAt(i, 1);
+            String name = (String) model.getValueAt(i, 2);
+            // Check if `quantity` and `purchasePrice` are stored as `String`; otherwise, safely convert them.
+            int quantity = Integer.parseInt(model.getValueAt(i, 4).toString());
+            BigDecimal purchasePrice = (BigDecimal) model.getValueAt(i, 3);
+            BigDecimal subtotal = new BigDecimal(model.getValueAt(i, 5).toString());
+
+            // Create a new `PurchaseListedProduct` instance with the parsed values and add it to the list
+            PurchaseListedProduct purchaseListedProduct = new PurchaseListedProduct(
+                    id,
+                    name,
+                    quantity,
+                    purchasePrice,
+                    subtotal
+            );
+            rows.add(purchaseListedProduct);
+        }
+        return rows;
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    class PurchaseListedProduct {
+        private Integer id;
+        private String name;
+        private int quantity;
+        private BigDecimal price;
+        private BigDecimal subtotal;
+    }
+
+    private void loadNetTotal() {
+        List<PurchaseListedProduct> products = getAllRows();
+
+        BigDecimal summation = BigDecimal.ZERO;
+
+        for (int i = 0; i < products.size(); i++) {
+            summation = summation.add(products.get(i).getSubtotal());
+        }
+
+        BigDecimal transportCost = new BigDecimal(jTextField2.getText());
+        BigDecimal fixDiscount = new BigDecimal(jTextField3.getText());
+        double percentageDiscount = Double.parseDouble(jTextField3.getText());
+
+        String discountType = (String) jComboBox4.getSelectedItem();
+
+        assert discountType != null;
+        if (discountType.equals("Fixed")) {
+            BigDecimal tempVar = transportCost.add(summation).subtract(fixDiscount);
+            jLabel7.setText(String.valueOf(tempVar.setScale(2, RoundingMode.HALF_UP)));
+        } else if (discountType.equals("Percentage %")) {
+            double percentage = percentageDiscount / 100;
+            BigDecimal tempVar = ((transportCost.add(summation)).multiply(BigDecimal.valueOf(percentage))).setScale(2, RoundingMode.HALF_UP);
+            jLabel7.setText(String.valueOf(tempVar));
+        } else {
+            BigDecimal tempVar = (transportCost.add(summation));
+            jLabel7.setText(String.valueOf(tempVar.setScale(2, RoundingMode.HALF_UP)));
+        }
+        computeTotalTax();
+    }
 
     static class ButtonRenderer extends JButton implements TableCellRenderer {
         public ButtonRenderer() {
@@ -935,7 +1097,6 @@ public class POS extends JPanel {
                     sellingPriceField.setText("");
 
 
-
                 double purchase = Double.parseDouble(purchasePriceField.getText());
                 sellingPriceField.setText(String.format("%.2f", purchase * 1.12));
             }
@@ -1134,84 +1295,64 @@ public class POS extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
 
         // Creating input fields
-        JTextField accountField = new JTextField(15);
         JTextField amountField = new JTextField(15);
         JTextField chequeNoField = new JTextField(15);
         JTextField receiptNoField = new JTextField(15);
         JTextField poReferenceField = new JTextField(15);
         JTextField paymentTermsField = new JTextField(15);
-        JTextField referenceField = new JTextField(15);
-        JTextField deliveryPlaceField = new JTextField(15);
+        JTextField deliveryPlaceField = new JTextField(30); // Increased length for Delivery Place
         JTextField dateField = new JTextField(15);
-        JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Active", "Inactive"});
-        JTextField noteField = new JTextField(15);
+        JTextField noteField = new JTextField(30);
+
+        // Make receiptNoField non-editable
+        receiptNoField.setEditable(false);
+
+        // Fetch the current date and set it in dateField
+        LocalDate currentDate = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        dateField.setText(currentDate.format(formatter));
+        dateField.setEditable(false); // Make the date field non-editable if needed
 
         // Adding labels and fields to the panel in two columns
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        paymentPanel.add(new JLabel("Account:"), gbc);
+        gbc.gridx = 0; gbc.gridy = 0;
+        paymentPanel.add(new JLabel("Receipt No:"), gbc);
         gbc.gridx = 1;
-        paymentPanel.add(accountField, gbc);
+        paymentPanel.add(receiptNoField, gbc);
 
-        gbc.gridx = 2;
-        gbc.gridy = 0;
+        gbc.gridx = 2; gbc.gridy = 0;
         paymentPanel.add(new JLabel("Amount:"), gbc);
         gbc.gridx = 3;
         paymentPanel.add(amountField, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        paymentPanel.add(new JLabel("Cheque No:"), gbc);
-        gbc.gridx = 1;
-        paymentPanel.add(chequeNoField, gbc);
-
-        gbc.gridx = 2;
-        gbc.gridy = 1;
-        paymentPanel.add(new JLabel("Receipt No:"), gbc);
-        gbc.gridx = 3;
-        paymentPanel.add(receiptNoField, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        paymentPanel.add(new JLabel("PO Reference:"), gbc);
-        gbc.gridx = 1;
-        paymentPanel.add(poReferenceField, gbc);
-
-        gbc.gridx = 2;
-        gbc.gridy = 2;
-        paymentPanel.add(new JLabel("Payment Terms:"), gbc);
-        gbc.gridx = 3;
-        paymentPanel.add(paymentTermsField, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        paymentPanel.add(new JLabel("Reference:"), gbc);
-        gbc.gridx = 1;
-        paymentPanel.add(referenceField, gbc);
-
-        gbc.gridx = 2;
-        gbc.gridy = 3;
-        paymentPanel.add(new JLabel("Delivery Place:"), gbc);
-        gbc.gridx = 3;
-        paymentPanel.add(deliveryPlaceField, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 4;
+        gbc.gridx = 0; gbc.gridy = 1;
         paymentPanel.add(new JLabel("Date:"), gbc);
         gbc.gridx = 1;
         paymentPanel.add(dateField, gbc);
 
-        gbc.gridx = 2;
-        gbc.gridy = 4;
-        paymentPanel.add(new JLabel("Status:"), gbc);
+        gbc.gridx = 2; gbc.gridy = 1;
+        paymentPanel.add(new JLabel("Cheque No:"), gbc);
         gbc.gridx = 3;
-        paymentPanel.add(statusCombo, gbc);
+        paymentPanel.add(chequeNoField, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 5;
-        paymentPanel.add(new JLabel("Note:"), gbc);
+        gbc.gridx = 0; gbc.gridy = 2;
+        paymentPanel.add(new JLabel("PO Reference:"), gbc);
         gbc.gridx = 1;
-        gbc.gridwidth = 3;
+        paymentPanel.add(poReferenceField, gbc);
+
+        gbc.gridx = 2; gbc.gridy = 2;
+        paymentPanel.add(new JLabel("Payment Terms:"), gbc);
+        gbc.gridx = 3;
+        paymentPanel.add(paymentTermsField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 3;
+        paymentPanel.add(new JLabel("Delivery Place:"), gbc);
+        gbc.gridx = 1; gbc.gridwidth = 3; // Span across multiple columns
+        paymentPanel.add(deliveryPlaceField, gbc);
+        gbc.gridwidth = 1; // Reset grid width for following fields
+
+        gbc.gridx = 0; gbc.gridy = 4;
+        paymentPanel.add(new JLabel("Note:"), gbc);
+        gbc.gridx = 1; gbc.gridwidth = 3;
         paymentPanel.add(noteField, gbc);
 
         // Show the JOptionPane with the custom panel
@@ -1219,34 +1360,28 @@ public class POS extends JPanel {
 
         // Handling OK/Cancel button click
         if (result == JOptionPane.OK_OPTION) {
-            String account = accountField.getText();
             String amount = amountField.getText();
             String chequeNo = chequeNoField.getText();
             String receiptNo = receiptNoField.getText();
             String poReference = poReferenceField.getText();
             String paymentTerms = paymentTermsField.getText();
-            String reference = referenceField.getText();
             String deliveryPlace = deliveryPlaceField.getText();
             String date = dateField.getText();
-            String status = (String) statusCombo.getSelectedItem();
             String note = noteField.getText();
 
             // Show a JOptionPane to confirm the payment addition
             JOptionPane.showMessageDialog(null, "Payment Added:\n"
-                    + "Account: " + account + "\n"
                     + "Amount: " + amount + "\n"
                     + "Cheque No: " + chequeNo + "\n"
                     + "Receipt No: " + receiptNo + "\n"
                     + "PO Reference: " + poReference + "\n"
                     + "Payment Terms: " + paymentTerms + "\n"
-                    + "Reference: " + reference + "\n"
                     + "Delivery Place: " + deliveryPlace + "\n"
                     + "Date: " + date + "\n"
-                    + "Status: " + status + "\n"
                     + "Note: " + note);
         } else {
             // Show a message if payment is canceled
-            JOptionPane.showMessageDialog(null, "Payment canceled.");
+            JOptionPane.showMessageDialog(null, "Payment cancelled.");
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 

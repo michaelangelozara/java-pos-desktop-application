@@ -16,10 +16,8 @@ public class PurchaseProductMapper {
         this.productMapper = new ProductMapper();
     }
 
-    public PurchaseProduct toPurchaseProduct(AddPurchaseProductRequestDto dto, Product product, Purchase purchase){
+    public PurchaseProduct toPurchaseProduct(AddPurchaseProductRequestDto dto){
         PurchaseProduct purchaseProduct = new PurchaseProduct();
-        purchaseProduct.setProduct(product);
-        purchaseProduct.setPurchase(purchase);
         purchaseProduct.setQuantity(dto.quantity());
         purchaseProduct.setPurchasePrice(dto.purchasePrice());
         purchaseProduct.setSellingPrice(dto.sellingPrice());

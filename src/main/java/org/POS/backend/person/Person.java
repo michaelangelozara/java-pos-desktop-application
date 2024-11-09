@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.POS.backend.purchase.Purchase;
+import org.POS.backend.sale.Sale;
 import org.POS.backend.stock.Stock;
 
 import java.time.LocalDate;
@@ -57,4 +58,7 @@ public class Person {
 
     @OneToMany(mappedBy = "person")
     private List<Stock> stocks;
+
+    @OneToMany(mappedBy = "person")
+    private List<Sale> sales;
 }

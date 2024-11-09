@@ -25,27 +25,26 @@ import org.POS.frontend.src.raven.menu.mode.ToolBarAccentColor;
 public class Menu extends JPanel {
 
     private final String menuItems[][] = {
-        {"~DASHBOARD~"},
-        {"Dashboard"},
-        {"~ACTIVITIES~"},
-        {"Expenses", "Categories", "Sub Categories", "Expense List"},
-        {"Purchases", "Purchase List", "Return List"},
-        {"Sales", "Quotation List", "Invoices List","POS",},
-        {"~PEOPLE~"},
-        {"Clients"},
-        {"Suppliers"},
-        {"~INVENTORY~"},
-        {"Products", "Categories","Sub Categories", "Product List"},
-        {"Inventory", "View Inventory", "Inventory Adjustment"},
-        {"~REPORTS~"},
-        {"Balance Sheet"},
-        {"Sales Report"},
-        {"Profit/Loss Report"},
-        {"Expense Report"},
-        {"Collection By User Report"},
-        {"Inventory Report"},
-        {"Current Stock Value and Stock Control"},
-        {"Logout"}
+            {"~DASHBOARD~"},
+            {"Dashboard"},
+            {"~ACTIVITIES~"},
+            {"Expenses", "Categories", "Sub Categories", "Expense List"},
+            {"Purchases", "Purchase List", "Brand List", "Return List"},
+            {"Sales", "Quotation List", "Invoices List","POS",},
+            {"~PEOPLE~"},
+            {"Clients"},
+            {"Suppliers"},
+            {"~INVENTORY~"},
+            {"Products", "Categories","Sub Categories", "Product List"},
+            {"Inventory", "View Inventory", "Inventory Adjustment"},
+            {"~REPORTS~"},
+            {"Sales Report"},
+            {"Profit/Loss Report"},
+            {"Expense Report"},
+            {"Collection By User Report"},
+            {"Inventory Report"},
+            {"Current Stock Value and Stock Control"},
+            {"Logout"}
     };
 
     public boolean isMenuFull() {
@@ -92,7 +91,7 @@ public class Menu extends JPanel {
                 + "background:$Menu.background;"
                 + "arc:10");
         header = new JLabel(headerName);
-        header.setIcon(new ImageIcon(getClass().getResource("/icon")));
+        header.setIcon(new ImageIcon(getClass().getResource("/png/logogroup.png")));
         header.putClientProperty(FlatClientProperties.STYLE, ""
                 + "font:$Menu.header.font;"
                 + "foreground:$Menu.foreground");
@@ -117,8 +116,8 @@ public class Menu extends JPanel {
                 + "thumb:$Menu.ScrollBar.thumb");
         createMenu();
         lightDarkMode = new LightDarkMode();
-       toolBarAccentColor = new ToolBarAccentColor(this);
-       toolBarAccentColor.setVisible(FlatUIUtils.getUIBoolean("AccentControl.show", false));
+        toolBarAccentColor = new ToolBarAccentColor(this);
+        toolBarAccentColor.setVisible(FlatUIUtils.getUIBoolean("AccentControl.show", false));
         add(header);
         add(scroll);
         add(lightDarkMode);

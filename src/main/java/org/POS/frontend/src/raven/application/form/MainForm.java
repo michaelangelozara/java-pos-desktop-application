@@ -3,7 +3,6 @@ package org.POS.frontend.src.raven.application.form;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.util.UIScale;
-
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
@@ -16,9 +15,9 @@ import javax.swing.JButton;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
-
 import org.POS.frontend.src.raven.application.Application;
-import org.POS.frontend.src.zeusled.gui.Dashboard;
+import org.POS.frontend.src.javaswingdev.form.Form_Dashboard;
+import org.POS.frontend.src.raven.application.form.other.POS;
 import org.POS.frontend.src.raven.application.form.other.Products_Category;
 import org.POS.frontend.src.raven.application.form.other.Expenses_Category;
 import org.POS.frontend.src.raven.application.form.other.Products_Sub_Category;
@@ -26,6 +25,7 @@ import org.POS.frontend.src.raven.application.form.other.Expenses_Sub_Category;
 import org.POS.frontend.src.raven.application.form.other.ProductList;
 import org.POS.frontend.src.raven.application.form.other.Expenses_List;
 import org.POS.frontend.src.raven.application.form.other.Purchases_List;
+import org.POS.frontend.src.raven.application.form.other.BrandList;
 import org.POS.frontend.src.raven.application.form.other.Quotation_List;
 import org.POS.frontend.src.raven.application.form.other.Return_List;
 import org.POS.frontend.src.raven.application.form.other.Invoice_List;
@@ -33,7 +33,6 @@ import org.POS.frontend.src.raven.application.form.other.Customer_List;
 import org.POS.frontend.src.raven.application.form.other.Suppliers_List;
 import org.POS.frontend.src.raven.application.form.other.Inventory;
 import org.POS.frontend.src.raven.application.form.other.InventoryAdjustment;
-import org.POS.frontend.src.raven.application.form.other.BalanceSheet_Report;
 import org.POS.frontend.src.raven.application.form.other.Sales_Report;
 import org.POS.frontend.src.raven.application.form.other.ProfitLoss_Report;
 import org.POS.frontend.src.raven.application.form.other.Expense_Report;
@@ -42,9 +41,9 @@ import org.POS.frontend.src.raven.application.form.other.Inventory_Report;
 import org.POS.frontend.src.raven.application.form.other.CurrentValueandStock_Report;
 import org.POS.frontend.src.raven.menu.Menu;
 import org.POS.frontend.src.raven.menu.MenuAction;
-import org.POS.frontend.src.raven.application.form.other.POS;
 
 /**
+ *
  * @author Raven
  */
 public class MainForm extends JLayeredPane {
@@ -85,14 +84,14 @@ public class MainForm extends JLayeredPane {
             menuButton = new JButton();
         }
         String icon = (getComponentOrientation().isLeftToRight()) ? "menu_left.svg" : "menu_right.svg";
-        menuButton.setIcon(new FlatSVGIcon("/svg" + icon, 0.8f));
+        menuButton.setIcon(new FlatSVGIcon("svg/" + icon, 0.8f));
     }
 
     private void initMenuEvent() {
         menu.addMenuEvent((int index, int subIndex, MenuAction action) -> {
             switch (index) {
                 case 0:
-                    Application.showForm(new Dashboard());
+                    Application.showForm(new Form_Dashboard());
                     break;
                 case 1:
                     if (subIndex == 1) {
@@ -101,7 +100,8 @@ public class MainForm extends JLayeredPane {
                         Application.showForm(new Expenses_Sub_Category());
                     } else if (subIndex == 3) {
                         Application.showForm(new Expenses_List());
-                    } else {
+                    }
+                    else {
                         action.cancel();
                     }
                     break;
@@ -109,8 +109,11 @@ public class MainForm extends JLayeredPane {
                     if (subIndex == 1) {
                         Application.showForm(new Purchases_List());
                     } else if (subIndex == 2) {
+                        Application.showForm(new BrandList());
+                    } else if (subIndex == 3) {
                         Application.showForm(new Return_List());
-                    } else {
+                    }
+                    else {
                         action.cancel();
                     }
                     break;
@@ -138,7 +141,8 @@ public class MainForm extends JLayeredPane {
                         Application.showForm(new Products_Sub_Category());
                     } else if (subIndex == 3) {
                         Application.showForm(new ProductList());
-                    } else {
+                    }
+                    else {
                         action.cancel();
                     }
                     break;
@@ -152,39 +156,34 @@ public class MainForm extends JLayeredPane {
                     }
                     break;
                 case 8:
-
-                    Application.showForm(new BalanceSheet_Report());
-
-                    break;
-                case 9:
                     Application.showForm(new Sales_Report());
 
                     break;
-                case 10:
+                case 9:
                     Application.showForm(new ProfitLoss_Report());
 
                     break;
-                case 11:
+                case 10:
 
                     Application.showForm(new Expense_Report());
 
                     break;
-                case 12:
+                case 11:
 
                     Application.showForm(new CollectionByUser_Report());
 
                     break;
-                case 13:
+                case 12:
 
                     Application.showForm(new Inventory_Report());
 
                     break;
-                case 14:
+                case 13:
 
                     Application.showForm(new CurrentValueandStock_Report());
 
                     break;
-                case 15:
+                case 14:
                     Application.logout();
                     break;
                 default:
@@ -202,7 +201,7 @@ public class MainForm extends JLayeredPane {
         } else {
             icon = (full) ? "menu_right.svg" : "menu_left.svg";
         }
-        menuButton.setIcon(new FlatSVGIcon("/svg" + icon, 0.8f));
+        menuButton.setIcon(new FlatSVGIcon("svg/" + icon, 0.8f));
         menu.setMenuFull(full);
         revalidate();
     }

@@ -14,6 +14,7 @@ import org.POS.backend.product_subcategory.ProductSubcategory;
 import org.POS.backend.purchase.Purchase;
 import org.POS.backend.purchased_product.PurchaseProduct;
 import org.POS.backend.return_product.ReturnProduct;
+import org.POS.backend.sale.Sale;
 import org.POS.backend.stock.Stock;
 import org.POS.backend.user.User;
 import org.hibernate.SessionFactory;
@@ -46,6 +47,7 @@ public class HibernateUtil {
                 configuration.addAnnotatedClass(PurchaseProduct.class);
                 configuration.addAnnotatedClass(ReturnProduct.class);
                 configuration.addAnnotatedClass(Stock.class);
+                configuration.addAnnotatedClass(Sale.class);
 
                 // Build the SessionFactory
                 sessionFactory = configuration.buildSessionFactory(

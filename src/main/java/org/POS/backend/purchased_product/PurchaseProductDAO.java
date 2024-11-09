@@ -1,5 +1,6 @@
 package org.POS.backend.purchased_product;
 
+import jakarta.transaction.Transactional;
 import org.POS.backend.configuration.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -17,20 +18,13 @@ public class PurchaseProductDAO {
     }
 
     public void add(List<PurchaseProduct> purchaseProducts) {
-        Transaction transaction = null;
-        try (Session session = sessionFactory.openSession()) {
-            transaction = session.beginTransaction();
-
+        try (Session session = sessionFactory.getCurrentSession()) {
             for (PurchaseProduct purchaseProduct : purchaseProducts) {
                 session.persist(purchaseProduct);
             }
-
-            transaction.commit();
         } catch (Exception e) {
-            if (transaction != null && transaction.isActive()) {
-                transaction.rollback();
-            }
             e.printStackTrace();
+            throw new RuntimeException("Failed to save purchase products");
         }
     }
 

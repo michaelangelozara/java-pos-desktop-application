@@ -7,11 +7,14 @@ import lombok.Setter;
 import org.POS.backend.brand.Brand;
 import org.POS.backend.product_subcategory.ProductSubcategory;
 import org.POS.backend.purchased_product.PurchaseProduct;
+import org.POS.backend.sale.Sale;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "products")
@@ -79,4 +82,17 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PurchaseProduct> purchaseProducts = new ArrayList<>();
+
+    public void addPurchaseProduct(PurchaseProduct purchaseProduct){
+        purchaseProducts.add(purchaseProduct);
+        purchaseProduct.setProduct(this);
+    }
+
+    @ManyToMany(mappedBy = "products")
+    private Set<Sale> sales = new HashSet<>();
+
+    public void addSale(Sale sale){
+        sales.add(sale);
+        sale.getProducts().add(this);
+    }
 }

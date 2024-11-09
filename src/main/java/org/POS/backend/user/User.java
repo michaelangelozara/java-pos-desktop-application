@@ -4,9 +4,12 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.POS.backend.department.Department;
+import org.POS.backend.sale.Sale;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -76,4 +79,12 @@ public class User {
     @ManyToOne
     @JoinColumn(name = "department_id")
     private Department department;
+
+    @OneToMany(mappedBy = "user")
+    private List<Sale> sales = new ArrayList<>();
+
+    public void addSale(Sale sale){
+        sales.add(sale);
+        sale.setUser(this);
+    }
 }
