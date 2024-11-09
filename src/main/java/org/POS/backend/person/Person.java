@@ -8,6 +8,7 @@ import org.POS.backend.sale.Sale;
 import org.POS.backend.stock.Stock;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -54,11 +55,16 @@ public class Person {
     private LocalDate deletedAt;
 
     @OneToMany(mappedBy = "person")
-    private List<Purchase> purchases;
+    private List<Purchase> purchases = new ArrayList<>();
 
     @OneToMany(mappedBy = "person")
-    private List<Stock> stocks;
+    private List<Stock> stocks = new ArrayList<>();
 
     @OneToMany(mappedBy = "person")
-    private List<Sale> sales;
+    private List<Sale> sales = new ArrayList<>();
+
+    public void addSale(Sale sale){
+        sales.add(sale);
+        sale.setPerson(this);
+    }
 }

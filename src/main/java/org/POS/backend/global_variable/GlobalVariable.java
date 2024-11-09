@@ -83,6 +83,8 @@ public class GlobalVariable {
     // code generator
     public static String GENERATING_CODE_ERROR = "Generating code error";
 
+    // sale
+    public static String SALE_ADDED = "Transaction successfully added";
 
     // code generator prefixes
     public static String PRODUCT_PREFIX = "AEC-";
@@ -95,4 +97,5 @@ public class GlobalVariable {
     public static String PURCHASE_PREFIX = "PCH-";
     public static String STOCK_IN_PREFIX = "STKI-";
     public static String STOCK_OUT_PREFIX = "STKO-";
+    public static String SALE_PREFIX = "SL-";
 }

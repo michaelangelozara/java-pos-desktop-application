@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 
 public class DepartmentTest {
 
-
     @Test
     void add(){
         DepartmentService departmentService = new DepartmentService();

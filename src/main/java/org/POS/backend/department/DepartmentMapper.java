@@ -9,6 +9,7 @@ public class DepartmentMapper {
         department.setName(dto.name());
         department.setStatus(dto.status());
         department.setNote(dto.note());
+        department.setCode("dep");
         return department;
     }
 

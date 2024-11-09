@@ -97,7 +97,7 @@ public class ProductDAO {
     public Set<Product> getAllValidProductsByProductIds(Set<Integer> productIds) {
         Set<Product> productsSet = new HashSet<>();
         try (Session session = sessionFactory.openSession()) {
-            List<Product> products = session.createQuery("SELECT p FROM Product p WHERE p.id IN :productIds AND p.isDeleted = FALSE", Product.class)
+            List<Product> products = session.createQuery("SELECT p FROM Product p LEFT JOIN FETCH p.saleItems WHERE p.id IN :productIds AND p.isDeleted = FALSE", Product.class)
                     .setParameter("productIds", productIds)
                     .getResultList();
 

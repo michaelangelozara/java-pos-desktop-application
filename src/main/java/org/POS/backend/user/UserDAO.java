@@ -80,7 +80,7 @@ public class UserDAO {
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            User user = session.createQuery("SELECT u FROM User u WHERE u.id = :userId AND u.isDeleted = FALSE", User.class)
+            User user = session.createQuery("SELECT u FROM User u LEFT JOIN FETCH u.sales WHERE u.id = :userId AND u.isDeleted = FALSE", User.class)
                     .setParameter("userId", userId)
                     .getSingleResult();
 

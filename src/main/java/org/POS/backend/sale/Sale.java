@@ -1,12 +1,11 @@
 package org.POS.backend.sale;
 
 import jakarta.persistence.*;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.POS.backend.person.Person;
-import org.POS.backend.product.Product;
+import org.POS.backend.sale_item.SaleItem;
 import org.POS.backend.user.User;
 
 import java.math.BigDecimal;
@@ -24,11 +23,6 @@ public class Sale {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    private int quantity;
-
-    @Column(precision = 10, scale = 2)
-    private BigDecimal subtotal;
 
     private String discountType;
 
@@ -66,18 +60,10 @@ public class Sale {
 
     private String note;
 
-    @ManyToMany
-    @JoinTable(
-            name = "sales_products",
-            joinColumns = @JoinColumn(name = "sale_id"),
-            inverseJoinColumns = @JoinColumn(name = "product_id")
-    )
-    private Set<Product> products = new HashSet<>();
+    private LocalDate date;
 
-    public void addProduct(Product product){
-        products.add(product);
-        product.getSales().add(this);
-    }
+    @Column(columnDefinition = "VARCHAR(50) NOT NULL")
+    private String code;
 
     @ManyToOne
     @JoinColumn(name = "person_id")
@@ -86,4 +72,12 @@ public class Sale {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    @OneToMany(mappedBy = "sale", cascade = CascadeType.PERSIST)
+    private Set<SaleItem> saleItems = new HashSet<>();
+
+    public void addSaleItem(SaleItem saleItem){
+        saleItems.add(saleItem);
+        saleItem.setSale(this);
+    }
 }

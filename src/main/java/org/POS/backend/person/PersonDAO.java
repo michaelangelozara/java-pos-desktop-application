@@ -61,21 +61,19 @@ public class PersonDAO {
     }
 
     public Person getValidPersonById(int personId){
+        Person person = null;
         try (Session session = sessionFactory.openSession()){
-            session.beginTransaction();
 
-            Person person = session.createQuery("SELECT p FROM Person p WHERE p.id = :personId AND p.isDeleted = FALSE", Person.class)
+
+            person = session.createQuery("SELECT p FROM Person p LEFT JOIN FETCH p.sales WHERE p.id = :personId AND p.isDeleted = FALSE", Person.class)
                     .setParameter("personId", personId)
                     .getSingleResult();
 
-            session.getTransaction().commit();
-
-            return person;
         }catch (Exception e){
             System.out.println(e.getMessage());
         }
 
-        return null;
+        return person;
     }
 
     public List<Person> getAllValidPeople(){

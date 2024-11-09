@@ -33,7 +33,7 @@ public class User {
                 true,
                 "username1",
                 "password",
-                UserRole.ADMIN,
+                UserRole.SALESMAN,
                 1
         );
         userService.add(dto);
