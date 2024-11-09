@@ -1,10 +1,7 @@
 package org.POS.backend.user;
 
-import org.POS.backend.department.DepartmentDAO;
-import org.POS.backend.department.DepartmentService;
 import org.POS.backend.exception.ResourceNotFoundException;
 import org.POS.backend.global_variable.CurrentUser;
-import org.POS.backend.global_variable.GlobalVariable;
 
 import java.util.List;
 
@@ -12,29 +9,21 @@ public class UserService {
 
     private UserDAO userDAO;
 
-    private DepartmentService departmentService;
-
-    private DepartmentDAO departmentDAO;
-
     private UserMapper userMapper;
 
     public UserService(){
         this.userDAO = new UserDAO();
         this.userMapper = new UserMapper();
-        this.departmentService = new DepartmentService();
-        this.departmentDAO = new DepartmentDAO();
     }
 
     public void add(AddUserRequestDto dto){
-        var department = this.departmentDAO.getDepartmentById(dto.departmentId());
-        var user = this.userMapper.toUser(dto, department);
+        var user = this.userMapper.toUser(dto);
         this.userDAO.add(user);
     }
 
     public void updateUser(UpdateUserRequestDto dto){
-        var department = this.departmentDAO.getDepartmentById(dto.departmentId());
-        var updatedUser = this.userMapper.toUpdatedUser(dto, department);
-        this.userDAO.update(updatedUser);
+//        var department = this.departmentDAO.getDepartmentById(dto.departmentId());
+//        this.userDAO.update(updatedUser);
     }
 
     public void delete(int userId){

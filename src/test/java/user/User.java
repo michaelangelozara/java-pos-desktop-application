@@ -4,6 +4,7 @@ import org.POS.backend.exception.ResourceNotFoundException;
 import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.user.*;
 import org.junit.jupiter.api.Test;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -14,27 +15,19 @@ public class User {
     void add(){
         UserService userService = new UserService();
 
+
+        String plainText = "password";
+        String encryptedText = BCrypt.hashpw(plainText, BCrypt.gensalt());
+
         AddUserRequestDto dto = new AddUserRequestDto(
-                "Christian James Torres",
-                "Ewan_ko",
-                "YUNJKADS",
-                "09090909039",
-                BigDecimal.valueOf(2000),
-                0,
-                LocalDate.now(),
-                UserGender.MALE,
-                "A+",
-                UserReligion.CHRISTIANS,
-                LocalDate.now(),
-                LocalDate.now(),
-                "Pimbalayan, Lambayong, Sultan Kudarat",
-                UserStatus.ACTIVE,
-                "YVHIYIYFGVBJIJUYVHBUBJ",
-                true,
-                "username1",
-                "password",
-                UserRole.SALESMAN,
-                1
+            "USER-123",
+                "Michael Angelo Zara",
+                UserRole.ADMIN,
+                "username",
+                encryptedText,
+                "michaelangelobuccatzara@gmail.com",
+                "09090909090",
+                UserStatus.ACTIVE
         );
         userService.add(dto);
     }

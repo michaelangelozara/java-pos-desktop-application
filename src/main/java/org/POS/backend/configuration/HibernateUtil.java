@@ -2,14 +2,12 @@ package org.POS.backend.configuration;
 
 import org.POS.backend.brand.Brand;
 import org.POS.backend.code_generator.CodeGenerator;
-import org.POS.backend.product_category.ProductCategory;
-import org.POS.backend.department.Department;
 import org.POS.backend.expense.Expense;
-import org.POS.backend.code_generator.CodeGeneratorService;
 import org.POS.backend.expense_category.ExpenseCategory;
 import org.POS.backend.expense_subcategory.ExpenseSubcategory;
 import org.POS.backend.person.Person;
 import org.POS.backend.product.Product;
+import org.POS.backend.product_category.ProductCategory;
 import org.POS.backend.product_subcategory.ProductSubcategory;
 import org.POS.backend.purchase.Purchase;
 import org.POS.backend.purchased_product.PurchaseProduct;
@@ -35,7 +33,6 @@ public class HibernateUtil {
                 // Add annotated entity classes
                 configuration.addAnnotatedClass(Brand.class);
                 configuration.addAnnotatedClass(ProductCategory.class);
-                configuration.addAnnotatedClass(Department.class);
                 configuration.addAnnotatedClass(Person.class);
                 configuration.addAnnotatedClass(Product.class);
                 configuration.addAnnotatedClass(ProductSubcategory.class);

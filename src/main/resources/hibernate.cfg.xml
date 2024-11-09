@@ -14,7 +14,6 @@
         <property name="hibernate.show_sql">true</property>
 
         <mapping class="org.POS.backend.user.User"/>
-        <mapping class="org.POS.backend.department.Department"/>
         <mapping class="org.POS.backend.brand.Brand"/>
         <mapping class="org.POS.backend.product_category.ProductCategory"/>
         <mapping class="org.POS.backend.person.Person"/>

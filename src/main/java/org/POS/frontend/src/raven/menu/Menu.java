@@ -34,6 +34,7 @@ public class Menu extends JPanel {
             {"~PEOPLE~"},
             {"Clients"},
             {"Suppliers"},
+            {"User Management"},
             {"~INVENTORY~"},
             {"Products", "Categories","Sub Categories", "Product List"},
             {"Inventory", "View Inventory", "Inventory Adjustment"},

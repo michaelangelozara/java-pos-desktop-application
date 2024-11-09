@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.POS.backend.brand.BrandService;
 import org.POS.backend.cryptography.Base64Converter;
+import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.person.AddPersonRequestDto;
 import org.POS.backend.person.PersonService;
 import org.POS.backend.person.PersonStatus;
@@ -14,6 +15,9 @@ import org.POS.backend.person.PersonType;
 import org.POS.backend.product.*;
 import org.POS.backend.product_category.ProductCategoryService;
 import org.POS.backend.product_subcategory.ProductSubcategoryService;
+import org.POS.backend.sale.AddSaleRequestDto;
+import org.POS.backend.sale.SaleService;
+import org.POS.backend.sale_item.AddSaleItemRequestDto;
 import org.POS.frontend.src.com.raven.component.Item;
 import org.POS.frontend.src.com.raven.model.ModelItem;
 
@@ -1368,6 +1372,49 @@ public class POS extends JPanel {
             String deliveryPlace = deliveryPlaceField.getText();
             String date = dateField.getText();
             String note = noteField.getText();
+
+            int customerSelectedIndex = jComboBox1.getSelectedIndex();
+            int customerId = clientMap.get(customerSelectedIndex);
+
+            String discountType = (String) jComboBox4.getSelectedItem();
+            BigDecimal totalTax = BigDecimal.valueOf(Double.parseDouble(jComboBox5.getSelectedItem().toString().isEmpty() ? "0" : jComboBox5.getSelectedItem().toString()));
+            BigDecimal discount = BigDecimal.valueOf(Double.parseDouble(jTextField3.getText()));
+            BigDecimal transportCost = BigDecimal.valueOf(Double.parseDouble(jTextField2.getText()));
+            BigDecimal netTotal = BigDecimal.valueOf(Double.parseDouble(jLabel7.getText()));
+
+            AddSaleRequestDto saleDto = new AddSaleRequestDto(
+                    customerId,
+                    discountType,
+                    discount,
+                    transportCost,
+                    totalTax,
+                    netTotal,
+                    receiptNo,
+                    BigDecimal.valueOf(Double.parseDouble(amount)),
+                    LocalDate.now(),
+                    chequeNo,
+                    poReference,
+                    paymentTerms,
+                    deliveryPlace,
+                    note
+            );
+
+            SaleService saleService = new SaleService();
+            Set<AddSaleItemRequestDto> addSaleItemRequestDtoSet = new HashSet<>();
+            CurrentUser.id = 2;
+            var choseItems = getAllRows();
+
+            for(var item : choseItems){
+                AddSaleItemRequestDto dto = new AddSaleItemRequestDto(
+                        item.getId(),
+                        item.getPrice(),
+                        item.getQuantity(),
+                        item.getSubtotal()
+                );
+                addSaleItemRequestDtoSet.add(dto);
+            }
+
+            saleService.add(saleDto, addSaleItemRequestDtoSet);
 
             // Show a JOptionPane to confirm the payment addition
             JOptionPane.showMessageDialog(null, "Payment Added:\n"

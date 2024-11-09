@@ -3,6 +3,7 @@ package computer;
 import org.POS.backend.product.ProductMapper;
 import org.POS.backend.product.ProductTaxType;
 import org.junit.jupiter.api.Test;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.math.BigDecimal;
 
@@ -17,9 +18,14 @@ public class Computer {
         double sellingPrice = ((regularPrice * vat) + regularPrice) - discountedValue;
         BigDecimal one = BigDecimal.ONE;
 
-        BigDecimal ten = BigDecimal.TEN;
-        System.out.println(one.compareTo(ten));
+        String plainText = "password";
+        String encryptedText = BCrypt.hashpw(plainText, BCrypt.gensalt());
 
+        System.out.println("Hashed password: " + encryptedText);
+
+        // Verify the password
+        boolean matches = BCrypt.checkpw(plainText, encryptedText);
+        System.out.println("Password matches: " + matches);
     }
 
     @Test

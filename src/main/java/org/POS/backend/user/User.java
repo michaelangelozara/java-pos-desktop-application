@@ -3,7 +3,6 @@ package org.POS.backend.user;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.POS.backend.department.Department;
 import org.POS.backend.sale.Sale;
 
 import java.math.BigDecimal;
@@ -23,38 +22,13 @@ public class User {
 
     private String name;
 
-    private String designation;
-
     @Column(name = "employee_id")
     private String employeeId;
 
     @Column(name = "contact_number")
     private String contactNumber;
 
-    @Column(precision = 9, scale = 2)
-    private BigDecimal salary;
-
-    private int commission;
-
-    @Column(name = "birth_date")
-    private LocalDate birthDate;
-
-    @Enumerated(EnumType.STRING)
-    private UserGender gender;
-
-    @Column(name = "blood_group")
-    private String bloodGroup;
-
-    @Enumerated(EnumType.STRING)
-    private UserReligion religion;
-
-    @Column(name = "appointment_date")
-    private LocalDate appointmentDate;
-
-    @Column(name = "join_date")
-    private LocalDate joinDate;
-
-    private String address;
+    private LocalDate createdAt;
 
     @Enumerated(EnumType.STRING)
     private UserStatus status;
@@ -65,20 +39,15 @@ public class User {
     @Column(name = "deleted_at")
     private LocalDate deletedAt;
 
-    @Column(columnDefinition = "TEXT")
-    private String profilePicture;
-
     @Column(columnDefinition = "VARCHAR(50)", unique = true)
     private String username;
 
     private String password;
 
+    private String email;
+
     @Enumerated(EnumType.STRING)
     private UserRole role;
-
-    @ManyToOne
-    @JoinColumn(name = "department_id")
-    private Department department;
 
     @OneToMany(mappedBy = "user")
     private List<Sale> sales = new ArrayList<>();

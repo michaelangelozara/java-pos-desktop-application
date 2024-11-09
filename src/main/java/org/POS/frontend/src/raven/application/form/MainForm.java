@@ -30,7 +30,7 @@ import org.POS.frontend.src.raven.application.form.other.Quotation_List;
 import org.POS.frontend.src.raven.application.form.other.Return_List;
 import org.POS.frontend.src.raven.application.form.other.Invoice_List;
 import org.POS.frontend.src.raven.application.form.other.Customer_List;
-import org.POS.frontend.src.raven.application.form.other.Suppliers_List;
+import org.POS.frontend.src.raven.application.form.other.User_List;
 import org.POS.frontend.src.raven.application.form.other.Inventory;
 import org.POS.frontend.src.raven.application.form.other.InventoryAdjustment;
 import org.POS.frontend.src.raven.application.form.other.Sales_Report;
@@ -39,6 +39,7 @@ import org.POS.frontend.src.raven.application.form.other.Expense_Report;
 import org.POS.frontend.src.raven.application.form.other.CollectionByUser_Report;
 import org.POS.frontend.src.raven.application.form.other.Inventory_Report;
 import org.POS.frontend.src.raven.application.form.other.CurrentValueandStock_Report;
+import org.POS.frontend.src.raven.application.form.other.Suppliers_List;
 import org.POS.frontend.src.raven.menu.Menu;
 import org.POS.frontend.src.raven.menu.MenuAction;
 
@@ -135,6 +136,9 @@ public class MainForm extends JLayeredPane {
                     Application.showForm(new Suppliers_List());
                     break;
                 case 6:
+                    Application.showForm(new User_List());
+                    break;
+                case 7:
                     if (subIndex == 1) {
                         Application.showForm(new Products_Category());
                     } else if (subIndex == 2) {
@@ -146,7 +150,7 @@ public class MainForm extends JLayeredPane {
                         action.cancel();
                     }
                     break;
-                case 7:
+                case 8:
                     if (subIndex == 1) {
                         Application.showForm(new Inventory());
                     } else if (subIndex == 2) {
@@ -155,35 +159,35 @@ public class MainForm extends JLayeredPane {
                         action.cancel();
                     }
                     break;
-                case 8:
+                case 9:
                     Application.showForm(new Sales_Report());
 
                     break;
-                case 9:
-                    Application.showForm(new ProfitLoss_Report());
-
-                    break;
                 case 10:
-
-                    Application.showForm(new Expense_Report());
+                    Application.showForm(new ProfitLoss_Report());
 
                     break;
                 case 11:
 
-                    Application.showForm(new CollectionByUser_Report());
+                    Application.showForm(new Expense_Report());
 
                     break;
                 case 12:
 
-                    Application.showForm(new Inventory_Report());
+                    Application.showForm(new CollectionByUser_Report());
 
                     break;
                 case 13:
 
-                    Application.showForm(new CurrentValueandStock_Report());
+                    Application.showForm(new Inventory_Report());
 
                     break;
                 case 14:
+
+                    Application.showForm(new CurrentValueandStock_Report());
+
+                    break;
+                case 15:
                     Application.logout();
                     break;
                 default:
