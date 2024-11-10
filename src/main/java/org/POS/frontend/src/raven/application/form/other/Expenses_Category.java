@@ -1,7 +1,9 @@
 package org.POS.frontend.src.raven.application.form.other;
 
-import org.POS.backend.expense_category.*;
-import org.POS.backend.product_category.*;
+import org.POS.backend.expense_category.AddExpenseCategoryRequestDto;
+import org.POS.backend.expense_category.ExpenseCategoryService;
+import org.POS.backend.expense_category.ExpenseCategoryStatus;
+import org.POS.backend.expense_category.UpdateExpenseCategoryRequestDto;
 import org.POS.backend.global_variable.GlobalVariable;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
@@ -19,7 +21,6 @@ public class Expenses_Category extends javax.swing.JPanel {
 
             @Override
             public void onEdit(int row) {
-                // Fetch current data from the selected row
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
                 int id = (Integer) model.getValueAt(row, 1);
                 String currentName = (String) model.getValueAt(row, 2);
@@ -27,7 +28,6 @@ public class Expenses_Category extends javax.swing.JPanel {
                 String currentNote = (String) model.getValueAt(row, 4);
                 String currentStatus = (String) model.getValueAt(row, 5);
 
-                System.out.println("DB_ID: " + id + ", Name: " + model.getValueAt(row, 1) + ", Note: " + model.getValueAt(row, 2) + ", Status: " + model.getValueAt(row, 3));
                 // Create a panel for displaying the data
                 JPanel panel = new JPanel(new GridBagLayout());
                 GridBagConstraints gbc = new GridBagConstraints();
@@ -52,7 +52,7 @@ public class Expenses_Category extends javax.swing.JPanel {
                 String[] statuses = {"Select Status", "Active", "Inactive"};
                 JComboBox<String> statusComboBox = new JComboBox<>(statuses);
                 statusComboBox.setFont(detailsFont);
-                statusComboBox.setSelectedItem(currentStatus);
+                statusComboBox.setSelectedItem(currentStatus.equals("ACTIVE") ? "Active" : "Inactive");
 
                 JLabel noteLabel = new JLabel("Note:");
                 noteLabel.setFont(largerFont);
@@ -152,9 +152,10 @@ public class Expenses_Category extends javax.swing.JPanel {
             public void onView(int row) {
                 // Fetch current data from the selected row
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
-                String currentName = (String) model.getValueAt(row, 1);
-                String currentNote = (String) model.getValueAt(row, 2);
-                String currentStatus = (String) model.getValueAt(row, 3);
+                int categoryId = (Integer) model.getValueAt(row, 1);
+                String currentName = (String) model.getValueAt(row, 2);
+                String currentNote = (String) model.getValueAt(row, 4);
+                String currentStatus = (String) model.getValueAt(row, 5);
 
                 // Create a panel for displaying the data
                 JPanel panel = new JPanel(new GridBagLayout());
@@ -182,7 +183,6 @@ public class Expenses_Category extends javax.swing.JPanel {
                 JLabel noteLabel = new JLabel("Note:");
                 noteLabel.setFont(largerFont);
 
-                // Create a non-clickable JTextArea for displaying the note
                 JTextArea noteValue = new JTextArea(5, 20);
                 noteValue.setText(currentNote);
                 noteValue.setEditable(false);       // Make it non-editable
@@ -233,8 +233,8 @@ public class Expenses_Category extends javax.swing.JPanel {
         // Clear all existing rows
         ExpenseCategoryService expenseCategoryService = new ExpenseCategoryService();
         var categories = expenseCategoryService.getAllValidExpenseCategories();
-        for(int i = 0; i < categories.size(); i++){
-            model.addRow(new Object[]{i+1, categories.get(i).id(), categories.get(i).name(), categories.get(i).code(), categories.get(i).note(), categories.get(i).status().name()});
+        for (int i = 0; i < categories.size(); i++) {
+            model.addRow(new Object[]{i + 1, categories.get(i).id(), categories.get(i).name(), categories.get(i).code(), categories.get(i).note(), categories.get(i).status().name()});
         }
     }
 
@@ -274,26 +274,26 @@ public class Expenses_Category extends javax.swing.JPanel {
         jTextField1.setText("Search");
 
         table.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null, null, null, null}
-            },
-            new String [] {
-                "#", "ID", "Name", "Code", "Note", "Status", "Action"
-            }
+                new Object[][]{
+                        {null, null, null, null, null, null, null}
+                },
+                new String[]{
+                        "#", "ID", "Name", "Code", "Note", "Status", "Action"
+                }
         ) {
-            Class[] types = new Class [] {
-                java.lang.Object.class, java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
+            Class[] types = new Class[]{
+                    java.lang.Object.class, java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
             };
-            boolean[] canEdit = new boolean [] {
-                true, false, false, true, false, false, true
+            boolean[] canEdit = new boolean[]{
+                    true, false, false, true, false, false, true
             };
 
             public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
+                return types[columnIndex];
             }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
+                return canEdit[columnIndex];
             }
         });
         table.setRowHeight(40);
@@ -308,66 +308,66 @@ public class Expenses_Category extends javax.swing.JPanel {
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addContainerGap())
+                jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                                                .addComponent(jLabel2)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addGroup(jPanel2Layout.createSequentialGroup()
+                                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(0, 0, Short.MAX_VALUE)))
+                                .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(11, 11, 11)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(8, 8, 8)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 534, Short.MAX_VALUE)
-                .addContainerGap())
+                jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addGap(11, 11, 11)
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(jLabel2))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(8, 8, 8)
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 534, Short.MAX_VALUE)
+                                .addContainerGap())
         );
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(0, 1105, Short.MAX_VALUE)))
-                .addContainerGap())
+                jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                                .addComponent(jLabel1)
+                                                .addGap(0, 1105, Short.MAX_VALUE)))
+                                .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+                jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jLabel1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 

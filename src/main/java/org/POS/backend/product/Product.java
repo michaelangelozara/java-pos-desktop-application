@@ -6,8 +6,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.POS.backend.brand.Brand;
 import org.POS.backend.product_subcategory.ProductSubcategory;
-import org.POS.backend.purchased_product.PurchaseProduct;
+import org.POS.backend.purchased_item.PurchaseItem;
 import org.POS.backend.sale_item.SaleItem;
+import org.POS.backend.stock.Stock;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -61,6 +62,8 @@ public class Product {
 
     private int stock;
 
+    private LocalDate date;
+
     @Column(name = "alert_quantity")
     private int alertQuantity;
 
@@ -70,6 +73,14 @@ public class Product {
     @Column(columnDefinition = "LONGTEXT")
     private String image;
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Stock> stocks = new ArrayList<>();
+
+    public void addStock(Stock stock){
+        stocks.add(stock);
+        stock.setProduct(this);
+    }
+
     @ManyToOne
     @JoinColumn(name = "brand_id")
     private Brand brand;
@@ -78,15 +89,15 @@ public class Product {
     @JoinColumn(name = "product_subcategory_id")
     private ProductSubcategory productSubcategory;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PurchaseProduct> purchaseProducts = new ArrayList<>();
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PurchaseItem> purchaseItems = new ArrayList<>();
 
-    public void addPurchaseProduct(PurchaseProduct purchaseProduct){
-        purchaseProducts.add(purchaseProduct);
-        purchaseProduct.setProduct(this);
+    public void addPurchaseItem(PurchaseItem purchaseItem){
+        purchaseItems.add(purchaseItem);
+        purchaseItem.setProduct(this);
     }
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.MERGE)
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SaleItem> saleItems = new ArrayList<>();
 
     public void addSaleItem(SaleItem saleItem){

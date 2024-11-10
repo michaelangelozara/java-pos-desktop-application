@@ -44,6 +44,9 @@ public class Sale {
     @Column(precision = 10, scale = 2)
     private BigDecimal amount;
 
+    @Column(name = "amount_due", precision = 10, scale = 2)
+    private BigDecimal amountDue;
+
     @Column(name = "cheque_number")
     private String chequeNumber;
 
@@ -65,6 +68,9 @@ public class Sale {
     @Column(columnDefinition = "VARCHAR(50) NOT NULL")
     private String code;
 
+    @Column(name = "vat_sales", precision = 10, scale = 2)
+    private BigDecimal vatSales;
+
     @ManyToOne
     @JoinColumn(name = "person_id")
     private Person person;
@@ -73,7 +79,7 @@ public class Sale {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @OneToMany(mappedBy = "sale", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<SaleItem> saleItems = new HashSet<>();
 
     public void addSaleItem(SaleItem saleItem){

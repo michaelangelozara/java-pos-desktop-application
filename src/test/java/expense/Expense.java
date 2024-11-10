@@ -55,6 +55,6 @@ public class Expense {
     @Test
     void getAllValidExpenses(){
         ExpenseService expenseService = new ExpenseService();
-        System.out.println(expenseService.getAllValidExpenses());
+        System.out.println(expenseService.getAllValidExpenses(50));
     }
 }

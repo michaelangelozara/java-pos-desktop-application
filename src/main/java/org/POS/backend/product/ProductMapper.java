@@ -7,6 +7,7 @@ import org.POS.backend.global_variable.GlobalVariable;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.List;
 
 public class ProductMapper {
@@ -29,6 +30,7 @@ public class ProductMapper {
         product.setUnit(dto.unit());
         product.setProductTax(12);
         product.setTaxType(dto.taxType());
+        product.setDate(LocalDate.now());
 
         if(dto.taxType().equals(ProductTaxType.EXCLUSIVE)){
             product.setSellingPrice(getSellingPrice(dto.purchasePrice()));
@@ -93,7 +95,8 @@ public class ProductMapper {
                 product.getImage(),
                 product.getSellingPrice(),
                 product.getPurchasePrice(),
-                product.getStock()
+                product.getStock(),
+                product.getDate()
         );
     }
 

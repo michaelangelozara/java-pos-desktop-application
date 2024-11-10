@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.POS.backend.expense_subcategory.ExpenseSubcategory;
 import org.POS.backend.product_subcategory.ProductSubcategory;
+import org.POS.backend.user.User;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -34,6 +35,9 @@ public class Expense {
     @Column(precision = 10, scale = 2)
     private BigDecimal amount;
 
+    @Column(name = "created_at")
+    private LocalDate createdAt;
+
     private String account;
 
     private LocalDate date;
@@ -55,4 +59,8 @@ public class Expense {
     @ManyToOne
     @JoinColumn(name = "subcategory_id")
     private ExpenseSubcategory expenseSubcategory;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }

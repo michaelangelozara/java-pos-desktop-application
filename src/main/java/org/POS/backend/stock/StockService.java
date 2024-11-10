@@ -36,4 +36,8 @@ public class StockService {
     public List<StockResponseDto> getAllValidStockByType(StockType type){
         return this.stockMapper.toStockResponseDtoList(this.stockDAO.getAllValidStockByType(type));
     }
+
+    public List<Stock> getAllValidStockByProductId(int productId){
+        return this.stockDAO.getAllValidStockProductId(productId);
+    }
 }

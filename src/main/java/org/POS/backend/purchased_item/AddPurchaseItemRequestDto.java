@@ -1,8 +1,8 @@
-package org.POS.backend.purchased_product;
+package org.POS.backend.purchased_item;
 
 import java.math.BigDecimal;
 
-public record AddPurchaseProductRequestDto(
+public record AddPurchaseItemRequestDto(
         int productId,
         int quantity,
         BigDecimal purchasePrice,

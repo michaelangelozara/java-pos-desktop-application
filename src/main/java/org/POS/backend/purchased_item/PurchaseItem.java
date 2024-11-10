@@ -1,4 +1,4 @@
-package org.POS.backend.purchased_product;
+package org.POS.backend.purchased_item;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -11,11 +11,11 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "purchase_products")
+@Table(name = "purchase_items")
 @Getter
 @Setter
 @NoArgsConstructor
-public class PurchaseProduct {
+public class PurchaseItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

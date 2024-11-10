@@ -1,6 +1,6 @@
 package org.POS.backend.purchase;
 
-import org.POS.backend.purchased_product.UpdatePurchaseProductRequestDto;
+import org.POS.backend.purchased_item.UpdatePurchaseItemRequestDto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -8,7 +8,7 @@ import java.util.List;
 
 public record UpdatePurchaseRequestDto(
         int purchaseId,
-        List<UpdatePurchaseProductRequestDto> purchaseProducts,
+        List<UpdatePurchaseItemRequestDto> purchaseProducts,
         String purchaseOrderReference,
         String paymentTerm,
         double purchaseTax,

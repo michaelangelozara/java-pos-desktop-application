@@ -8,6 +8,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ExpenseCategoryDAO {
@@ -96,10 +97,11 @@ public class ExpenseCategoryDAO {
     }
 
     public List<ExpenseCategory> getAllValidExpenseCategories(){
+        List<ExpenseCategory> expenseCategories = new ArrayList<>();
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            List<ExpenseCategory> expenseCategories = session.createQuery("SELECT ec FROM ExpenseCategory ec WHERE ec.isDeleted = FALSE ", ExpenseCategory.class)
+            expenseCategories = session.createQuery("SELECT ec FROM ExpenseCategory ec WHERE ec.isDeleted = FALSE ", ExpenseCategory.class)
                     .getResultList();
 
             session.getTransaction().commit();
@@ -107,6 +109,6 @@ public class ExpenseCategoryDAO {
         }catch (Exception e){
             e.printStackTrace();
         }
-        return null;
+        return expenseCategories;
     }
 }

@@ -4,6 +4,10 @@
  */
 package org.POS.frontend.src.raven.application.form.other;
 
+import org.POS.backend.sale.SaleService;
+
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author CJ
@@ -154,15 +158,23 @@ public class Sales_Report extends javax.swing.JPanel {
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null},
-                {null, null, null, null, null, null}
+
             },
             new String [] {
-                "#	", "Sales By	", "Invoice No	", "Client	", "Net Total	", "Invoice Date "
+                "#	", "ID", "Sales By	", "Invoice No	", "Client	", "Net Total	", "Invoice Date "
             }
-        ));
+        ) {
+            Class[] types = new Class [] {
+                java.lang.Object.class, java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
+
+        loadSales(50);
+
         jScrollPane1.setViewportView(jTable1);
 
         jButton3.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
@@ -229,6 +241,26 @@ public class Sales_Report extends javax.swing.JPanel {
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void loadSales(int number){
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        model.setRowCount(0);
+
+        SaleService saleService = new SaleService();
+        var sales = saleService.getAllValidSales(number);
+
+        for(int i = 0; i < sales.size(); i++){
+            model.addRow(new Object[]{
+                    i+1,
+                    sales.get(i).saleId(),
+                    sales.get(i).username(),
+                    sales.get(i).code(),
+                    sales.get(i).client(),
+                    sales.get(i).netTotal(),
+                    sales.get(i).saleDate()
+            });
+        }
+    }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
 

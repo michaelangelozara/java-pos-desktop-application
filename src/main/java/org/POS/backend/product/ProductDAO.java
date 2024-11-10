@@ -1,6 +1,7 @@
 package org.POS.backend.product;
 
 import org.POS.backend.configuration.HibernateUtil;
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
@@ -65,7 +66,7 @@ public class ProductDAO {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
-            Product product = session.createQuery("SELECT p FROM Product p LEFT JOIN FETCH p.brand WHERE p.id = :productId AND p.isDeleted = FALSE", Product.class)
+            Product product = session.createQuery("SELECT p FROM Product p WHERE p.id = :productId AND p.isDeleted = FALSE", Product.class)
                     .setParameter("productId", productId)
                     .getSingleResult();
 
@@ -97,17 +98,24 @@ public class ProductDAO {
     public Set<Product> getAllValidProductsByProductIds(Set<Integer> productIds) {
         Set<Product> productsSet = new HashSet<>();
         try (Session session = sessionFactory.openSession()) {
-            List<Product> products = session.createQuery("SELECT p FROM Product p LEFT JOIN FETCH p.saleItems WHERE p.id IN :productIds AND p.isDeleted = FALSE", Product.class)
+            // First, fetch the products without the associations
+            List<Product> products = session.createQuery(
+                            "SELECT p FROM Product p WHERE p.id IN :productIds AND p.isDeleted = FALSE",
+                            Product.class)
                     .setParameter("productIds", productIds)
                     .getResultList();
 
-            // Add all fetched products to the productsSet
-            productsSet.addAll(products);
+            // Initialize the associations separately
+            for (Product product : products) {
+                Hibernate.initialize(product.getSaleItems());
+                Hibernate.initialize(product.getPurchaseItems());
+                Hibernate.initialize(product.getStocks());
+                productsSet.add(product);
+            }
         } catch (Exception e) {
             e.printStackTrace();
-            // You might want to handle logging or specific exception handling here
+            // Handle exception logging as needed
         }
-        // Return the set of products, which may be empty if no products were found
         return productsSet;
     }
 
@@ -133,6 +141,26 @@ public class ProductDAO {
                             Product.class
                     ).setParameter("productSubcategoryId", productSubcategoryId)
                     .getResultList();
+        } catch (Exception e) {
+            // Consider logging the exception
+            e.printStackTrace();
+        }
+        return products;
+    }
+
+    public List<Product> getAllValidProductsWithStocksByProductSubcategoryId(int productSubcategoryId) {
+        List<Product> products = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()) {
+            products = session.createQuery(
+                            "SELECT p FROM Product p WHERE p.brand.productSubcategory.id = :productSubcategoryId AND p.isDeleted = FALSE",
+                            Product.class
+                    ).setParameter("productSubcategoryId", productSubcategoryId)
+                    .getResultList();
+            for(var product : products){
+                if(!product.getStocks().isEmpty()){
+                    Hibernate.initialize(product.getStocks());
+                }
+            }
         } catch (Exception e) {
             // Consider logging the exception
             e.printStackTrace();

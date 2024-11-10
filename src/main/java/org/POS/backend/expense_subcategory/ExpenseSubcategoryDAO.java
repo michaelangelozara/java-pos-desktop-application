@@ -5,6 +5,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ExpenseSubcategoryDAO {
@@ -89,10 +90,11 @@ public class ExpenseSubcategoryDAO {
     public List<ExpenseSubcategory> getAllValidExpenseSubcategoriesByExpenseCategoryId(
             int expenseCategoryId
     ){
+        List<ExpenseSubcategory> expenseSubcategories = new ArrayList<>();
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
             String hqlQuery = "SELECT es FROM ExpenseSubcategory es WHERE es.expenseCategory.id = :expenseCategoryId AND es.isDeleted = FALSE ";
-            List<ExpenseSubcategory> expenseSubcategories = session.createQuery(hqlQuery, ExpenseSubcategory.class)
+            expenseSubcategories = session.createQuery(hqlQuery, ExpenseSubcategory.class)
                     .setParameter("expenseCategoryId", expenseCategoryId)
                     .getResultList();
 
@@ -101,6 +103,18 @@ public class ExpenseSubcategoryDAO {
         }catch (Exception e){
             e.printStackTrace();
         }
-        return null;
+        return expenseSubcategories;
+    }
+
+    public List<ExpenseSubcategory> getAllValidExpenseSubcategoryByExpenseCategoryId(int expenseCategoryId){
+        List<ExpenseSubcategory> expenseSubcategories = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+            expenseSubcategories = session.createQuery("SELECT es FROM ExpenseSubcategory es WHERE es.expenseCategory.id =: expenseCategoryId AND es.isDeleted = FALSE ", ExpenseSubcategory.class)
+                    .setParameter("expenseCategoryId",expenseCategoryId)
+                    .getResultList();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return expenseSubcategories;
     }
 }

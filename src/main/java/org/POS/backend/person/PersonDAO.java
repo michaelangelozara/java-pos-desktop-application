@@ -93,22 +93,18 @@ public class PersonDAO {
     }
 
     public Person getValidPersonByTypeAndId(int personId, PersonType type){
+        Person person = null;
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
-
-            Person person = session.createQuery("SELECT p FROM Person p WHERE p.id = :personId AND p.isDeleted = FALSE AND p.type = :type ", Person.class)
+            person = session.createQuery("SELECT p FROM Person p LEFT JOIN FETCH p.purchases WHERE p.id = :personId AND p.isDeleted = FALSE AND p.type = :type ", Person.class)
                     .setParameter("personId", personId)
                     .setParameter("type", type)
                     .getSingleResult();
-
             session.getTransaction().commit();
-
-            return person;
         }catch (Exception e){
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
-
-        return null;
+        return person;
     }
 
     public List<Person> getAllValidPeopleByType(PersonType type){

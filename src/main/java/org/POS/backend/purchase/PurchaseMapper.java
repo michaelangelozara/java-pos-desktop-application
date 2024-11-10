@@ -4,14 +4,11 @@ import org.POS.backend.code_generator.CodeGeneratorService;
 import org.POS.backend.global_variable.GlobalVariable;
 import org.POS.backend.person.Person;
 import org.POS.backend.person.PersonMapper;
-import org.POS.backend.product.Product;
-import org.POS.backend.product.ProductMapper;
-import org.POS.backend.purchased_product.PurchaseProduct;
-import org.POS.backend.purchased_product.PurchaseProductMapper;
+import org.POS.backend.purchased_item.PurchaseItem;
+import org.POS.backend.purchased_item.PurchaseItemMapper;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,15 +18,15 @@ public class PurchaseMapper {
 
     private PersonMapper personMapper;
 
-    private PurchaseProductMapper purchaseProductMapper;
+    private PurchaseItemMapper purchaseItemMapper;
 
     public PurchaseMapper() {
         this.codeGeneratorService = new CodeGeneratorService();
         this.personMapper = new PersonMapper();
-        this.purchaseProductMapper = new PurchaseProductMapper();
+        this.purchaseItemMapper = new PurchaseItemMapper();
     }
 
-    public Purchase toPurchase(AddPurchaseRequestDto dto, Person supplier) {
+    public Purchase toPurchase(AddPurchaseRequestDto dto) {
         Purchase purchase = new Purchase();
         purchase.setPoReference(dto.purchaseOrderReference());
 
@@ -44,7 +41,6 @@ public class PurchaseMapper {
         purchase.setPurchaseDate(dto.purchaseDate());
         purchase.setPurchaseOrderDate(dto.purchaseOrderDate());
         purchase.setStatus(dto.status());
-        purchase.setPerson(supplier);
         purchase.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.PURCHASE_PREFIX));
 
         BigDecimal netTotal = (dto.subtotalTax().add(dto.netSubtotal()).add(dto.transportCost()).add(dto.totalTax())).subtract(dto.discount()).setScale(2, RoundingMode.HALF_UP);
@@ -118,7 +114,7 @@ public class PurchaseMapper {
     }
 
     public PurchaseResponseDto toPurchaseResponseDto(Purchase purchase) {
-        List<PurchaseProduct> productList = new ArrayList<>(purchase.getPurchaseProducts());
+        List<PurchaseItem> productList = new ArrayList<>(purchase.getPurchaseItems());
         return new PurchaseResponseDto(
                 purchase.getId(),
                 purchase.getCode(),
@@ -131,7 +127,7 @@ public class PurchaseMapper {
                 purchase.getTotalPaid(),
                 purchase.getBalance(),
                 purchase.getStatus(),
-                this.purchaseProductMapper.toPurchaseResponseDtoList(productList),
+                this.purchaseItemMapper.toPurchaseItemResponseDtoList(productList),
                 purchase.getSubtotalTax(),
                 purchase.getNetTotal(),
                 purchase.getPoReference(),

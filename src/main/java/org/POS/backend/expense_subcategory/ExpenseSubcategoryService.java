@@ -79,4 +79,8 @@ public class ExpenseSubcategoryService {
                                 this.expenseSubcategoryDAO.getAllValidExpenseSubcategoriesByExpenseCategoryId(expenseCategoryId)
                         );
     }
+
+    public List<ExpenseSubcategoryResponseDto> getAllValidExpenseSubcategoryByExpenseCategoryId(int expenseCategoryId){
+        return this.expenseSubcategoryMapper.expenseSubcategoryResponseDtoList(this.expenseSubcategoryDAO.getAllValidExpenseSubcategoryByExpenseCategoryId(expenseCategoryId));
+    }
 }

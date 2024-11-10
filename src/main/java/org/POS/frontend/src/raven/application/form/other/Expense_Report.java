@@ -4,6 +4,16 @@
  */
 package org.POS.frontend.src.raven.application.form.other;
 
+import org.POS.backend.expense.ExpenseService;
+import org.POS.backend.expense_category.ExpenseCategoryService;
+import org.POS.backend.expense_subcategory.ExpenseSubcategoryService;
+
+import javax.swing.table.DefaultTableModel;
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Vector;
+
 /**
  *
  * @author CJ
@@ -105,10 +115,10 @@ public class Expense_Report extends javax.swing.JPanel {
         jLabel11.setText("Expense Report");
 
         jLabel12.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
-        jLabel12.setText("October 23, 2024");
+        jLabel12.setText(String.valueOf(LocalDate.now()));
 
         jLabel13.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
-        jLabel13.setText("Rent");
+        jLabel13.setText("");
 
         jLabel14.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel14.setText("Category:");
@@ -117,7 +127,7 @@ public class Expense_Report extends javax.swing.JPanel {
         jLabel15.setText("Sub Category:");
 
         jLabel16.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
-        jLabel16.setText("Office Rent");
+        jLabel16.setText("");
 
         jLabel17.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel17.setText("Date:");
@@ -238,6 +248,7 @@ public class Expense_Report extends javax.swing.JPanel {
                 return canEdit [columnIndex];
             }
         });
+
         jScrollPane1.setViewportView(jTable1);
         if (jTable1.getColumnModel().getColumnCount() > 0) {
             jTable1.getColumnModel().getColumn(0).setResizable(false);
@@ -250,7 +261,17 @@ public class Expense_Report extends javax.swing.JPanel {
         jButton3.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
         jButton3.setText("From - To");
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        Vector<String> categoryNames = new Vector<>();
+        categoryNames.add("Select Category");
+        Map<Integer, Integer> categoryMap = new HashMap<>();
+        ExpenseCategoryService expenseCategoryService = new ExpenseCategoryService();
+        var expenseCategories = expenseCategoryService.getAllValidExpenseCategories();
+        for(int i = 0; i < expenseCategories.size(); i++){
+            categoryNames.add(expenseCategories.get(i).name());
+            categoryMap.put(i+1, expenseCategories.get(i).id());
+        }
+
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(categoryNames));
 
         jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel4.setText("Category Name *");
@@ -258,7 +279,32 @@ public class Expense_Report extends javax.swing.JPanel {
         jLabel5.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel5.setText("Sub Category Name *");
 
-        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        ExpenseSubcategoryService expenseSubcategoryService = new ExpenseSubcategoryService();
+
+        Vector<String> subcategoryNames = new Vector<>();
+        subcategoryNames.add("Select Subcategory");
+        Map<Integer, Integer> subcategoryMap = new HashMap<>();
+        jComboBox1.addActionListener(e -> {
+            jLabel13.setText(jComboBox1.getSelectedItem().toString());
+            int categoryIndex = jComboBox1.getSelectedIndex();
+            int categoryId = categoryMap.get(categoryIndex);
+
+            var subcategories = expenseSubcategoryService.getAllValidExpenseSubcategoriesByExpenseCategoryId(categoryId);
+            for(int i = 0; i < subcategories.size(); i++){
+                subcategoryNames.add(subcategories.get(i).name());
+                subcategoryMap.put(i+1, subcategories.get(i).id());
+            }
+        });
+
+        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(subcategoryNames));
+
+        ExpenseService expenseService = new ExpenseService();
+        jComboBox2.addActionListener(e -> {
+            jLabel16.setText(jComboBox2.getSelectedItem().toString());
+            int subcategoryIndex = jComboBox2.getSelectedIndex();
+            int subcategoryId = subcategoryMap.get(subcategoryIndex);
+            loadExpenses(subcategoryId);
+        });
 
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
@@ -284,14 +330,12 @@ public class Expense_Report extends javax.swing.JPanel {
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jComboBox2)
-                        .addComponent(jLabel5))
-                    .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jComboBox1)
-                        .addComponent(jLabel4)))
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jComboBox1)
+                    .addComponent(jLabel4)
+                    .addComponent(jLabel5)
+                    .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 414, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
@@ -335,6 +379,28 @@ public class Expense_Report extends javax.swing.JPanel {
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void loadExpenses(int subcategoryId){
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        model.setRowCount(0);
+
+        ExpenseService expenseService = new ExpenseService();
+        var expenses = expenseService.getAllValidExpenseByExpenseSubcategoryId(50, subcategoryId);
+
+        for(int i = 0; i < expenses.size(); i++){
+            model.addRow(new Object[]{
+                    i+1,
+                    expenses.get(i).date(),
+                    expenses.get(i).expenseReason(),
+                    expenses.get(i).category(),
+                    expenses.get(i).subcategory(),
+                    expenses.get(i).amount(),
+                    expenses.get(i).account(),
+                    expenses.get(i).status().name(),
+                    expenses.get(i).createdBy()
+            });
+        }
+    }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
 

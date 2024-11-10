@@ -13,7 +13,7 @@ import org.POS.backend.purchase.AddPurchaseRequestDto;
 import org.POS.backend.purchase.PurchaseService;
 import org.POS.backend.purchase.PurchaseStatus;
 import org.POS.backend.purchase.UpdatePurchaseRequestDto;
-import org.POS.backend.purchased_product.*;
+import org.POS.backend.purchased_item.*;
 import org.POS.frontend.src.raven.application.Application;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
@@ -35,7 +35,6 @@ import java.math.RoundingMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
@@ -329,10 +328,10 @@ public class Purchases_List extends javax.swing.JPanel {
                         int row = productsTable.rowAtPoint(e.getPoint());
 
                         if (column == 10) { // "Action" column index for "Remove" button
-                            PurchaseProductService purchaseProductService = new PurchaseProductService();
+                            PurchaseItemService purchaseItemService = new PurchaseItemService();
                             Integer purchaseProductToBeRemoved = (Integer) productsTable.getValueAt(row, 1);
                             if(purchaseProductToBeRemoved != null){
-                                purchaseProductService.deletePurchaseProductByPurchaseProductId(purchaseProductToBeRemoved);
+                                purchaseItemService.deletePurchaseProductByPurchaseProductId(purchaseProductToBeRemoved);
 
                             }
                             tableModel.removeRow(row);
@@ -665,10 +664,10 @@ public class Purchases_List extends javax.swing.JPanel {
                 if (result == JOptionPane.OK_OPTION) {
                     List<PurchaseListedProduct> insertedRows = getAllRows(tableModel);
 
-                    List<UpdatePurchaseProductRequestDto> purchaseProductRequestDtoSet = new ArrayList<>();
+                    List<UpdatePurchaseItemRequestDto> purchaseProductRequestDtoSet = new ArrayList<>();
 
                     for (int i = 0; i < insertedRows.size(); i++) {
-                        UpdatePurchaseProductRequestDto dto = new UpdatePurchaseProductRequestDto(
+                        UpdatePurchaseItemRequestDto dto = new UpdatePurchaseItemRequestDto(
                                 insertedRows.get(i).getId(),
                                 insertedRows.get(i).getQuantity(),
                                 insertedRows.get(i).getPurchasePrice(),
@@ -1620,10 +1619,10 @@ public class Purchases_List extends javax.swing.JPanel {
 
         if (result == JOptionPane.OK_OPTION) {
             List<PurchaseListedProduct> insertedRows = getAllRows(tableModel);
-            Set<AddPurchaseProductRequestDto> purchaseProductRequestDtoSet = new HashSet<>();
+            Set<AddPurchaseItemRequestDto> purchaseItemRequestDtoSet = new HashSet<>();
 
             for (int i = 0; i < insertedRows.size(); i++) {
-                AddPurchaseProductRequestDto addPurchaseProductRequestDto = new AddPurchaseProductRequestDto(
+                AddPurchaseItemRequestDto addPurchaseItemRequestDto = new AddPurchaseItemRequestDto(
                         insertedRows.get(i).getId(),
                         insertedRows.get(i).getQuantity(),
                         insertedRows.get(i).getPurchasePrice(),
@@ -1631,7 +1630,7 @@ public class Purchases_List extends javax.swing.JPanel {
                         insertedRows.get(i).getTaxValue(),
                         insertedRows.get(i).getSubtotal()
                 );
-                purchaseProductRequestDtoSet.add(addPurchaseProductRequestDto);
+                purchaseItemRequestDtoSet.add(addPurchaseItemRequestDto);
             }
 
             // Handle form submission logic here
@@ -1689,7 +1688,6 @@ public class Purchases_List extends javax.swing.JPanel {
             assert status != null;
             AddPurchaseRequestDto dto = new AddPurchaseRequestDto(
                     supplierId,
-                    purchaseProductRequestDtoSet,
                     poReference,
                     paymentTerms,
                     purchaseTax,
@@ -1708,9 +1706,8 @@ public class Purchases_List extends javax.swing.JPanel {
                     totalPaid
             );
 
-            purchaseService.add(dto);
-
-            // Process the collected data...
+            purchaseService.add(dto, purchaseItemRequestDtoSet);
+            JOptionPane.showMessageDialog(null, "Purchase added");
         }
     }
 

@@ -219,18 +219,18 @@ public class ProductList extends javax.swing.JPanel {
                 purchasePriceField.setText(String.valueOf(product.purchasePrice())); // Prepopulate with existing value
                 panel.add(purchasePriceField, gbc);
 
-                // Regular Price *
-                gbc.gridx = 2;
-                JLabel regularPriceLabel = new JLabel("Regular Price *");
-                regularPriceLabel.setFont(boldFont);
-                panel.add(regularPriceLabel, gbc);
+//                // Regular Price *
+//                gbc.gridx = 2;
+//                JLabel regularPriceLabel = new JLabel("Regular Price *");
+//                regularPriceLabel.setFont(boldFont);
+//                panel.add(regularPriceLabel, gbc);
 
-                gbc.gridx = 3;
-                JTextField regularPriceField = new JTextField(15);
-                regularPriceField.setFont(regularFont);
-                regularPriceField.setEnabled(false);
-                regularPriceField.setText(""); // Prepopulate with existing value
-                panel.add(regularPriceField, gbc);
+//                gbc.gridx = 3;
+//                JTextField regularPriceField = new JTextField(15);
+//                regularPriceField.setFont(regularFont);
+//                regularPriceField.setEnabled(false);
+//                regularPriceField.setText(""); // Prepopulate with existing value
+//                panel.add(regularPriceField, gbc);
 
                 // Discount
                 gbc.gridx = 0;
@@ -337,7 +337,6 @@ public class ProductList extends javax.swing.JPanel {
                     String updatedProductTax = (String) productTaxCombo.getSelectedItem();
                     String updatedTaxType = (String) taxTypeCombo.getSelectedItem();
                     String updatedPurchasePrice = purchasePriceField.getText();
-                    String updatedRegularPrice = regularPriceField.getText();
                     String updatedDiscount = discountField.getText();
                     String updatedNote = noteArea.getText();
                     String updatedAlertQuantity = alertQuantityField.getText();
@@ -358,10 +357,7 @@ public class ProductList extends javax.swing.JPanel {
                     } else if (!StringChecker.isNumericOnly(updatedPurchasePrice)) {
                         JOptionPane.showMessageDialog(null, "Any character in the purchase price is not allowed",
                                 "Error", JOptionPane.WARNING_MESSAGE);
-                    } else if (!StringChecker.isNumericOnly(updatedRegularPrice)) {
-                        JOptionPane.showMessageDialog(null, "Any character in the regular price is not allowed",
-                                "Error", JOptionPane.WARNING_MESSAGE);
-                    } else {
+                    }else {
                         assert updatedUnit != null;
                         assert updatedTaxType != null;
                         assert updatedStatus != null;
@@ -373,7 +369,6 @@ public class ProductList extends javax.swing.JPanel {
                                 updatedUnit.equals("Per Piece") ? ProductUnit.PIECE : ProductUnit.DOZEN,
                                 productTaxTypeMap.get(updatedProductTax),
                                 updatedTaxType.equals("Exclusive") ? ProductTaxType.EXCLUSIVE : ProductTaxType.INCLUSIVE,
-                                BigDecimal.valueOf(Double.parseDouble(updatedRegularPrice)),
                                 Integer.parseInt(updatedDiscount),
                                 updatedNote,
                                 Integer.parseInt(updatedAlertQuantity),

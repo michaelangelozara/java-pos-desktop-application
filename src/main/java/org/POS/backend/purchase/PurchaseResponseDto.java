@@ -1,7 +1,7 @@
 package org.POS.backend.purchase;
 
 import org.POS.backend.person.PersonResponseDto;
-import org.POS.backend.purchased_product.PurchaseProductResponseDto;
+import org.POS.backend.purchased_item.PurchaseItemResponseDto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,7 +19,7 @@ public record PurchaseResponseDto(
         BigDecimal totalPaid,
         BigDecimal totalDue,
         PurchaseStatus status,
-        List<PurchaseProductResponseDto> purchaseProducts,
+        List<PurchaseItemResponseDto> purchaseProducts,
         BigDecimal subtotalTax,
         BigDecimal netSubtotal,
         String purchaseOrderReference,

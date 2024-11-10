@@ -24,7 +24,7 @@
         <mapping class="org.POS.backend.expense_category.ExpenseCategory"/>
         <mapping class="org.POS.backend.expense_subcategory.ExpenseSubcategory"/>
         <mapping class="org.POS.backend.purchase.Purchase"/>
-        <mapping class="org.POS.backend.purchased_product.PurchaseProduct"/>
+        <mapping class="org.POS.backend.purchased_item.PurchaseItem"/>
         <mapping class="org.POS.backend.return_product.ReturnProduct"/>
         <mapping class="org.POS.backend.stock.Stock"/>
         <mapping class="org.POS.backend.sale.Sale"/>

@@ -5,15 +5,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.POS.backend.person.Person;
-import org.POS.backend.purchased_product.PurchaseProduct;
+import org.POS.backend.purchased_item.PurchaseItem;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table@Getter
+@Table
+@Getter
 @Setter
 
 @NoArgsConstructor
@@ -91,11 +92,11 @@ public class Purchase {
     @JoinColumn(name = "person_id")
     private Person person;
 
-    @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<PurchaseProduct> purchaseProducts = new HashSet<>();
+    @OneToMany(mappedBy = "purchase", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    private List<PurchaseItem> purchaseItems = new ArrayList<>();
 
-    public void addPurchaseProduct(PurchaseProduct purchaseProduct){
-        purchaseProducts.add(purchaseProduct);
-        purchaseProduct.setPurchase(this);
+    public void addPurchaseItem(PurchaseItem purchaseItem) {
+        purchaseItems.add(purchaseItem);
+        purchaseItem.setPurchase(this);
     }
 }

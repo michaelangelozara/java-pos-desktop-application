@@ -46,27 +46,15 @@ public class UserMapper {
     }
 
     public UserResponseDto toUserResponseDto(User user){
-//        return new UserResponseDto(
-//                user.getName(),
-//                user.getDesignation(),
-//                user.getEmployeeId(),
-//                user.getContactNumber(),
-//                user.getSalary(),
-//                user.getCommission(),
-//                user.getBirthDate(),
-//                user.getGender(),
-//                user.getBloodGroup(),
-//                user.getReligion(),
-//                user.getAppointmentDate(),
-//                user.getJoinDate(),
-//                user.getAddress(),
-//                user.getStatus(),
-//                user.getProfilePicture(),
-//                user.getUsername(),
-//                user.getRole()
-//        );
-
-        return null;
+        return new UserResponseDto(
+                user.getName(),
+                user.getEmployeeId(),
+                user.getContactNumber(),
+                user.getStatus(),
+                user.getUsername(),
+                user.getRole(),
+                user.getEmail()
+        );
     }
 
     public List<UserResponseDto> userResponseDtoList(List<User> users){

@@ -6,6 +6,8 @@ import com.formdev.flatlaf.icons.FlatAbstractIcon;
 import com.formdev.flatlaf.util.ColorFunctions;
 import com.formdev.flatlaf.util.LoggingFacade;
 import com.formdev.flatlaf.util.UIScale;
+import org.POS.frontend.src.raven.menu.Menu;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -20,7 +22,6 @@ import javax.swing.JToolBar;
 import javax.swing.LookAndFeel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import org.POS.frontend.src.raven.menu.Menu;
 
 
 /**

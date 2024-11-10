@@ -15,6 +15,10 @@ public class LoginForm extends javax.swing.JPanel {
     public LoginForm() {
         initComponents();
         init();
+        if(!CurrentUser.username.isEmpty() || CurrentUser.id != 0 || !CurrentUser.employeeId.isEmpty()){
+            this.txtUser.setText("");
+            this.txtPass.setText("");
+        }
     }
 
     private void init() {
@@ -105,13 +109,12 @@ public class LoginForm extends javax.swing.JPanel {
         String password = this.txtPass.getText();
         LoginRequestDto dto = new LoginRequestDto(username, password);
         UserService userService = new UserService();
-//        if(userService.authenticate(dto)){
-//            JOptionPane.showMessageDialog(null, GlobalVariable.USER_LOGGED_IN, "Login Successful", JOptionPane.PLAIN_MESSAGE);
-//            Application.login();
-//        }else{
-//            JOptionPane.showMessageDialog(null, GlobalVariable.USER_INVALID_CREDENTIAL, "Login Error", JOptionPane.WARNING_MESSAGE);
-//        }
-        Application.login();
+        if(userService.authenticate(dto)){
+            JOptionPane.showMessageDialog(null, GlobalVariable.USER_LOGGED_IN, "Login Successful", JOptionPane.PLAIN_MESSAGE);
+            Application.login();
+        }else{
+            JOptionPane.showMessageDialog(null, GlobalVariable.USER_INVALID_CREDENTIAL, "Login Error", JOptionPane.WARNING_MESSAGE);
+        }
     }//GEN-LAST:event_cmdLoginActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

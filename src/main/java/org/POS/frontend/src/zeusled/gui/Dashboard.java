@@ -20,17 +20,13 @@ public class Dashboard extends JPanel {
 
     private void init() {
         ExpenseService expenseService = new ExpenseService();
-        var expenses = expenseService.getAllValidExpenses();
-        BigDecimal totalExpense = BigDecimal.ZERO;
-        for(var expense : expenses){
-            totalExpense = totalExpense.add(expense.amount());
-        }
+        BigDecimal totalExpense = expenseService.getTheSumOfExpenses();
 
         ProductService productService = new ProductService();
         BigDecimal totalProductValue = BigDecimal.ZERO;
         var products = productService.getAllValidProducts();
         for(var product : products){
-            totalProductValue = totalProductValue.add(product.sellingPrice());
+            totalProductValue = totalProductValue.add((BigDecimal.valueOf(product.stock()).multiply(product.sellingPrice())));
         }
 
         var productsBelowAlertQuantity = productService.getAllValidProductsBelowAlertQuantity();

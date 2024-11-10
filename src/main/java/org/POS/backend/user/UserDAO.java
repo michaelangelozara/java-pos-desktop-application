@@ -2,10 +2,12 @@ package org.POS.backend.user;
 
 import org.POS.backend.configuration.HibernateUtil;
 import org.POS.backend.exception.ResourceNotFoundException;
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 public class UserDAO {
@@ -60,44 +62,58 @@ public class UserDAO {
 
 
 
-    public List<User> getAllValidUsers() throws ResourceNotFoundException {
+    public List<User> getAllValidUsers() {
+        List<User> users = new ArrayList<>();
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            List<User> users = session.createQuery("SELECT u FROM User u WHERE u.isDeleted = FALSE", User.class)
+            users = session.createQuery("SELECT u FROM User u WHERE u.isDeleted = FALSE", User.class)
                             .getResultList();
 
-            session.getTransaction().commit();
-            return users;
+            session.getTransaction().commit();;
         } catch (Exception e){
             System.out.println("Error deleting user: " + e.getMessage());
         }
 
-        return null;
+        return users;
     }
 
     public User getUserById(int userId){
+        User user = null;
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            User user = session.createQuery("SELECT u FROM User u LEFT JOIN FETCH u.sales WHERE u.id = :userId AND u.isDeleted = FALSE", User.class)
+            user = session.createQuery("SELECT u FROM User u WHERE u.id = :userId AND u.isDeleted = FALSE", User.class)
                     .setParameter("userId", userId)
                     .getSingleResult();
+            if(!user.getSales().isEmpty()){
+                Hibernate.initialize(user.getSales());
+            }
+
+            if(!user.getSales().isEmpty()){
+                Hibernate.initialize(user.getSales());
+            }
+
+            if(!user.getStocks().isEmpty()){
+                Hibernate.initialize(user.getStocks());
+            }
+
+            if(!user.getExpenses().isEmpty()){
+                Hibernate.initialize(user.getExpenses());
+            }
 
             session.getTransaction().commit();
-            return user;
         } catch (Exception e){
-            System.out.println("Error deleting user: " + e.getMessage());
+            e.printStackTrace();
         }
-        return null;
+        return user;
     }
 
-    public User authenticateUserByUsernameAndPassword(String username, String password){
+    public User authenticateUserByUsernameAndPassword(String username){
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
-            User loggedInUser = session.createQuery("SELECT u FROM User u WHERE u.username = :username AND u.password = :password AND u.isDeleted = FALSE", User.class)
+            User loggedInUser = session.createQuery("SELECT u FROM User u WHERE u.username = :username AND u.isDeleted = FALSE", User.class)
                             .setParameter("username", username)
-                                    .setParameter("password", password)
                                             .getSingleResult();
             session.getTransaction().commit();
             return loggedInUser;

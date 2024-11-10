@@ -7,6 +7,7 @@ import org.POS.backend.product.Product;
 import org.POS.backend.product_subcategory.ProductSubcategory;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -35,6 +36,6 @@ public class Brand {
     @JoinColumn(name = "subcategory_id")
     private ProductSubcategory productSubcategory;
 
-    @OneToMany(mappedBy = "brand")
-    private List<Product> products;
+    @OneToMany(mappedBy = "brand", fetch = FetchType.LAZY)
+    private List<Product> products = new ArrayList<>();
 }

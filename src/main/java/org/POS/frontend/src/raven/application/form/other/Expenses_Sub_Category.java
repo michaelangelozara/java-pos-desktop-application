@@ -1,19 +1,20 @@
 package org.POS.frontend.src.raven.application.form.other;
 
+import org.POS.backend.expense_category.ExpenseCategoryService;
+import org.POS.backend.expense_subcategory.AddExpenseSubcategoryRequestDto;
+import org.POS.backend.expense_subcategory.ExpenseSubcategoryService;
+import org.POS.backend.expense_subcategory.ExpenseSubcategoryStatus;
+import org.POS.backend.expense_subcategory.UpdateExpenseSubcategoryRequestDto;
+import org.POS.frontend.src.raven.cell.TableActionCellEditor;
+import org.POS.frontend.src.raven.cell.TableActionCellRender;
+import org.POS.frontend.src.raven.cell.TableActionEvent;
+
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
-
-import org.POS.backend.expense_category.ExpenseCategoryService;
-import org.POS.backend.expense_subcategory.*;
-import org.POS.backend.product_category.ProductCategoryService;
-import org.POS.backend.product_subcategory.*;
-import org.POS.frontend.src.raven.cell.TableActionCellRender;
-import javax.swing.table.DefaultTableModel;
-import org.POS.frontend.src.raven.cell.TableActionCellEditor;
-import org.POS.frontend.src.raven.cell.TableActionEvent;
 
 public class Expenses_Sub_Category extends javax.swing.JPanel {
 
@@ -476,9 +477,9 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
 
         JComboBox<String> categoryComboBox = new JComboBox<>(categories);
 
-        JLabel subCategoryCodeLabel = new JLabel("SubCategory Code:");
-        subCategoryCodeLabel.setFont(boldFont);
-        JTextField subCategoryCodeField = new JTextField(15);
+//        JLabel subCategoryCodeLabel = new JLabel("SubCategory Code:");
+//        subCategoryCodeLabel.setFont(boldFont);
+//        JTextField subCategoryCodeField = new JTextField(15);
 
         JLabel nameLabel = new JLabel("Subcategory Name:");
         nameLabel.setFont(boldFont);
@@ -501,11 +502,11 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
         gbc.gridx = 1;
         panel.add(categoryComboBox, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        panel.add(subCategoryCodeLabel, gbc);
-        gbc.gridx = 1;
-        panel.add(subCategoryCodeField, gbc);
+//        gbc.gridx = 0;
+//        gbc.gridy = 1;
+//        panel.add(subCategoryCodeLabel, gbc);
+//        gbc.gridx = 1;
+//        panel.add(subCategoryCodeField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 2;
@@ -532,13 +533,12 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
 
         if (result == JOptionPane.OK_OPTION) {
             String category = (String) categoryComboBox.getSelectedItem();
-            String subCategoryCode = subCategoryCodeField.getText().trim();
             String name = nameField.getText().trim();
             String status = (String) statusComboBox.getSelectedItem();
             String note = noteArea.getText().trim();
             int selectedIndex = categoryComboBox.getSelectedIndex();
 
-            if (name.isEmpty() || subCategoryCode.isEmpty() || category.equals("Select a category")) {
+            if (name.isEmpty() || category.equals("Select a category")) {
                 UIManager.put("OptionPane.messageFont", new Font("Arial", Font.PLAIN, 14));
                 UIManager.put("OptionPane.buttonFont", new Font("Arial", Font.PLAIN, 14));
                 JOptionPane.showMessageDialog(null,
@@ -562,7 +562,7 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
                 expenseSubcategoryService.add(dto);
 
                 JOptionPane.showMessageDialog(null,
-                        "Sub Category Created Successfully!\nCategory: " + category + "\nSubCategory Code: " + subCategoryCode
+                        "Sub Category Created Successfully!\nCategory: " + category
                         + "\nName: " + name + "\nStatus: " + status + "\nNote: " + note,
                         "Success", JOptionPane.INFORMATION_MESSAGE);
 

@@ -21,7 +21,7 @@ public class StockMapper {
 
     public Stock toStock(AddStockRequestDto dto, Person person){
         Stock stock = new Stock();
-        stock.setPerson(person);
+//        stock.setPerson(person);
         stock.setPrice(dto.price());
         stock.setStockInOrOut(dto.stockInOrOut());
         stock.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.STOCK_IN_PREFIX));
@@ -31,13 +31,14 @@ public class StockMapper {
     }
 
     public StockResponseDto toStockResponseDto(Stock stock){
-        return new StockResponseDto(
-                stock.getDate(),
-                stock.getStockInOrOut(),
-                stock.getPrice(),
-                stock.getCode(),
-                this.personMapper.personResponseDto(stock.getPerson())
-        );
+//        return new StockResponseDto(
+//                stock.getDate(),
+//                stock.getStockInOrOut(),
+//                stock.getPrice(),
+//                stock.getCode(),
+//                this.personMapper.personResponseDto(stock.getPerson())
+//        );
+        return null;
     }
 
     public List<StockResponseDto> toStockResponseDtoList(List<Stock> stocks){

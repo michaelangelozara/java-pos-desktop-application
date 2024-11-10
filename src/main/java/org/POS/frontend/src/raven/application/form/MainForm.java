@@ -16,7 +16,6 @@ import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import org.POS.frontend.src.raven.application.Application;
-import org.POS.frontend.src.javaswingdev.form.Form_Dashboard;
 import org.POS.frontend.src.raven.application.form.other.POS;
 import org.POS.frontend.src.raven.application.form.other.Products_Category;
 import org.POS.frontend.src.raven.application.form.other.Expenses_Category;
@@ -26,6 +25,7 @@ import org.POS.frontend.src.raven.application.form.other.ProductList;
 import org.POS.frontend.src.raven.application.form.other.Expenses_List;
 import org.POS.frontend.src.raven.application.form.other.Purchases_List;
 import org.POS.frontend.src.raven.application.form.other.BrandList;
+import org.POS.frontend.src.raven.application.form.other.Cash_Transaction;
 import org.POS.frontend.src.raven.application.form.other.Quotation_List;
 import org.POS.frontend.src.raven.application.form.other.Return_List;
 import org.POS.frontend.src.raven.application.form.other.Invoice_List;
@@ -39,9 +39,11 @@ import org.POS.frontend.src.raven.application.form.other.Expense_Report;
 import org.POS.frontend.src.raven.application.form.other.CollectionByUser_Report;
 import org.POS.frontend.src.raven.application.form.other.Inventory_Report;
 import org.POS.frontend.src.raven.application.form.other.CurrentValueandStock_Report;
+import org.POS.frontend.src.raven.application.form.other.Order_List;
 import org.POS.frontend.src.raven.application.form.other.Suppliers_List;
 import org.POS.frontend.src.raven.menu.Menu;
 import org.POS.frontend.src.raven.menu.MenuAction;
+import org.POS.frontend.src.zeusled.gui.Dashboard;
 
 /**
  *
@@ -92,7 +94,7 @@ public class MainForm extends JLayeredPane {
         menu.addMenuEvent((int index, int subIndex, MenuAction action) -> {
             switch (index) {
                 case 0:
-                    Application.showForm(new Form_Dashboard());
+                    Application.showForm(new Dashboard());
                     break;
                 case 1:
                     if (subIndex == 1) {
@@ -124,6 +126,11 @@ public class MainForm extends JLayeredPane {
                     } else if (subIndex == 2) {
                         Application.showForm(new Invoice_List());
                     } else if (subIndex == 3) {
+                        Application.showForm(new Order_List());     
+                    } else if (subIndex == 4) {
+                        Application.showForm(new Cash_Transaction());
+                        
+                    } else if (subIndex == 5) {
                         Application.showForm(new POS());
                     } else {
                         action.cancel();

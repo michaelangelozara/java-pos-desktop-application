@@ -1,8 +1,11 @@
 package org.POS.backend.expense;
 
 import org.POS.backend.expense_subcategory.ExpenseSubcategoryDAO;
+import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.global_variable.GlobalVariable;
+import org.POS.backend.user.UserDAO;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public class ExpenseService {
@@ -11,6 +14,8 @@ public class ExpenseService {
 
     private ExpenseMapper expenseMapper;
 
+    private UserDAO userDAO;
+
 
     private ExpenseSubcategoryDAO expenseSubcategoryDAO;
 
@@ -18,12 +23,16 @@ public class ExpenseService {
         this.expenseDAO = new ExpenseDAO();
         this.expenseMapper = new ExpenseMapper();
         this.expenseSubcategoryDAO = new ExpenseSubcategoryDAO();
+        this.userDAO = new UserDAO();
     }
 
     public String add(AddExpenseRequestDto dto){
         var subcategory = this.expenseSubcategoryDAO.getValidExpenseSubcategoryById(dto.subcategoryId());
-        if(subcategory != null){
+        var user = this.userDAO.getUserById(CurrentUser.id);
+
+        if(subcategory != null && user != null){
             var expense = this.expenseMapper.toExpense(dto, subcategory);
+            user.addExpense(expense);
             this.expenseDAO.add(expense);
             return GlobalVariable.EXPENSE_ADDED;
         }
@@ -54,7 +63,15 @@ public class ExpenseService {
         return this.expenseMapper.expenseResponseDto(this.expenseDAO.getValidExpenseById(expenseId));
     }
 
-    public List<ExpenseResponseDto> getAllValidExpenses(){
-        return this.expenseMapper.expenseResponseDtoList(this.expenseDAO.getAllValidExpenses());
+    public List<ExpenseResponseDto> getAllValidExpenses(int number){
+        return this.expenseMapper.expenseResponseDtoList(this.expenseDAO.getAllValidExpenses(number));
+    }
+
+    public List<ExpenseResponseDto> getAllValidExpenseByExpenseSubcategoryId(int number, int expenseSubcategoryId){
+        return this.expenseMapper.expenseResponseDtoList(this.expenseDAO.getAllValidExpenseByExpenseSubcategoryId(number, expenseSubcategoryId));
+    }
+
+    public BigDecimal getTheSumOfExpenses(){
+        return this.expenseDAO.getTheSumOfExpenses();
     }
 }

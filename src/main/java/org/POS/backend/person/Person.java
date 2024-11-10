@@ -54,11 +54,8 @@ public class Person {
     @Column(name = "deleted_at")
     private LocalDate deletedAt;
 
-    @OneToMany(mappedBy = "person")
+    @OneToMany(mappedBy = "person", cascade = CascadeType.MERGE)
     private List<Purchase> purchases = new ArrayList<>();
-
-    @OneToMany(mappedBy = "person")
-    private List<Stock> stocks = new ArrayList<>();
 
     @OneToMany(mappedBy = "person")
     private List<Sale> sales = new ArrayList<>();
@@ -66,5 +63,10 @@ public class Person {
     public void addSale(Sale sale){
         sales.add(sale);
         sale.setPerson(this);
+    }
+
+    public void addPurchase(Purchase purchase){
+        purchases.add(purchase);
+        purchase.setPerson(this);
     }
 }

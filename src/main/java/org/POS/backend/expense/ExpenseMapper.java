@@ -14,12 +14,12 @@ public class ExpenseMapper {
 
     private ExpenseSubcategoryMapper expenseSubcategoryMapper;
 
-    public ExpenseMapper(){
+    public ExpenseMapper() {
         this.expenseSubcategoryMapper = new ExpenseSubcategoryMapper();
         this.codeGeneratorService = new CodeGeneratorService();
     }
 
-    public Expense toExpense(AddExpenseRequestDto dto, ExpenseSubcategory expenseSubcategory){
+    public Expense toExpense(AddExpenseRequestDto dto, ExpenseSubcategory expenseSubcategory) {
         Expense expense = new Expense();
         expense.setExpenseSubcategory(expenseSubcategory);
         expense.setExpenseReason(dto.expenseReason());
@@ -31,11 +31,12 @@ public class ExpenseMapper {
         expense.setDate(LocalDate.now());
         expense.setStatus(dto.status());
         expense.setImage(dto.image());
+        expense.setCreatedAt(LocalDate.now());
         expense.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.EXPENSE_CATEGORY_PREFIX));
         return expense;
     }
 
-    public Expense toUpdatedExpense(Expense expense, UpdateExpenseRequestDto dto, ExpenseSubcategory expenseSubcategory){
+    public Expense toUpdatedExpense(Expense expense, UpdateExpenseRequestDto dto, ExpenseSubcategory expenseSubcategory) {
         expense.setExpenseSubcategory(expenseSubcategory);
         expense.setExpenseReason(dto.expenseReason());
         expense.setAmount(dto.amount());
@@ -44,19 +45,21 @@ public class ExpenseMapper {
         return expense;
     }
 
-    public ExpenseResponseDto expenseResponseDto(Expense expense){
+    public ExpenseResponseDto expenseResponseDto(Expense expense) {
         return new ExpenseResponseDto(
                 expense.getId(),
-                this.expenseSubcategoryMapper.expenseSubcategoryResponseDto(expense.getExpenseSubcategory()),
+                expense.getDate(),
                 expense.getExpenseReason(),
+                expense.getExpenseSubcategory().getExpenseCategory().getName(),
+                expense.getExpenseSubcategory().getName(),
                 expense.getAmount(),
                 expense.getAccount(),
                 expense.getStatus(),
-                expense.getDate()
+                expense.getUser().getName()
         );
     }
 
-    public List<ExpenseResponseDto> expenseResponseDtoList(List<Expense> expenses){
+    public List<ExpenseResponseDto> expenseResponseDtoList(List<Expense> expenses) {
         return expenses
                 .stream()
                 .map(this::expenseResponseDto)

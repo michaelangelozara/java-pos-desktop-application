@@ -4,6 +4,7 @@ import org.POS.backend.brand.BrandResponseDto;
 import org.POS.backend.product_subcategory.ProductSubcategoryResponseDto;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public record ProductResponseDto(
         int id,
@@ -21,6 +22,7 @@ public record ProductResponseDto(
         String image,
         BigDecimal sellingPrice,
         BigDecimal purchasePrice,
-        int stock
+        int stock,
+        LocalDate date
 ) {
 }

@@ -10,7 +10,6 @@ public record UpdateProductRequestDto(
         ProductUnit unit,
         int tax,
         ProductTaxType taxType,
-        BigDecimal regularPrice,
         int discount,
         String note,
         int alertQuantity,

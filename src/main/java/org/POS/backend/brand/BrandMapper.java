@@ -37,6 +37,7 @@ public class BrandMapper {
     }
 
     public BrandResponseDto brandResponseDto(Brand brand){
+        if(brand == null) return null;
         return new BrandResponseDto(
                 brand.getId(),
                 brand.getName(),

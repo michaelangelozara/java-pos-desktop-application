@@ -1401,7 +1401,6 @@ public class POS extends JPanel {
 
             SaleService saleService = new SaleService();
             Set<AddSaleItemRequestDto> addSaleItemRequestDtoSet = new HashSet<>();
-            CurrentUser.id = 2;
             var choseItems = getAllRows();
 
             for(var item : choseItems){
@@ -1413,12 +1412,12 @@ public class POS extends JPanel {
                 );
                 addSaleItemRequestDtoSet.add(dto);
             }
-
-            saleService.add(saleDto, addSaleItemRequestDtoSet);
+            CurrentUser.id = 1;
+            int transactionId = saleService.add(saleDto, addSaleItemRequestDtoSet);
 
             // Show a JOptionPane to confirm the payment addition
             JOptionPane.showMessageDialog(null, "Payment Added:\n"
-                    + "Amount: " + amount + "\n"
+                    + "Amount: " + transactionId + "\n"
                     + "Cheque No: " + chequeNo + "\n"
                     + "Receipt No: " + receiptNo + "\n"
                     + "PO Reference: " + poReference + "\n"
@@ -1426,12 +1425,12 @@ public class POS extends JPanel {
                     + "Delivery Place: " + deliveryPlace + "\n"
                     + "Date: " + date + "\n"
                     + "Note: " + note);
+
         } else {
             // Show a message if payment is canceled
             JOptionPane.showMessageDialog(null, "Payment cancelled.");
         }
     }//GEN-LAST:event_jButton1ActionPerformed
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private JButton jButton1;

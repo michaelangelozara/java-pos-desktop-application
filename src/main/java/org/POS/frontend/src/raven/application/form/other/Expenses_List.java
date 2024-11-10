@@ -77,13 +77,13 @@ public class Expenses_List extends javax.swing.JPanel {
                 gbc.gridx = 3;
                 ExpenseCategoryService expenseCategoryService = new ExpenseCategoryService();
                 var categories = expenseCategoryService.getAllValidExpenseCategories();
-                String[] categoryNames = new String[categories.size()+1];
+                String[] categoryNames = new String[categories.size() + 1];
                 categoryNames[0] = "Select a category";
 
                 Map<Integer, Integer> categoryMap = new HashMap<>();
-                for(int i = 1; i < categories.size()+1; i++){
-                    categoryNames[i] = categories.get(i-1).name();
-                    categoryMap.put(i, categories.get(i-1).id());
+                for (int i = 1; i < categories.size() + 1; i++) {
+                    categoryNames[i] = categories.get(i - 1).name();
+                    categoryMap.put(i, categories.get(i - 1).id());
                 }
 
                 JComboBox<String> categoryCombo = new JComboBox<>(categoryNames);
@@ -108,9 +108,9 @@ public class Expenses_List extends javax.swing.JPanel {
                         // clear all subcategories
                         subCategoryCombo.removeAllItems();
                         subCategoryCombo.addItem("Select a subcategory");
-                        for(int i = 1; i < subcategories.size() + 1; i++){
-                            subCategoryCombo.addItem(subcategories.get(i-1).name());
-                            subcategoryMap.put(i, subcategories.get(i-1).id());
+                        for (int i = 1; i < subcategories.size() + 1; i++) {
+                            subCategoryCombo.addItem(subcategories.get(i - 1).name());
+                            subcategoryMap.put(i, subcategories.get(i - 1).id());
                         }
                     }
                 });
@@ -209,7 +209,7 @@ public class Expenses_List extends javax.swing.JPanel {
 
                     expenseService.update(dto);
                     JOptionPane.showMessageDialog(null, "Expense updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                    loadExpenses();
+                    loadExpenses(50);
                 }
             }
 
@@ -234,7 +234,7 @@ public class Expenses_List extends javax.swing.JPanel {
 
                     JOptionPane.showMessageDialog(null, "Product Deleted Successfully",
                             "Deleted", JOptionPane.INFORMATION_MESSAGE);
-                    loadExpenses();
+                    loadExpenses(50);
                 }
             }
 
@@ -367,23 +367,23 @@ public class Expenses_List extends javax.swing.JPanel {
         };
         table.getColumnModel().getColumn(9).setCellRenderer(new TableActionCellRender());
         table.getColumnModel().getColumn(9).setCellEditor(new TableActionCellEditor(event));
-        loadExpenses();
+        loadExpenses(50);
     }
 
-    private void loadExpenses() {
+    private void loadExpenses(int number) {
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         // clear existing table
         model.setRowCount(0);
 
         ExpenseService expenseService = new ExpenseService();
-        var expenses = expenseService.getAllValidExpenses();
+        var expenses = expenseService.getAllValidExpenses(number);
         for (int i = 0; i < expenses.size(); i++) {
             model.addRow(new Object[]{
-                    String.valueOf(i+1),
+                    String.valueOf(i + 1),
                     expenses.get(i).id(),
                     expenses.get(i).expenseReason(),
-                    expenses.get(i).subcategoryResponseDto().expenseCategoryResponseDto().name(),
-                    expenses.get(i).subcategoryResponseDto().name(),
+                    expenses.get(i).category(),
+                    expenses.get(i).subcategory(),
                     expenses.get(i).amount(),
                     expenses.get(i).account(),
                     expenses.get(i).date(),
@@ -426,26 +426,26 @@ public class Expenses_List extends javax.swing.JPanel {
         jTextField1.setText("Search");
 
         table.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
+                new Object[][]{
 
-            },
-            new String [] {
-                "#", "ID", "Expense Reason", "Category", "Sub Category", "Amount	", "Account	", "Date	", "Status", "Action"
-            }
+                },
+                new String[]{
+                        "#", "ID", "Expense Reason", "Category", "Sub Category", "Amount	", "Account	", "Date	", "Status", "Action"
+                }
         ) {
-            Class[] types = new Class [] {
-                java.lang.Object.class, java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
+            Class[] types = new Class[]{
+                    java.lang.Object.class, java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
             };
-            boolean[] canEdit = new boolean [] {
-                false, true, false, false, false, false, false, false, false, true
+            boolean[] canEdit = new boolean[]{
+                    false, true, false, false, false, false, false, false, false, true
             };
 
             public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
+                return types[columnIndex];
             }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
+                return canEdit[columnIndex];
             }
         });
         table.setRowHeight(40);
@@ -463,64 +463,64 @@ public class Expenses_List extends javax.swing.JPanel {
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(22, 22, 22)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 1328, Short.MAX_VALUE)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel2))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap())
+                jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addGap(22, 22, 22)
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 1328, Short.MAX_VALUE)
+                                        .addGroup(jPanel2Layout.createSequentialGroup()
+                                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                        .addComponent(jLabel2))
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel2)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGap(7, 7, 7)
-                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 619, Short.MAX_VALUE)
-                .addContainerGap())
+                jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jLabel2)
+                                        .addGroup(jPanel2Layout.createSequentialGroup()
+                                                .addGap(7, 7, 7)
+                                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 619, Short.MAX_VALUE)
+                                .addContainerGap())
         );
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel1)
-                .addContainerGap(1215, Short.MAX_VALUE))
-            .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jLabel1)
+                                .addContainerGap(1215, Short.MAX_VALUE))
+                        .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+                jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jLabel1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -537,19 +537,15 @@ public class Expenses_List extends javax.swing.JPanel {
         Font regularFont = new Font("Arial", Font.PLAIN, 14);
 
         // Expense Reason *
-        gbc.gridx = 0;
+        gbc.gridx = 2;
         gbc.gridy = 0;
-        JLabel expenseReasonLabel = new JLabel("Expense Reason *");
-        expenseReasonLabel.setFont(boldFont);
-        panel.add(expenseReasonLabel, gbc);
 
-        gbc.gridx = 1;
-        JTextField expenseReasonField = new JTextField(15);
-        expenseReasonField.setFont(regularFont);
-        panel.add(expenseReasonField, gbc);
+        JLabel subCategoryLabel = new JLabel("Sub Category *");
+        subCategoryLabel.setFont(boldFont);
+        panel.add(subCategoryLabel, gbc);
 
         // Category Name *
-        gbc.gridx = 2;
+        gbc.gridx = 0;
         JLabel categoryNameLabel = new JLabel("Category Name *");
         categoryNameLabel.setFont(boldFont);
         panel.add(categoryNameLabel, gbc);
@@ -557,27 +553,19 @@ public class Expenses_List extends javax.swing.JPanel {
 
         ExpenseCategoryService expenseCategoryService = new ExpenseCategoryService();
         var categories = expenseCategoryService.getAllValidExpenseCategories();
-        String[] categoryNames = new String[categories.size()+1];
+        String[] categoryNames = new String[categories.size() + 1];
         categoryNames[0] = "Select a category";
 
         Map<Integer, Integer> categoryMap = new HashMap<>();
-        for(int i = 1; i < categories.size()+1; i++){
-            categoryNames[i] = categories.get(i-1).name();
-            categoryMap.put(i, categories.get(i-1).id());
+        for (int i = 1; i < categories.size() + 1; i++) {
+            categoryNames[i] = categories.get(i - 1).name();
+            categoryMap.put(i, categories.get(i - 1).id());
         }
 
-        gbc.gridx = 3;
+        gbc.gridx = 1;
         JComboBox<String> categoryCombo = new JComboBox<>(categoryNames);
         categoryCombo.setFont(regularFont);
         panel.add(categoryCombo, gbc);
-
-        // Sub Category *
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        JLabel subCategoryLabel = new JLabel("Sub Category *");
-        subCategoryLabel.setFont(boldFont);
-        panel.add(subCategoryLabel, gbc);
-
 
 
         ExpenseSubcategoryService expenseSubcategoryService = new ExpenseSubcategoryService();
@@ -597,15 +585,28 @@ public class Expenses_List extends javax.swing.JPanel {
                 // clear all subcategories
                 subCategoryCombo.removeAllItems();
                 subCategoryCombo.addItem("Select a subcategory");
-                for(int i = 1; i < subcategories.size() + 1; i++){
-                    subCategoryCombo.addItem(subcategories.get(i-1).name());
-                    subcategoryMap.put(i, subcategories.get(i-1).id());
+                for (int i = 1; i < subcategories.size() + 1; i++) {
+                    subCategoryCombo.addItem(subcategories.get(i - 1).name());
+                    subcategoryMap.put(i, subcategories.get(i - 1).id());
                 }
             }
         });
-        gbc.gridx = 1;
+        gbc.gridx = 3;
         subCategoryCombo.setFont(regularFont);
         panel.add(subCategoryCombo, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        JLabel expenseReasonLabel = new JLabel("Expense Reason *");
+        expenseReasonLabel.setFont(boldFont);
+        panel.add(expenseReasonLabel, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridwidth = 3; // Span across columns 1, 2, and 3
+        JTextField expenseReasonField = new JTextField(15);
+        expenseReasonField.setFont(regularFont);
+        panel.add(expenseReasonField, gbc);
+        gbc.gridwidth = 1;
 
         // Account *
         gbc.gridx = 0;
@@ -739,7 +740,6 @@ public class Expenses_List extends javax.swing.JPanel {
             String cheque = chequeNoField.getText();
             String voucherNo = voucherNoField.getText();
             String note = noteArea.getText();
-            LocalDate dateNow = currentDate;
             String status = (String) statusCombo.getSelectedItem();
             String image = converter.getBase64();
 
@@ -759,14 +759,8 @@ public class Expenses_List extends javax.swing.JPanel {
             );
 
             expenseService.add(dto);
-
-            // Validate the required fields
-            if (expenseReason.isEmpty() || amount.isEmpty() || account.isEmpty()) {
-                JOptionPane.showMessageDialog(null, "Please fill out all required fields.", "Error", JOptionPane.ERROR_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(null, "Expense Created Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            }
-            loadExpenses();
+            JOptionPane.showMessageDialog(null, "New expense added", "Added Successful", JOptionPane.INFORMATION_MESSAGE);
+            loadExpenses(50);
         }
 
     }//GEN-LAST:event_jButton1ActionPerformed

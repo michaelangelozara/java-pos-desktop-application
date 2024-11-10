@@ -2,6 +2,7 @@ package org.POS.backend.user;
 
 import org.POS.backend.exception.ResourceNotFoundException;
 import org.POS.backend.global_variable.CurrentUser;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class UserService {
         this.userDAO.delete(userId);
     }
 
-    public List<UserResponseDto> getAllValidUsers() throws ResourceNotFoundException {
+    public List<UserResponseDto> getAllValidUsers() {
         List<User> users = this.userDAO.getAllValidUsers();
         return this.userMapper.userResponseDtoList(users);
     }
@@ -44,8 +45,12 @@ public class UserService {
     }
 
     public boolean authenticate(LoginRequestDto dto){
-        var user = this.userDAO.authenticateUserByUsernameAndPassword(dto.username(), dto.password());
+        var user = this.userDAO.authenticateUserByUsernameAndPassword(dto.username());
         if(user == null)
+            return false;
+
+        String hashedPassword = user.getPassword();
+        if(!BCrypt.checkpw(dto.password(), hashedPassword))
             return false;
 
         CurrentUser.id = user.getId();

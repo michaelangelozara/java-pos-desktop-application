@@ -1,8 +1,8 @@
 package org.POS.backend.purchase;
 
+import jakarta.transaction.Transactional;
 import org.POS.backend.configuration.HibernateUtil;
-import org.POS.backend.product.Product;
-import org.hibernate.Hibernate;
+import org.POS.backend.purchased_item.PurchaseItem;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -15,104 +15,98 @@ public class PurchaseDAO {
 
     private SessionFactory sessionFactory;
 
-    public PurchaseDAO(){
+    public PurchaseDAO() {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public Purchase add(Purchase purchase){
-        try (Session session = sessionFactory.openSession()){
-            session.beginTransaction();
+    public void add(Purchase purchase, List<PurchaseItem> purchaseItems) {
+        Transaction transaction = null;
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.beginTransaction();
 
             session.persist(purchase);
-            session.flush();
-
-            session.getTransaction().commit();
-        }catch (Exception e){
+            for (var purchaseItem : purchaseItems) {
+                session.persist(purchaseItem);
+            }
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
             e.printStackTrace();
         }
-        return purchase;
     }
 
-    public void update(Purchase purchase){
-        try (Session session = sessionFactory.openSession()){
+    public void update(Purchase purchase) {
+        try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
             session.merge(purchase);
             session.flush();
 
             session.getTransaction().commit();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void delete(int purchaseId){
-        try (Session session = sessionFactory.openSession()){
+    public void delete(int purchaseId) {
+        try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
             Purchase purchase = session.createQuery("SELECT p FROM Purchase p WHERE p.id = :purchaseId AND p.isDeleted = FALSE", Purchase.class)
-                            .setParameter("purchaseId", purchaseId)
-                                    .getSingleResult();
+                    .setParameter("purchaseId", purchaseId)
+                    .getSingleResult();
             purchase.setDeleted(true);
             purchase.setDeletedAt(LocalDate.now());
             session.merge(purchase);
 
             session.getTransaction().commit();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public Purchase getValidPurchaseById(int purchaseId){
+    public Purchase getValidPurchaseById(int purchaseId) {
         Purchase purchase = null;
-        try (Session session = sessionFactory.openSession()){
+        try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
-
-            purchase = session.createQuery("SELECT p FROM Purchase p LEFT JOIN FETCH p.purchaseProducts pp WHERE p.id = : purchaseId AND p.isDeleted = FALSE AND pp.isDelete = FALSE ", Purchase.class)
+            purchase = session.createQuery("SELECT p FROM Purchase p LEFT JOIN FETCH p.purchaseItems pp WHERE p.id = : purchaseId AND p.isDeleted = FALSE AND pp.isDelete = FALSE ", Purchase.class)
                     .setParameter("purchaseId", purchaseId)
                     .getSingleResult();
-
-
             session.getTransaction().commit();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return purchase;
     }
 
-    public List<Purchase> getAllValidPurchases(){
-        Transaction transaction = null;
+    public List<Purchase> getAllValidPurchases() {
         List<Purchase> purchases = new ArrayList<>();
-        try (Session session = sessionFactory.openSession()){
-            transaction = session.beginTransaction();
-
-            purchases = session.createQuery("SELECT p FROM Purchase p LEFT JOIN FETCH p.purchaseProducts WHERE p.isDeleted = FALSE ", Purchase.class)
+        try (Session session = sessionFactory.openSession()) {
+            purchases = session.createQuery("SELECT p FROM Purchase p LEFT JOIN FETCH p.purchaseItems WHERE p.isDeleted = FALSE ", Purchase.class)
                     .getResultList();
 
-            session.getTransaction().commit();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-            if(transaction != null){
-                transaction.rollback();
-            }
         }
         return purchases;
     }
 
-    public List<Purchase> getAllValidPurchaseBySupplierId(int supplierId){
+    public List<Purchase> getAllValidPurchaseBySupplierId(int supplierId) {
         List<Purchase> purchases = new ArrayList<>();
         Transaction transaction = null;
-        try (Session session = sessionFactory.openSession()){
+        try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
 
-            String hqlQuery = "SELECT p FROM Purchase p LEFT JOIN FETCH p.purchaseProducts WHERE p.person.id = :supplierId AND p.isDeleted = FALSE ";
+            String hqlQuery = "SELECT p FROM Purchase p WHERE p.person.id = :supplierId AND p.isDeleted = FALSE ";
             purchases = session.createQuery(hqlQuery, Purchase.class)
-                            .setParameter("supplierId", supplierId)
-                                    .getResultList();
+                    .setParameter("supplierId", supplierId)
+                    .getResultList();
 
             session.getTransaction().commit();
-        }catch (Exception e){
-            if(transaction != null){
+        } catch (Exception e) {
+            if (transaction != null) {
                 transaction.rollback();
             }
             e.printStackTrace();

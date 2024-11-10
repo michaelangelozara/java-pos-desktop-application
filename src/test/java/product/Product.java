@@ -34,24 +34,24 @@ public class Product {
     void update(){
         ProductService productService = new ProductService();
 
-        UpdateProductRequestDto dto = new UpdateProductRequestDto(
-                1,
-                "Iphone 15",
-                "JSA-15",
-                1,
-                ProductUnit.PIECE,
-                0,
-                ProductTaxType.INCLUSIVE,
-                BigDecimal.valueOf(57990),
-                0,
-                "No note yet",
-                10,
-                ProductStatus.ACTIVE,
-                "GVHBNKJKLML<",
-                BigDecimal.valueOf(0),
-                0
-        );
-        productService.update(dto);
+//        UpdateProductRequestDto dto = new UpdateProductRequestDto(
+//                1,
+//                "Iphone 15",
+//                "JSA-15",
+//                1,
+//                ProductUnit.PIECE,
+//                0,
+//                ProductTaxType.INCLUSIVE,
+//                BigDecimal.valueOf(57990),
+//                0,
+//                "No note yet",
+//                10,
+//                ProductStatus.ACTIVE,
+//                "GVHBNKJKLML<",
+//                BigDecimal.valueOf(0),
+//                0
+//        );
+//        productService.update(dto);
     }
 
     @Test

@@ -1,10 +1,10 @@
-package org.POS.backend.purchased_product;
+package org.POS.backend.purchased_item;
 
 import org.POS.backend.product.ProductResponseDto;
 
 import java.math.BigDecimal;
 
-public record PurchaseProductResponseDto(
+public record PurchaseItemResponseDto(
         int id,
         int quantity,
         BigDecimal purchasePrice,
