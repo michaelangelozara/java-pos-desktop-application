@@ -357,7 +357,7 @@ public class ProductList extends javax.swing.JPanel {
                     } else if (!StringChecker.isNumericOnly(updatedPurchasePrice)) {
                         JOptionPane.showMessageDialog(null, "Any character in the purchase price is not allowed",
                                 "Error", JOptionPane.WARNING_MESSAGE);
-                    }else {
+                    } else {
                         assert updatedUnit != null;
                         assert updatedTaxType != null;
                         assert updatedStatus != null;
@@ -420,7 +420,7 @@ public class ProductList extends javax.swing.JPanel {
 
                 // Placeholder for the image on the left side
                 JLabel imageLabel = new JLabel();
-                ImageIcon productIcon = new ImageIcon("src/raven/icon/png/logo_1.png");
+                ImageIcon productIcon = new ImageIcon(getClass().getResource("/png/logo_1.png"));
                 imageLabel.setIcon(productIcon);
                 imageLabel.setHorizontalAlignment(JLabel.CENTER);
 

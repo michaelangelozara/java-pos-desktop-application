@@ -12,9 +12,9 @@ public class Brand {
     void add(){
         BrandService brandService = new BrandService();
         AddBrandRequestDto dto = new AddBrandRequestDto(
-                "Toyota G-15 Series zz",
+                "Tata Tiscon",
                 BrandStatus.ACTIVE,
-                2
+                3
         );
         brandService.add(dto);
     }

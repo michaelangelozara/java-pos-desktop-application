@@ -10,6 +10,7 @@ import org.POS.backend.product_subcategory.ProductSubcategoryService;
 import org.POS.backend.stock.StockType;
 
 import javax.swing.table.DefaultTableModel;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
@@ -116,7 +117,7 @@ public class Inventory_Report extends javax.swing.JPanel {
         jLabel11.setText("Inventory Report");
 
         jLabel12.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
-        jLabel12.setText("October 23, 2024");
+        jLabel12.setText(String.valueOf(LocalDate.now()));
 
         jLabel13.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
         jLabel13.setText("");
@@ -305,13 +306,13 @@ public class Inventory_Report extends javax.swing.JPanel {
         jLabel19.setText("Total Quantity\t");
 
         jLabel20.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel20.setText("15");
+        jLabel20.setText("0");
 
         jLabel21.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel21.setText("15");
+        jLabel21.setText("0");
 
         jLabel22.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel22.setText("15");
+        jLabel22.setText("0");
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -424,6 +425,8 @@ public class Inventory_Report extends javax.swing.JPanel {
         ProductService productService = new ProductService();
         var products = productService.getAllProductWithStockBySubcategoryId(subcategoryId);
         int i = 1;
+        int stockInSummation = 0;
+        int stockOutSummation = 0;
         for(var product : products){
             int stockIn = 0;
             int stockOut = 0;
@@ -434,7 +437,7 @@ public class Inventory_Report extends javax.swing.JPanel {
                     stockOut = stock.getStockInOrOut();
                 }
             }
-            int stockInHand = (stockIn - stockOut) < 0 ? 0 : (stockIn - stockOut);
+
             model.addRow(new Object[]{
                     i,
                     product.getCode(),
@@ -442,10 +445,17 @@ public class Inventory_Report extends javax.swing.JPanel {
                     product.getName(),
                     stockIn,
                     stockOut,
-                    stockInHand
+                    product.getStock()
             });
             i++;
+            stockInSummation += stockIn;
+            stockOutSummation += stockOut;
         }
+        int availableStock = (stockInSummation - stockOutSummation) < 0 ? 0 : (stockInSummation - stockOutSummation);
+        jLabel20.setText(String.valueOf(stockInSummation));
+        jLabel21.setText(String.valueOf(stockOutSummation));
+        jLabel22.setText(String.valueOf(availableStock));
+
     }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
