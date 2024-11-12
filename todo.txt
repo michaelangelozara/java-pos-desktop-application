@@ -1,3 +1,5 @@
-vat tax of the POS
-the customer shouldn't make a transaction if the product is out of stock
-Search mechanism
+- vat tax of the POS
+- the customer shouldn't make a transaction if the product is out of stock
+    Search mechanism
+- inventory deletion not working
+- remove the FROM-TO button in the cash transaction list

@@ -36,4 +36,8 @@ public class ProductCategoryService {
                         .categoryResponseDtoList(this.productCategoryDAO.getAllValidCategories());
     }
 
+    public List<ProductCategoryResponseDto> getAllValidProductCategoryByName(String name){
+        return this.productCategoryMapper.categoryResponseDtoList(this.productCategoryDAO.getAllValidProductCategoryByName(name));
+    }
+
 }

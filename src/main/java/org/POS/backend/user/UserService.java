@@ -59,4 +59,8 @@ public class UserService {
 
         return true;
     }
+
+    public List<UserResponseDto> getAllValidUserByName(String name){
+        return this.userMapper.userResponseDtoList(this.userDAO.getAllValidUserByName(name));
+    }
 }

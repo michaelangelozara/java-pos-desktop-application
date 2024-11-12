@@ -111,4 +111,18 @@ public class BrandDAO {
         }
         return brand;
     }
+
+    public List<Brand> getAllBrandByName(String name){
+        List<Brand> brands = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            brands = session.createQuery("SELECT b FROM Brand b WHERE b.name LIKE :name AND b.isDeleted = FALSE ", Brand.class)
+                    .setParameter("name", "%" + name + "%")
+                    .getResultList();
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return brands;
+    }
 }

@@ -59,4 +59,8 @@ public class PersonService {
         return this.personMapper.personResponseDtoList(people);
     }
 
+    public List<PersonResponseDto> getAllValidPersonByName(String name, PersonType type){
+        return this.personMapper.personResponseDtoList(this.personDAO.getAllValidPersonByName(name, type));
+    }
+
 }

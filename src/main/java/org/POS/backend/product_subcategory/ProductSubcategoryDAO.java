@@ -5,6 +5,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProductSubcategoryDAO {
@@ -106,5 +107,19 @@ public class ProductSubcategoryDAO {
         }
 
         return null;
+    }
+
+    public List<ProductSubcategory> getAllValidSubcategoryByName(String name){
+        List<ProductSubcategory> productSubcategories = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            productSubcategories = session.createQuery("SELECT ps FROM ProductSubcategory ps WHERE ps.name LIKE :name AND ps.isDeleted = FALSE", ProductSubcategory.class)
+                    .setParameter("name", "%" + name + "%")
+                    .getResultList();
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return productSubcategories;
     }
 }

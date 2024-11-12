@@ -67,4 +67,8 @@ public class ProductSubcategoryService {
     public List<ProductSubcategoryResponseDto> getAllValidSubcategoriesByCategoryId(int categoryId){
         return this.productSubcategoryMapper.subcategoryResponseDtoList(this.productSubcategoryDAO.getAllValidSubcategoriesByCategoryId(categoryId));
     }
+
+    public List<ProductSubcategoryResponseDto> getAllValidProductSubcategoryByName(String name){
+        return this.productSubcategoryMapper.subcategoryResponseDtoList(this.productSubcategoryDAO.getAllValidSubcategoryByName(name));
+    }
 }

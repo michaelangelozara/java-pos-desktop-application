@@ -74,4 +74,8 @@ public class ProductService {
     public List<Product> getAllProductWithStockBySubcategoryId(int subcategoryId){
         return this.productDAO.getAllValidProductsWithStocksByProductSubcategoryId(subcategoryId);
     }
+
+    public List<ProductResponseDto> getAllValidProductByName(String name){
+        return this.productMapper.productResponseDtoList(this.productDAO.getAllValidProductByName(name));
+    }
 }

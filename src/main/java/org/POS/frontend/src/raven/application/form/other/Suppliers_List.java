@@ -12,6 +12,8 @@ import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
@@ -20,23 +22,17 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 //import org.POS.frontend.src.raven.application.form.other.Supplier_Details;
 
 
 public class Suppliers_List extends javax.swing.JPanel {
 
+    private Timer timer;
+
     public Suppliers_List() {
         initComponents();
-        Object[][] supplierSampleData = {
-                {1, "supplier1.jpg", "S001", "Syke Raphael Suarez", "123-456-7890", "syke.raphael@example.com", "Best Supplies Co.", "Active", "Action"},
-                {2, "supplier2.jpg", "S002", "Cindy Castanares", "987-654-3210", "cindy.castanares@example.com", "Global Tech", "Active", "Action"},
-                {3, "supplier3.jpg", "S003", "Debbie Castanares", "555-123-4567", "debbie.castanares@example.com", "Johnson Enterprises", "Active", "Action"}
-        };
-
-        // Create a DefaultTableModel and set it to the table
-        DefaultTableModel model = (DefaultTableModel) table.getModel();
-        table.setModel(model);
-
         TableActionEvent event = new TableActionEvent() {
 
             @Override
@@ -253,7 +249,17 @@ public class Suppliers_List extends javax.swing.JPanel {
         PersonService personService = new PersonService();
         var people = personService.getAllValidPeopleByType(PersonType.SUPPLIER);
         for (int i = 0; i < people.size(); i++) {
-            model.addRow(new Object[]{i + 1, getMediaTypeFromBase64(people.get(i).image()), people.get(i).id(), people.get(i).name(), people.get(i).taxRegistration(), people.get(i).contactNumber(), people.get(i).email(), people.get(i).companyName(), people.get(i).status().toString()});
+            model.addRow(new Object[]{
+                    i + 1,
+                    getMediaTypeFromBase64(people.get(i).image()),
+                    people.get(i).id(),
+                    people.get(i).name(),
+                    people.get(i).taxRegistration(),
+                    people.get(i).contactNumber(),
+                    people.get(i).email(),
+                    people.get(i).companyName(),
+                    people.get(i).status().toString()
+            });
         }
     }
 
@@ -316,7 +322,22 @@ public class Suppliers_List extends javax.swing.JPanel {
             }
         });
 
-        jTextField1.setText("Search");
+        jTextField1.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+        });
 
         table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
@@ -553,7 +574,7 @@ public class Suppliers_List extends javax.swing.JPanel {
             String taxRegistrationNumber = taxField.getText();
             String address = addressField.getText();
             String status = (String) statusCombo.getSelectedItem();
-            String image  = base64Converter.getBase64();
+            String image = base64Converter.getBase64();
 
             AddPersonRequestDto dto = new AddPersonRequestDto(
                     name,
@@ -570,6 +591,48 @@ public class Suppliers_List extends javax.swing.JPanel {
             JOptionPane.showMessageDialog(null, "Supplier Added Successfully",
                     "Added", JOptionPane.INFORMATION_MESSAGE);
             loadSuppliers();
+        }
+    }
+
+    private void scheduleQuery() {
+        if (timer != null) {
+            timer.cancel(); // Cancel any existing scheduled query
+        }
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                filterList();
+            }
+        }, 400); // Delay of 300 ms
+    }
+
+    private void filterList() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+
+        String name = jTextField1.getText();
+
+        if (name.isEmpty()) {
+            loadSuppliers();
+            return;
+        }
+
+        PersonService personService = new PersonService();
+        var people = personService.getAllValidPersonByName(name, PersonType.SUPPLIER);
+
+        for (int i = 0; i < people.size(); i++) {
+            model.addRow(new Object[]{
+                    i + 1,
+                    getMediaTypeFromBase64(people.get(i).image()),
+                    people.get(i).id(),
+                    people.get(i).name(),
+                    people.get(i).taxRegistration(),
+                    people.get(i).contactNumber(),
+                    people.get(i).email(),
+                    people.get(i).companyName(),
+                    people.get(i).status().toString()
+            });
         }
     }
 

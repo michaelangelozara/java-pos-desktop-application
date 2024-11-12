@@ -1,24 +1,25 @@
 
 package org.POS.frontend.src.raven.application.form.other;
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Vector;
-
 import org.POS.backend.brand.*;
-import org.POS.backend.product.*;
+import org.POS.backend.product.ProductService;
 import org.POS.backend.product_category.ProductCategoryService;
 import org.POS.backend.product_subcategory.ProductSubcategoryService;
-import org.POS.frontend.src.raven.cell.TableActionCellRender;
-
-import javax.swing.table.DefaultTableModel;
-
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
+import org.POS.frontend.src.raven.cell.TableActionCellRender;
 import org.POS.frontend.src.raven.cell.TableActionEvent;
 
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.util.Timer;
+import java.util.*;
+
 public class BrandList extends javax.swing.JPanel {
+
+    private Timer timer;
 
     public BrandList() {
         initComponents();
@@ -84,9 +85,9 @@ public class BrandList extends javax.swing.JPanel {
                 Map<Integer, Integer> subcategyMap = new HashMap<>();
                 ProductSubcategoryService productSubcategoryService = new ProductSubcategoryService();
                 var preSubcategories = productSubcategoryService.getAllValidSubcategoriesByCategoryId(categoryMap.get(categoryCombo.getSelectedIndex()));
-                for(int i = 0; i < preSubcategories.size(); i++){
+                for (int i = 0; i < preSubcategories.size(); i++) {
                     subCategoryNames.add(preSubcategories.get(i).name());
-                    subcategyMap.put(i+1, preSubcategories.get(i).id());
+                    subcategyMap.put(i + 1, preSubcategories.get(i).id());
                 }
 
                 JComboBox<String> subCategoryCombo = new JComboBox<>(subCategoryNames);
@@ -161,7 +162,7 @@ public class BrandList extends javax.swing.JPanel {
                         );
                         try {
                             JOptionPane.showMessageDialog(null, brandService.update(dto));
-                        }catch (Exception e){
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
@@ -259,7 +260,22 @@ public class BrandList extends javax.swing.JPanel {
             }
         });
 
-        jTextField1.setText("Search");
+        jTextField1.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+        });
 
         table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
@@ -361,6 +377,45 @@ public class BrandList extends javax.swing.JPanel {
                         .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void scheduleQuery() {
+        if (timer != null) {
+            timer.cancel(); // Cancel any existing scheduled query
+        }
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                filterList();
+            }
+        }, 400); // Delay of 300 ms
+    }
+
+    private void filterList() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+
+        String name = jTextField1.getText();
+
+        if (name.isEmpty()) {
+            loadBrands();
+            return;
+        }
+
+        BrandService brandService = new BrandService();
+        var brands = brandService.getAllValidBrandByName(name);
+        for (int i = 0; i < brands.size(); i++) {
+            model.addRow(new Object[]{
+                    i + 1,
+                    brands.get(i).id(),
+                    brands.get(i).code(),
+                    brands.get(i).categoryResponseDto().getName(),
+                    brands.get(i).productSubcategory().getName(),
+                    brands.get(i).name(),
+                    brands.get(i).status().name()
+            });
+        }
+    }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         JPanel panel = new JPanel();

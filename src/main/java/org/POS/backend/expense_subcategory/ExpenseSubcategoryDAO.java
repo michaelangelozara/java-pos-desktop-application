@@ -1,6 +1,7 @@
 package org.POS.backend.expense_subcategory;
 
 import org.POS.backend.configuration.HibernateUtil;
+import org.POS.backend.expense_category.ExpenseCategory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
@@ -116,5 +117,19 @@ public class ExpenseSubcategoryDAO {
             e.printStackTrace();
         }
         return expenseSubcategories;
+    }
+
+    public List<ExpenseSubcategory> getAllValidExpenseSubcategoryByName(String name) {
+        List<ExpenseSubcategory> expenseSubategories = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()) {
+            // HQL query to find expense categories where name contains the specified string
+            String hql = "SELECT es FROM ExpenseSubcategory es WHERE es.name LIKE :name AND es.isDeleted = FALSE ";
+            expenseSubategories = session.createQuery(hql, ExpenseSubcategory.class)
+                    .setParameter("name", "%" + name + "%")
+                    .getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return expenseSubategories;
     }
 }

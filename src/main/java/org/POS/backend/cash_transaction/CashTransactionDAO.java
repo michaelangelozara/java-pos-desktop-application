@@ -28,4 +28,18 @@ public class CashTransactionDAO {
         }
         return cashTransactions;
     }
+
+    public List<CashTransaction> getAllValidCashTransactionByUserName(String name){
+        List<CashTransaction> cashTransactions = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            cashTransactions = session.createQuery("SELECT ct FROM CashTransaction ct JOIN FETCH ct.user u WHERE u.name LIKE :name AND u.isDeleted = FALSE", CashTransaction.class)
+                    .setParameter("name", "%" + name + "%")
+                    .getResultList();
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return cashTransactions;
+    }
 }

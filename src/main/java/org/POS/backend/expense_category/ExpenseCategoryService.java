@@ -41,4 +41,8 @@ public class ExpenseCategoryService {
                 this.expenseCategoryMapper
                         .expenseCategoryResponseDtoList(this.expenseCategoryDAO.getAllValidExpenseCategories());
     }
+
+    public List<ExpenseCategoryResponseDto> getAllValidExpenseCategoryByName(String name){
+        return this.expenseCategoryMapper.expenseCategoryResponseDtoList(this.expenseCategoryDAO.getAllValidExpenseCategoryByName(name));
+    }
 }

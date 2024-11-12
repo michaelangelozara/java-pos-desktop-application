@@ -10,10 +10,16 @@ import org.POS.frontend.src.raven.cell.TableActionCellRender;
 import org.POS.frontend.src.raven.cell.TableActionEvent;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class Expenses_Category extends javax.swing.JPanel {
+
+    private Timer timer;
 
     public Expenses_Category() {
         initComponents();
@@ -128,8 +134,7 @@ public class Expenses_Category extends javax.swing.JPanel {
                 if (table.isEditing()) {
                     table.getCellEditor().stopCellEditing();
                 }
-                DefaultTableModel model = (DefaultTableModel) table.getModel();
-                int id = (Integer) model.getValueAt(row, 0);
+
 
                 // Confirm before deleting
                 int confirmation = JOptionPane.showConfirmDialog(null,
@@ -137,8 +142,8 @@ public class Expenses_Category extends javax.swing.JPanel {
                         "Confirm Delete", JOptionPane.YES_NO_OPTION);
 
                 if (confirmation == JOptionPane.YES_OPTION) {
-//                    DefaultTableModel model = (DefaultTableModel) table.getModel();
-//                    model.removeRow(row);
+                     DefaultTableModel model = (DefaultTableModel) table.getModel();
+                    int id = (Integer) model.getValueAt(row, 1);
                     ExpenseCategoryService service = new ExpenseCategoryService();
                     service.delete(id);
 
@@ -271,7 +276,22 @@ public class Expenses_Category extends javax.swing.JPanel {
             }
         });
 
-        jTextField1.setText("Search");
+        jTextField1.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+        });
 
         table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
@@ -370,6 +390,44 @@ public class Expenses_Category extends javax.swing.JPanel {
                         .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void scheduleQuery() {
+        if (timer != null) {
+            timer.cancel(); // Cancel any existing scheduled query
+        }
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                filterList();
+            }
+        }, 400); // Delay of 300 ms
+    }
+
+    private void filterList() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+
+        String name = jTextField1.getText();
+
+        if (name.isEmpty()) {
+            loadCategories();
+            return;
+        }
+
+        ExpenseCategoryService expenseCategoryService = new ExpenseCategoryService();
+        var categories = expenseCategoryService.getAllValidExpenseCategoryByName(name);
+        for (int i = 0; i < categories.size(); i++) {
+            model.addRow(new Object[]{
+                    i + 1,
+                    categories.get(i).id(),
+                    categories.get(i).name(),
+                    categories.get(i).code(),
+                    categories.get(i).note(),
+                    categories.get(i).status().name()
+            });
+        }
+    }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         JPanel panel = new JPanel(new GridBagLayout());

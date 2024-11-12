@@ -1,23 +1,26 @@
 
 package org.POS.frontend.src.raven.application.form.other;
 
+import org.POS.backend.product.ProductService;
+import org.POS.backend.string_checker.StringChecker;
+import org.POS.frontend.src.raven.application.Application;
+import org.POS.frontend.src.raven.cell.TableActionCellEditor;
+import org.POS.frontend.src.raven.cell.TableActionCellRender;
+import org.POS.frontend.src.raven.cell.TableActionEvent;
+
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
-import org.POS.backend.product.ProductService;
-import org.POS.backend.string_checker.StringChecker;
-import org.POS.frontend.src.raven.cell.TableActionCellRender;
-
-import javax.swing.table.DefaultTableModel;
-
-import org.POS.frontend.src.raven.application.Application;
-import org.POS.frontend.src.raven.cell.TableActionCellEditor;
-import org.POS.frontend.src.raven.cell.TableActionEvent;
-import org.POS.frontend.src.raven.application.form.other.InventoryHistory;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class Inventory extends javax.swing.JPanel {
+
+    private Timer timer;
 
 
     public Inventory() {
@@ -122,7 +125,22 @@ public class Inventory extends javax.swing.JPanel {
             }
         });
 
-        jTextField1.setText("Search");
+        jTextField1.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+        });
 
         table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
@@ -220,6 +238,49 @@ public class Inventory extends javax.swing.JPanel {
                         .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void scheduleQuery() {
+        if (timer != null) {
+            timer.cancel(); // Cancel any existing scheduled query
+        }
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                filterList();
+            }
+        }, 400); // Delay of 300 ms
+    }
+
+
+    private void filterList() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+
+        String name = jTextField1.getText();
+
+        if (name.isEmpty()) {
+            loadInventory();
+            return;
+        }
+
+        ProductService productService = new ProductService();
+        var products = productService.getAllValidProductByName(name);
+        for (int i = 0; i < products.size(); i++) {
+            model.addRow(new Object[]{
+                    i + 1,
+                    products.get(i).id(),
+                    StringChecker.getImageTypeFromBase64(products.get(i).image()),
+                    products.get(i).code(),
+                    products.get(i).name(),
+                    products.get(i).model(),
+                    products.get(i).stock(),
+                    products.get(i).purchasePrice(),
+                    products.get(i).sellingPrice(),
+                    products.get(i).status().name()
+            });
+        }
+    }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         JPanel panel = new JPanel(new GridBagLayout());

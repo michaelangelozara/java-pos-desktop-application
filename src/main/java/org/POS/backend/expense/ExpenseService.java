@@ -74,4 +74,8 @@ public class ExpenseService {
     public BigDecimal getTheSumOfExpenses(){
         return this.expenseDAO.getTheSumOfExpenses();
     }
+
+    public List<ExpenseResponseDto> gatAllValidExpenseByReason(String reason){
+        return this.expenseMapper.expenseResponseDtoList(this.expenseDAO.getAllValidExpenseByReason(reason));
+    }
 }

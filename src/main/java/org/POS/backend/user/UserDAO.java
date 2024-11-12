@@ -66,9 +66,10 @@ public class UserDAO {
         List<User> users = new ArrayList<>();
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
-
-            users = session.createQuery("SELECT u FROM User u WHERE u.isDeleted = FALSE", User.class)
-                            .getResultList();
+            UserRole role = UserRole.SUPER_ADMIN;
+            users = session.createQuery("SELECT u FROM User u WHERE u.isDeleted = FALSE AND u.role != :role", User.class)
+                    .setParameter("role", role)
+                    .getResultList();
 
             session.getTransaction().commit();;
         } catch (Exception e){
@@ -134,6 +135,21 @@ public class UserDAO {
         }
 
         return null;
+    }
+
+    public List<User> getAllValidUserByName(String name){
+        List<User> users = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+            UserRole role = UserRole.SUPER_ADMIN;
+            users = session.createQuery("SELECT u FROM User u WHERE (u.name LIKE :name AND u.isDeleted = FALSE) AND u.role !=: role", User.class)
+                    .setParameter("name", "%" + name + "%")
+                    .setParameter("role", role)
+                    .getResultList();
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return users;
     }
 
 }

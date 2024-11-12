@@ -12,6 +12,8 @@ import org.POS.frontend.src.raven.cell.TableActionCellRender;
 import org.POS.frontend.src.raven.cell.TableActionEvent;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -21,11 +23,12 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Vector;
+import java.util.*;
+import java.util.Timer;
 
 public class Expenses_List extends javax.swing.JPanel {
+
+    private Timer timer;
 
     public Expenses_List() {
         initComponents();
@@ -423,7 +426,22 @@ public class Expenses_List extends javax.swing.JPanel {
             }
         });
 
-        jTextField1.setText("Search");
+        jTextField1.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+        });
 
         table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
@@ -523,6 +541,47 @@ public class Expenses_List extends javax.swing.JPanel {
                         .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void scheduleQuery() {
+        if (timer != null) {
+            timer.cancel(); // Cancel any existing scheduled query
+        }
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                filterList();
+            }
+        }, 400); // Delay of 300 ms
+    }
+
+    private void filterList() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+
+        String reason = jTextField1.getText();
+
+        if (reason.isEmpty()) {
+            loadExpenses(50);
+            return;
+        }
+
+        ExpenseService expenseService = new ExpenseService();
+        var expenses = expenseService.gatAllValidExpenseByReason(reason);
+        for (int i = 0; i < expenses.size(); i++) {
+            model.addRow(new Object[]{
+                    i + 1,
+                    expenses.get(i).id(),
+                    expenses.get(i).expenseReason(),
+                    expenses.get(i).category(),
+                    expenses.get(i).subcategory(),
+                    expenses.get(i).amount(),
+                    expenses.get(i).account(),
+                    expenses.get(i).date(),
+                    expenses.get(i).status().name()
+            });
+        }
+    }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         JPanel panel = new JPanel();

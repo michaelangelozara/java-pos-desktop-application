@@ -111,4 +111,18 @@ public class ExpenseCategoryDAO {
         }
         return expenseCategories;
     }
+
+    public List<ExpenseCategory> getAllValidExpenseCategoryByName(String name) {
+        List<ExpenseCategory> expenseCategories = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()) {
+            // HQL query to find expense categories where name contains the specified string
+            String hql = "SELECT ec FROM ExpenseCategory ec WHERE ec.name LIKE :name AND ec.isDeleted = FALSE";
+            expenseCategories = session.createQuery(hql, ExpenseCategory.class)
+                    .setParameter("name", "%" + name + "%")
+                    .getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return expenseCategories;
+    }
 }

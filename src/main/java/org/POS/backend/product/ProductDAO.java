@@ -201,4 +201,18 @@ public class ProductDAO {
         return products;
     }
 
+    public List<Product> getAllValidProductByName(String name){
+        List<Product> products = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            products = session.createQuery("SELECT p FROM Product p WHERE p.name LIKE :name AND p.isDeleted = FALSE", Product.class)
+                    .setParameter("name", "%" + name + "%")
+                    .getResultList();
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return products;
+    }
+
 }

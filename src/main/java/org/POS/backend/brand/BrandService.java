@@ -68,4 +68,8 @@ public class BrandService {
             return null;
         return this.brandMapper.brandResponseDto(brand);
     }
+
+    public List<BrandResponseDto> getAllValidBrandByName(String name){
+        return this.brandMapper.brandResponseDtoList(this.brandDAO.getAllBrandByName(name));
+    }
 }

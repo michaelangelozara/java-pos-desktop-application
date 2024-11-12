@@ -24,6 +24,8 @@ import org.jdatepicker.impl.UtilDateModel;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.FocusEvent;
@@ -38,6 +40,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
+import java.util.Timer;
 
 public class Purchases_List extends javax.swing.JPanel {
 
@@ -54,6 +57,8 @@ public class Purchases_List extends javax.swing.JPanel {
     private JTextField totalPaidField;
 
     private JTextField totalTaxField;
+
+    private Timer timer;
 
     public Purchases_List() {
         initComponents();
@@ -144,9 +149,9 @@ public class Purchases_List extends javax.swing.JPanel {
                     }
                 };
 
-                for(int i = 0; i < purchase.purchaseProducts().size(); i++){
+                for (int i = 0; i < purchase.purchaseProducts().size(); i++) {
                     tableModel.addRow(new Object[]{
-                            i+1,
+                            i + 1,
                             purchase.purchaseProducts().get(i).id(),
                             purchase.purchaseProducts().get(i).product().code(),
                             purchase.purchaseProducts().get(i).product().name(),
@@ -330,7 +335,7 @@ public class Purchases_List extends javax.swing.JPanel {
                         if (column == 10) { // "Action" column index for "Remove" button
                             PurchaseItemService purchaseItemService = new PurchaseItemService();
                             Integer purchaseProductToBeRemoved = (Integer) productsTable.getValueAt(row, 1);
-                            if(purchaseProductToBeRemoved != null){
+                            if (purchaseProductToBeRemoved != null) {
                                 purchaseItemService.deletePurchaseProductByPurchaseProductId(purchaseProductToBeRemoved);
 
                             }
@@ -946,7 +951,22 @@ public class Purchases_List extends javax.swing.JPanel {
             }
         });
 
-        jTextField1.setText("Search");
+        jTextField1.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+        });
 
         table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
@@ -1063,6 +1083,52 @@ public class Purchases_List extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
+
+    private void scheduleQuery() {
+        if (timer != null) {
+            timer.cancel(); // Cancel any existing scheduled query
+        }
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                filterList();
+            }
+        }, 400); // Delay of 300 ms
+    }
+
+    private void filterList() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+
+        String query = jTextField1.getText();
+
+        if (query.isEmpty()) {
+            loadPurchases();
+            return;
+        }
+
+        PurchaseService purchaseService = new PurchaseService();
+
+        var purchase = purchaseService.getAllValidPurchaseByCodeAndSupplierName(query);
+        for (int i = 0; i < purchase.size(); i++) {
+            model.addRow(new Object[]{
+                    i + 1,
+                    purchase.get(i).id(),
+                    purchase.get(i).code(),
+                    purchase.get(i).date(),
+                    purchase.get(i).supplier().name(),
+                    purchase.get(i).subtotal(),
+                    purchase.get(i).transport(),
+                    purchase.get(i).discount(),
+                    purchase.get(i).netTotal(),
+                    purchase.get(i).totalPaid(),
+                    purchase.get(i).totalDue(),
+                    purchase.get(i).status().name()
+            });
+        }
+    }
+
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
@@ -1092,7 +1158,7 @@ public class Purchases_List extends javax.swing.JPanel {
         PersonService personService = new PersonService();
         var suppliers = personService.getAllValidPeopleByType(PersonType.SUPPLIER);
         for (int i = 0; i < suppliers.size(); i++) {
-            supplierCombo.addItem(suppliers.get(i).name() + suppliers.get(i).id());
+            supplierCombo.addItem(suppliers.get(i).name());
             supplierMap.put(i + 1, suppliers.get(i).id());
         }
 
@@ -1775,7 +1841,7 @@ public class Purchases_List extends javax.swing.JPanel {
         List<PurchaseListedProduct> rows = new ArrayList<>();
         for (int i = 0; i < model.getRowCount(); i++) {
             int number = (Integer) model.getValueAt(i, 0);
-            Integer id =  model.getValueAt(i, 1) == null ? null : (Integer) model.getValueAt(i, 1);
+            Integer id = model.getValueAt(i, 1) == null ? null : (Integer) model.getValueAt(i, 1);
             String code = (String) model.getValueAt(i, 2);
             String name = (String) model.getValueAt(i, 3);
 

@@ -88,4 +88,18 @@ public class ProductCategoryDAO {
         }
         return productCategory;
     }
+
+    public List<ProductCategory> getAllValidProductCategoryByName(String name) {
+        List<ProductCategory> productCategories = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()) {
+
+            productCategories = session.createQuery("SELECT pc FROM ProductCategory pc WHERE pc.name LIKE :name AND pc.isDeleted = FALSE", ProductCategory.class)
+                    .setParameter("name", "%" + name + "%")
+                    .getResultList();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return productCategories;
+    }
 }

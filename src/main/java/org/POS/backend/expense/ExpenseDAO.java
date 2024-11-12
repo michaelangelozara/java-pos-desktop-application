@@ -1,6 +1,7 @@
 package org.POS.backend.expense;
 
 import org.POS.backend.configuration.HibernateUtil;
+import org.POS.backend.expense_category.ExpenseCategory;
 import org.POS.backend.global_variable.GlobalVariable;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
@@ -127,6 +128,20 @@ public class ExpenseDAO {
             e.printStackTrace();
         }
         return sum;
+    }
+
+    public List<Expense> getAllValidExpenseByReason(String reason) {
+        List<Expense> expenseCategories = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()) {
+            // HQL query to find expense categories where reason contains the specified string
+            String hql = "SELECT e FROM Expense e WHERE e.expenseReason LIKE :reason AND e.isDeleted = FALSE";
+            expenseCategories = session.createQuery(hql, Expense.class)
+                    .setParameter("reason", "%" + reason + "%")
+                    .getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return expenseCategories;
     }
 
 }

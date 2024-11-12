@@ -2,21 +2,25 @@
 package org.POS.frontend.src.raven.application.form.other;
 
 import org.POS.backend.product_category.ProductCategoryService;
-import org.POS.backend.product_category.ProductCategoryStatus;
-import org.POS.backend.product_subcategory.*;
+import org.POS.backend.product_subcategory.AddProductSubcategoryRequestDto;
+import org.POS.backend.product_subcategory.ProductSubcategoryService;
+import org.POS.backend.product_subcategory.ProductSubcategoryStatus;
+import org.POS.backend.product_subcategory.UpdateProductSubcategoryRequestDto;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
 import org.POS.frontend.src.raven.cell.TableActionEvent;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Vector;
+import java.util.Timer;
+import java.util.*;
 
 public class Products_Sub_Category extends javax.swing.JPanel {
 
+    private Timer timer;
 
     public Products_Sub_Category() {
         initComponents();
@@ -348,7 +352,22 @@ public class Products_Sub_Category extends javax.swing.JPanel {
             }
         });
 
-        jTextField1.setText("Search");
+        jTextField1.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+        });
 
         table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
@@ -438,6 +457,45 @@ public class Products_Sub_Category extends javax.swing.JPanel {
                         .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void scheduleQuery() {
+        if (timer != null) {
+            timer.cancel(); // Cancel any existing scheduled query
+        }
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                filterList();
+            }
+        }, 400); // Delay of 300 ms
+    }
+
+    private void filterList() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+
+        String name = jTextField1.getText();
+
+        if (name.isEmpty()) {
+            loadProductCategories();
+            return;
+        }
+
+        ProductSubcategoryService productSubcategoryService = new ProductSubcategoryService();
+        var productSubcategories = productSubcategoryService.getAllValidProductSubcategoryByName(name);
+
+        for (int i = 0; i < productSubcategories.size(); i++) {
+            model.addRow(new Object[]{
+                    i + 1,
+                    productSubcategories.get(i).id(),
+                    productSubcategories.get(i).categoryName(),
+                    productSubcategories.get(i).name(),
+                    productSubcategories.get(i).code(),
+                    productSubcategories.get(i).status().name()
+            });
+        }
+    }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         JPanel panel = new JPanel(new GridBagLayout());

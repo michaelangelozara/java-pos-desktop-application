@@ -123,4 +123,17 @@ public class PersonDAO {
 
         return people;
     }
+
+    public List<Person> getAllValidPersonByName(String name, PersonType type){
+        List<Person> people = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+            people = session.createQuery("SELECT p FROM Person p WHERE (p.name LIKE :name AND p.type = :type) AND p.isDeleted = FALSE", Person.class)
+                    .setParameter("name", "%" + name + "%")
+                    .setParameter("type", type)
+                    .getResultList();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return people;
+    }
 }

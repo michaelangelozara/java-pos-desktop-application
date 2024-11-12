@@ -3,6 +3,7 @@ package org.POS.backend.purchase;
 import jakarta.transaction.Transactional;
 import org.POS.backend.configuration.HibernateUtil;
 import org.POS.backend.purchased_item.PurchaseItem;
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -116,5 +117,21 @@ public class PurchaseDAO {
         return purchases;
     }
 
+    public List<Purchase> getAllValidPurchasesByCodeAndSupplier(String query){
+        List<Purchase> purchases = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            purchases = session.createQuery("SELECT p FROM Purchase p WHERE (p.code LIKE :query OR p.person.name LIKE :query) AND p.isDeleted = FALSE", Purchase.class)
+                    .setParameter("query", "%" + query + "%")
+                    .getResultList();
+
+            for(var purchase : purchases){
+                Hibernate.initialize(purchase.getPurchaseItems());
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return purchases;
+    }
 
 }
