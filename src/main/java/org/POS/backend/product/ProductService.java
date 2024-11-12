@@ -78,4 +78,8 @@ public class ProductService {
     public List<ProductResponseDto> getAllValidProductByName(String name){
         return this.productMapper.productResponseDtoList(this.productDAO.getAllValidProductByName(name));
     }
+
+    public List<ProductResponseDto> getAllValidProductByNameAndQuantityGreaterThanZero(String name){
+        return this.productMapper.productResponseDtoList(this.productDAO.getAllValidProductByNameQuantityGreaterThanZero(name));
+    }
 }

@@ -236,30 +236,33 @@ public class POS extends JPanel {
             this.panelItem.removeAll();
             JComboBox<String> productSubcategoryCombo = new JComboBox<>(subcategoryCombo);
             int productSubcategorySelectedIndex = productSubcategoryCombo.getSelectedIndex();
-            int productSubcategoryId = productSubcategoryMap.get(productSubcategorySelectedIndex);
+            Integer productSubcategoryId = productSubcategoryMap.get(productSubcategorySelectedIndex);
 
-            // load all the products that under the selected category
-            loadProductsUnderSubcategoryId(productSubcategoryId);
+            if(productSubcategoryId != null){
+                // load all the products that under the selected category
+                loadProductsUnderSubcategoryId(productSubcategoryId);
 
-            // assign the last subcategory id
-            recentSubcategoryId = productSubcategoryId;
+                // assign the last subcategory id
+                recentSubcategoryId = productSubcategoryId;
+            }
         };
 
         jComboBox2.addActionListener(evt -> {
             JComboBox<String> tempProductCategoryCombo = new JComboBox<>(categoryCombo);
             int productSelectedIndex = tempProductCategoryCombo.getSelectedIndex();
-            int productCategoryId = productCategoryMap.get(productSelectedIndex);
+            Integer productCategoryId = productCategoryMap.get(productSelectedIndex);
 
-            jComboBox3.removeActionListener(subcategoryActionListener);
-            subcategoryCombo.removeAllElements();
-            subcategoryCombo.addElement("Select Subcategory");
-            var productSubcategories = productSubcategoryService.getAllValidSubcategoriesByCategoryId(productCategoryId);
-            for (int i = 0; i < productSubcategories.size(); i++) {
-                subcategoryCombo.addElement(productSubcategories.get(i).name());
-                productSubcategoryMap.put(i + 1, productSubcategories.get(i).id());
+            if(productCategoryId != null){
+                jComboBox3.removeActionListener(subcategoryActionListener);
+                subcategoryCombo.removeAllElements();
+                subcategoryCombo.addElement("Select Subcategory");
+                var productSubcategories = productSubcategoryService.getAllValidSubcategoriesByCategoryId(productCategoryId);
+                for (int i = 0; i < productSubcategories.size(); i++) {
+                    subcategoryCombo.addElement(productSubcategories.get(i).name());
+                    productSubcategoryMap.put(i + 1, productSubcategories.get(i).id());
+                }
+                jComboBox3.addActionListener(subcategoryActionListener);
             }
-            jComboBox3.addActionListener(subcategoryActionListener);
-
         });
 
         jButton2.setBackground(new java.awt.Color(204, 255, 204));
@@ -707,9 +710,9 @@ public class POS extends JPanel {
         }
 
         ProductService productService = new ProductService();
-        var products = productService.getAllValidProductByName(name);
+        var products = productService.getAllValidProductByNameAndQuantityGreaterThanZero(name);
 
-        // remove all items from the item panel
+        // remove all items from the item panel before re add a set of items
         panelItem.removeAll();
 
         for (int i = 0; i < products.size(); i++) {

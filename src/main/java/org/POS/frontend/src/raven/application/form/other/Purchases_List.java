@@ -266,63 +266,65 @@ public class Purchases_List extends javax.swing.JPanel {
 
                     String selectedProduct = (String) productsCombo.getSelectedItem();
                     int productIndex = productsCombo.getSelectedIndex();
-                    int productId = productMap.get(productIndex);
+                    Integer productId = productMap.get(productIndex);
 
-                    String productName = (String) productsCombo.getSelectedItem();
+                    if(productId != null){
+                        String productName = (String) productsCombo.getSelectedItem();
 
-                    List<PurchaseListedProduct> rows = getAllRows(tableModel);
-                    for (int i = 0; i < rows.size(); i++) {
-                        // check if that product is already added
-                        if (productName.equals(rows.get(i).getName())) {
-                            JOptionPane.showMessageDialog(null, "This product is already added.");
-                            return;
-                        }
-                    }
-
-                    if (productMap.get(productIndex) == null) return;
-
-                    assert selectedProduct != null;
-                    if (!selectedProduct.equals("Select Product")) {
-                        BigDecimal totalTaxSummation = BigDecimal.ZERO;
-                        BigDecimal SubtotalSummation = BigDecimal.ZERO;
-
-
-                        for (ProductResponseDto product : products) {
-
-                            if (product.id() == productId) {
-                                BigDecimal updatedSubtotal = BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice().multiply(BigDecimal.valueOf(1.12)));
-
-                                BigDecimal taxValueForInclusive = (product.sellingPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP));
-
-                                tableModel.addRow(new Object[]{
-                                        tableModel.getRowCount() + 1, // Row number
-                                        null,
-                                        product.code(),
-                                        product.name(),
-                                        String.valueOf(product.stock()), // Ensuring stock is a String
-                                        product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().subtract(taxValueForInclusive).setScale(2, RoundingMode.HALF_UP),
-                                        product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().multiply(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().setScale(2, RoundingMode.HALF_UP),
-                                        product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.subtract((BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice()))).setScale(2, RoundingMode.HALF_UP) : taxValueForInclusive.setScale(2, RoundingMode.HALF_UP),
-                                        product.taxType().name(), // Assuming taxType() returns an enum, use name() to get String
-                                        product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.setScale(2, RoundingMode.HALF_UP) : BigDecimal.valueOf(product.stock()).multiply(product.sellingPrice()).setScale(2, RoundingMode.HALF_UP), // Subtotal calculation
-                                        "Remove"
-                                });
-                                break;
+                        List<PurchaseListedProduct> rows = getAllRows(tableModel);
+                        for (int i = 0; i < rows.size(); i++) {
+                            // check if that product is already added
+                            if (productName.equals(rows.get(i).getName())) {
+                                JOptionPane.showMessageDialog(null, "This product is already added.");
+                                return;
                             }
                         }
 
-                        for (int i = 0; i < tableModel.getRowCount(); i++) {
-                            BigDecimal totalTax = (BigDecimal) tableModel.getValueAt(i, 7);
-                            BigDecimal subTotal = (BigDecimal) tableModel.getValueAt(i, 9);
-                            totalTaxSummation = totalTaxSummation.add(totalTax);
-                            SubtotalSummation = SubtotalSummation.add(subTotal);
+                        if (productMap.get(productIndex) == null) return;
+
+                        assert selectedProduct != null;
+                        if (!selectedProduct.equals("Select Product")) {
+                            BigDecimal totalTaxSummation = BigDecimal.ZERO;
+                            BigDecimal SubtotalSummation = BigDecimal.ZERO;
+
+
+                            for (ProductResponseDto product : products) {
+
+                                if (product.id() == productId) {
+                                    BigDecimal updatedSubtotal = BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice().multiply(BigDecimal.valueOf(1.12)));
+
+                                    BigDecimal taxValueForInclusive = (product.sellingPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP));
+
+                                    tableModel.addRow(new Object[]{
+                                            tableModel.getRowCount() + 1, // Row number
+                                            null,
+                                            product.code(),
+                                            product.name(),
+                                            String.valueOf(product.stock()), // Ensuring stock is a String
+                                            product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().subtract(taxValueForInclusive).setScale(2, RoundingMode.HALF_UP),
+                                            product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().multiply(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().setScale(2, RoundingMode.HALF_UP),
+                                            product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.subtract((BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice()))).setScale(2, RoundingMode.HALF_UP) : taxValueForInclusive.setScale(2, RoundingMode.HALF_UP),
+                                            product.taxType().name(), // Assuming taxType() returns an enum, use name() to get String
+                                            product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.setScale(2, RoundingMode.HALF_UP) : BigDecimal.valueOf(product.stock()).multiply(product.sellingPrice()).setScale(2, RoundingMode.HALF_UP), // Subtotal calculation
+                                            "Remove"
+                                    });
+                                    break;
+                                }
+                            }
+
+                            for (int i = 0; i < tableModel.getRowCount(); i++) {
+                                BigDecimal totalTax = (BigDecimal) tableModel.getValueAt(i, 7);
+                                BigDecimal subTotal = (BigDecimal) tableModel.getValueAt(i, 9);
+                                totalTaxSummation = totalTaxSummation.add(totalTax);
+                                SubtotalSummation = SubtotalSummation.add(subTotal);
+                            }
+
+                            // update the computed total tax and computed subtotal
+                            computeSubtotal(SubtotalSummation);
+                            computeSubtotalTax(totalTaxSummation);
+                            computeNetTotal();
+
                         }
-
-                        // update the computed total tax and computed subtotal
-                        computeSubtotal(SubtotalSummation);
-                        computeSubtotalTax(totalTaxSummation);
-                        computeNetTotal();
-
                     }
                 });
 
@@ -1315,62 +1317,63 @@ public class Purchases_List extends javax.swing.JPanel {
 
             String selectedProduct = (String) productsCombo.getSelectedItem();
             int productIndex = productsCombo.getSelectedIndex();
-            int productId = productMap.get(productIndex);
+            Integer productId = productMap.get(productIndex);
 
-
-            List<PurchaseListedProduct> rows = getAllRows(tableModel);
-            for (int i = 0; i < rows.size(); i++) {
-                // check if that product is already added
-                if (productId == rows.get(i).getId()) {
-                    JOptionPane.showMessageDialog(null, "This product is already added.");
-                    return;
-                }
-            }
-
-            if (productMap.get(productIndex) == null) return;
-
-            assert selectedProduct != null;
-            if (!selectedProduct.equals("Select Product")) {
-                BigDecimal totalTaxSummation = BigDecimal.ZERO;
-                BigDecimal SubtotalSummation = BigDecimal.ZERO;
-
-
-                for (ProductResponseDto product : products) {
-
-                    if (product.id() == productId) {
-                        BigDecimal updatedSubtotal = BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice().multiply(BigDecimal.valueOf(1.12)));
-
-                        BigDecimal taxValueForInclusive = (product.sellingPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP));
-
-                        tableModel.addRow(new Object[]{
-                                tableModel.getRowCount() + 1, // Row number
-                                product.id(),
-                                product.code(),
-                                product.name(),
-                                String.valueOf(product.stock()), // Ensuring stock is a String
-                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().subtract(taxValueForInclusive).setScale(2, RoundingMode.HALF_UP),
-                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().multiply(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().setScale(2, RoundingMode.HALF_UP),
-                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.subtract((BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice()))).setScale(2, RoundingMode.HALF_UP) : taxValueForInclusive.setScale(2, RoundingMode.HALF_UP),
-                                product.taxType().name(), // Assuming taxType() returns an enum, use name() to get String
-                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.setScale(2, RoundingMode.HALF_UP) : BigDecimal.valueOf(product.stock()).multiply(product.sellingPrice()).setScale(2, RoundingMode.HALF_UP), // Subtotal calculation
-                                "Remove"
-                        });
-                        break;
+            if(productId != null){
+                List<PurchaseListedProduct> rows = getAllRows(tableModel);
+                for (int i = 0; i < rows.size(); i++) {
+                    // check if that product is already added
+                    if (productId == rows.get(i).getId()) {
+                        JOptionPane.showMessageDialog(null, "This product is already added.");
+                        return;
                     }
                 }
 
-                for (int i = 0; i < tableModel.getRowCount(); i++) {
-                    BigDecimal totalTax = (BigDecimal) tableModel.getValueAt(i, 7);
-                    BigDecimal subTotal = (BigDecimal) tableModel.getValueAt(i, 9);
-                    totalTaxSummation = totalTaxSummation.add(totalTax);
-                    SubtotalSummation = SubtotalSummation.add(subTotal);
+                if (productMap.get(productIndex) == null) return;
+
+                assert selectedProduct != null;
+                if (!selectedProduct.equals("Select Product")) {
+                    BigDecimal totalTaxSummation = BigDecimal.ZERO;
+                    BigDecimal SubtotalSummation = BigDecimal.ZERO;
+
+
+                    for (ProductResponseDto product : products) {
+
+                        if (product.id() == productId) {
+                            BigDecimal updatedSubtotal = BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice().multiply(BigDecimal.valueOf(1.12)));
+
+                            BigDecimal taxValueForInclusive = (product.sellingPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP));
+
+                            tableModel.addRow(new Object[]{
+                                    tableModel.getRowCount() + 1, // Row number
+                                    product.id(),
+                                    product.code(),
+                                    product.name(),
+                                    String.valueOf(product.stock()), // Ensuring stock is a String
+                                    product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().subtract(taxValueForInclusive).setScale(2, RoundingMode.HALF_UP),
+                                    product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().multiply(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().setScale(2, RoundingMode.HALF_UP),
+                                    product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.subtract((BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice()))).setScale(2, RoundingMode.HALF_UP) : taxValueForInclusive.setScale(2, RoundingMode.HALF_UP),
+                                    product.taxType().name(), // Assuming taxType() returns an enum, use name() to get String
+                                    product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.setScale(2, RoundingMode.HALF_UP) : BigDecimal.valueOf(product.stock()).multiply(product.sellingPrice()).setScale(2, RoundingMode.HALF_UP), // Subtotal calculation
+                                    "Remove"
+                            });
+                            break;
+                        }
+                    }
+
+                    for (int i = 0; i < tableModel.getRowCount(); i++) {
+                        BigDecimal totalTax = (BigDecimal) tableModel.getValueAt(i, 7);
+                        BigDecimal subTotal = (BigDecimal) tableModel.getValueAt(i, 9);
+                        totalTaxSummation = totalTaxSummation.add(totalTax);
+                        SubtotalSummation = SubtotalSummation.add(subTotal);
+                    }
+
+                    // update the computed total tax and computed subtotal
+                    computeSubtotal(SubtotalSummation);
+                    computeSubtotalTax(totalTaxSummation);
+                    computeNetTotal();
+
                 }
-
-                // update the computed total tax and computed subtotal
-                computeSubtotal(SubtotalSummation);
-                computeSubtotalTax(totalTaxSummation);
-                computeNetTotal();
-
             }
         });
 

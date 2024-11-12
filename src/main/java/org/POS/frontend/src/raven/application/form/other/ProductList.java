@@ -884,16 +884,18 @@ public class ProductList extends javax.swing.JPanel {
 
         categoryCombo.addActionListener(e -> {
             int productSubcategorySelectedIndex = categoryCombo.getSelectedIndex();
-            int productSubcategoryId = productSubcategoryMap.get(productSubcategorySelectedIndex);
+            Integer productSubcategoryId = productSubcategoryMap.get(productSubcategorySelectedIndex);
 
-            brandCombo.removeAllItems();
+            if(productSubcategoryId != null){
+                brandCombo.removeAllItems();
 
-            var brands = brandService.getAllBrandByProductSubcategoryId(productSubcategoryId);
-            brandNames.add("Select Brand");
-            brandCombo.setSelectedItem("Select Brand");
-            for (int i = 0; i < brands.size(); i++) {
-                brandNames.add(brands.get(i).name());
-                brandMap.put(i + 1, brands.get(i).id());
+                var brands = brandService.getAllBrandByProductSubcategoryId(productSubcategoryId);
+                brandNames.add("Select Brand");
+                brandCombo.setSelectedItem("Select Brand");
+                for (int i = 0; i < brands.size(); i++) {
+                    brandNames.add(brands.get(i).name());
+                    brandMap.put(i + 1, brands.get(i).id());
+                }
             }
         });
 

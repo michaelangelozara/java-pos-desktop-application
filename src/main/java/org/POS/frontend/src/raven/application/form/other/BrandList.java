@@ -479,12 +479,14 @@ public class BrandList extends javax.swing.JPanel {
         ProductSubcategoryService productSubcategoryService = new ProductSubcategoryService();
         categoryCombo.addActionListener(e -> {
             int categoryIndex = categoryCombo.getSelectedIndex();
-            int categoryId = categoryMap.get(categoryIndex);
+            Integer categoryId = categoryMap.get(categoryIndex);
 
-            var subcategories = productSubcategoryService.getAllValidSubcategoriesByCategoryId(categoryId);
-            for (int i = 0; i < subcategories.size(); i++) {
-                subCategoryNames.add(subcategories.get(i).name());
-                subcategyMap.put(i + 1, subcategories.get(i).id());
+            if(categoryId != null){
+                var subcategories = productSubcategoryService.getAllValidSubcategoriesByCategoryId(categoryId);
+                for (int i = 0; i < subcategories.size(); i++) {
+                    subCategoryNames.add(subcategories.get(i).name());
+                    subcategyMap.put(i + 1, subcategories.get(i).id());
+                }
             }
         });
 

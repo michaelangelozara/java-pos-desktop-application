@@ -638,15 +638,18 @@ public class Expenses_List extends javax.swing.JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int selectCategoryIndex = categoryCombo.getSelectedIndex();
-                int categoryId = categoryMap.get(selectCategoryIndex);
-                var subcategories = expenseSubcategoryService.getAllValidExpenseSubcategoriesByExpenseCategoryId(categoryId);
+                Integer categoryId = categoryMap.get(selectCategoryIndex);
 
-                // clear all subcategories
-                subCategoryCombo.removeAllItems();
-                subCategoryCombo.addItem("Select a subcategory");
-                for (int i = 1; i < subcategories.size() + 1; i++) {
-                    subCategoryCombo.addItem(subcategories.get(i - 1).name());
-                    subcategoryMap.put(i, subcategories.get(i - 1).id());
+                if(categoryId != null){
+                    var subcategories = expenseSubcategoryService.getAllValidExpenseSubcategoriesByExpenseCategoryId(categoryId);
+
+                    // clear all subcategories
+                    subCategoryCombo.removeAllItems();
+                    subCategoryCombo.addItem("Select a subcategory");
+                    for (int i = 1; i < subcategories.size() + 1; i++) {
+                        subCategoryCombo.addItem(subcategories.get(i - 1).name());
+                        subcategoryMap.put(i, subcategories.get(i - 1).id());
+                    }
                 }
             }
         });
