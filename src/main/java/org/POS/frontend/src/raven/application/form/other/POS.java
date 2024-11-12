@@ -39,8 +39,11 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.*;
+import java.util.Timer;
 
 public class POS extends JPanel {
+
+    private Timer timer;
 
     private Vector<String> clientNames;
 
@@ -51,6 +54,8 @@ public class POS extends JPanel {
     private ActionListener clientActionListener;
 
     private List<PurchaseListedProduct> selectedItems;
+
+    private Integer recentSubcategoryId = null;
 
     public POS() {
         selectedItems = new ArrayList<>();
@@ -232,19 +237,12 @@ public class POS extends JPanel {
             JComboBox<String> productSubcategoryCombo = new JComboBox<>(subcategoryCombo);
             int productSubcategorySelectedIndex = productSubcategoryCombo.getSelectedIndex();
             int productSubcategoryId = productSubcategoryMap.get(productSubcategorySelectedIndex);
-            var productsUnderSubcategory = productService.getAllValidProductByProductSubcategoryId(productSubcategoryId, true);
-            for (int i = 0; i < productsUnderSubcategory.size(); i++) {
-                addItem(new ModelItem(
-                        productsUnderSubcategory.get(i).id(),
-                        productsUnderSubcategory.get(i).name(),
-                        "",
-                        productsUnderSubcategory.get(i).sellingPrice().doubleValue(),
-                        productsUnderSubcategory.get(i).brand().name(),
-                        productsUnderSubcategory.get(i).image() != null ? new ImageIcon(getImage(productsUnderSubcategory.get(i).image())) : new ImageIcon()
-                ));
-            }
-            panelItem.repaint();
-            panelItem.revalidate();
+
+            // load all the products that under the selected category
+            loadProductsUnderSubcategoryId(productSubcategoryId);
+
+            // assign the last subcategory id
+            recentSubcategoryId = productSubcategoryId;
         };
 
         jComboBox2.addActionListener(evt -> {
@@ -273,7 +271,22 @@ public class POS extends JPanel {
             }
         });
 
-        jTextField1.setText("Search");
+        jTextField1.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+        });
 
         GroupLayout jPanel2Layout = new GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -655,6 +668,61 @@ public class POS extends JPanel {
                         .addComponent(jPanel1, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void loadProductsUnderSubcategoryId(int subcategoryId){
+        ProductService productService = new ProductService();
+        var productsUnderSubcategory = productService.getAllValidProductByProductSubcategoryId(subcategoryId, true);
+        for (int i = 0; i < productsUnderSubcategory.size(); i++) {
+            addItem(new ModelItem(
+                    productsUnderSubcategory.get(i).id(),
+                    productsUnderSubcategory.get(i).name(),
+                    "",
+                    productsUnderSubcategory.get(i).sellingPrice().doubleValue(),
+                    productsUnderSubcategory.get(i).brand().name(),
+                    productsUnderSubcategory.get(i).image() != null ? new ImageIcon(getImage(productsUnderSubcategory.get(i).image())) : new ImageIcon()
+            ));
+        }
+    }
+
+    private void scheduleQuery() {
+        if (timer != null) {
+            timer.cancel(); // Cancel any existing scheduled query
+        }
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                filterList();
+            }
+        }, 400); // Delay of 300 ms
+    }
+
+    private void filterList() {
+        String name = jTextField1.getText();
+
+        if (name.isEmpty() && recentSubcategoryId != null) {
+            panelItem.removeAll();
+            loadProductsUnderSubcategoryId(recentSubcategoryId);
+            return;
+        }
+
+        ProductService productService = new ProductService();
+        var products = productService.getAllValidProductByName(name);
+
+        // remove all items from the item panel
+        panelItem.removeAll();
+
+        for (int i = 0; i < products.size(); i++) {
+            addItem(new ModelItem(
+                    products.get(i).id(),
+                    products.get(i).name(),
+                    "",
+                    products.get(i).sellingPrice().doubleValue(),
+                    products.get(i).brand().name(),
+                    products.get(i).image() != null ? new ImageIcon(getImage(products.get(i).image())) : new ImageIcon()
+            ));
+        }
+    }
 
     private void computeTotalTax() {
         BigDecimal netTotal = new BigDecimal(jLabel7.getText());
