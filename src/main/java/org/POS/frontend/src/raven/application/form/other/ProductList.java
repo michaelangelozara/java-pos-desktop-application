@@ -115,7 +115,7 @@ public class ProductList extends javax.swing.JPanel {
                 panel.add(productSubcategoryCombo, gbc);
 
                 for (int i = 0; i < productSubcategories.size(); i++) {
-                    if (productSubcategories.get(i).id() == product.brand().productSubcategory().id()) {
+                    if (productSubcategories.get(i).id() == product.brand().productSubcategory().getId()) {
                         productSubcategoryCombo.removeAllItems();
 
                         productSubcategoryNames.add("Select Subcategory");
@@ -136,7 +136,7 @@ public class ProductList extends javax.swing.JPanel {
                 panel.add(brandLabel, gbc);
 
                 gbc.gridx = 1;
-                var tempBrands = brandService.getAllBrandByProductSubcategoryId(product.brand().productSubcategory().id());
+                var tempBrands = brandService.getAllBrandByProductSubcategoryId(product.brand().productSubcategory().getId());
                 JComboBox<String> brandCombo = new JComboBox<>();
                 brandCombo.setFont(regularFont);
                 panel.add(brandCombo, gbc);
@@ -474,7 +474,7 @@ public class ProductList extends javax.swing.JPanel {
                 label.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 label.setOpaque(true);
                 detailsPanel.add(label);
-                detail = new JLabel(product.brand().productSubcategory().name(), horizontalAlignment);
+                detail = new JLabel(product.brand().productSubcategory().getName(), horizontalAlignment);
                 detail.setFont(new Font("Arial", Font.PLAIN, 16));
                 detail.setBorder(BorderFactory.createCompoundBorder(border, padding));  // Add border and padding
                 detail.setOpaque(true);
@@ -1069,7 +1069,7 @@ public class ProductList extends javax.swing.JPanel {
                     i + 1,
                     products.get(i).id(),
                     products.get(i).code(),
-                    products.get(i).brand().productSubcategory().name(),
+                    products.get(i).brand().productSubcategory().getName(),
                     products.get(i).name(),
                     products.get(i).model(),
                     products.get(i).unit().name(),

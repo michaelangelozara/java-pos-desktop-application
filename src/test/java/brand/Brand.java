@@ -14,7 +14,7 @@ public class Brand {
         AddBrandRequestDto dto = new AddBrandRequestDto(
                 "Tata Tiscon",
                 BrandStatus.ACTIVE,
-                3
+                1
         );
         brandService.add(dto);
     }

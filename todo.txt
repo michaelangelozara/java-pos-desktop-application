@@ -1,2 +1,3 @@
-Purchase
-    getting/casting values from table error
+vat tax of the POS
+the customer shouldn't make a transaction if the product is out of stock
+Search mechanism

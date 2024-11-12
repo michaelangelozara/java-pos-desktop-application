@@ -388,7 +388,7 @@ public class Purchases_List extends javax.swing.JPanel {
                 totalTaxProductLabel = new JLabel();
                 totalTaxProductLabel.setFont(summaryFont);
                 totalTaxProductLabel.setHorizontalAlignment(SwingConstants.LEFT);
-                totalTaxProductLabel.setText("0");
+                totalTaxProductLabel.setText(String.valueOf(purchase.subtotalTax()));
                 summaryPanel.add(totalTaxProductLabel, gbcSummary);
 
                 gbcSummary.gridx = 3;
@@ -401,7 +401,7 @@ public class Purchases_List extends javax.swing.JPanel {
                 subtotalLabel = new JLabel();
                 subtotalLabel.setFont(summaryFont);
                 subtotalLabel.setHorizontalAlignment(SwingConstants.LEFT);
-                subtotalLabel.setText("0");
+                subtotalLabel.setText(String.valueOf(purchase.netSubtotal()));
                 summaryPanel.add(subtotalLabel, gbcSummary);
 
                 gbc.gridx = 0;
@@ -420,6 +420,7 @@ public class Purchases_List extends javax.swing.JPanel {
 
                 gbc.gridx = 1;
                 JTextField poReferenceField = new JTextField(10);
+                poReferenceField.setText(purchase.purchaseOrderReference());
                 panel.add(poReferenceField, gbc);
 
                 gbc.gridx = 2;
@@ -429,6 +430,7 @@ public class Purchases_List extends javax.swing.JPanel {
 
                 gbc.gridx = 3;
                 JTextField paymentTermsField = new JTextField(10);
+                paymentTermsField.setText(purchase.paymentTerm());
                 panel.add(paymentTermsField, gbc);
 
                 gbc.gridx = 4;
@@ -449,7 +451,7 @@ public class Purchases_List extends javax.swing.JPanel {
 
                 gbc.gridx = 7;
                 totalTaxField = new JTextField(10);
-                totalTaxField.setText("0");
+                totalTaxField.setText(String.valueOf(purchase.totalTax()));
                 panel.add(totalTaxField, gbc);
                 totalTaxField.setEnabled(false);
 
@@ -465,7 +467,7 @@ public class Purchases_List extends javax.swing.JPanel {
 
                 gbc.gridx = 1;
                 discountField = new JTextField(10);
-                discountField.setText("0");
+                discountField.setText(String.valueOf(purchase.discount()));
                 panel.add(discountField, gbc);
 
                 discountField.addFocusListener(new FocusListener() {
@@ -494,7 +496,7 @@ public class Purchases_List extends javax.swing.JPanel {
 
                 gbc.gridx = 3;
                 transportCostField = new JTextField(10);
-                transportCostField.setText("0");
+                transportCostField.setText(String.valueOf(purchase.transport()));
                 panel.add(transportCostField, gbc);
 
 
@@ -528,6 +530,7 @@ public class Purchases_List extends javax.swing.JPanel {
 
                 gbc.gridx = 1;
                 JTextField accountField = new JTextField();
+                accountField.setText(purchase.account());
                 panel.add(accountField, gbc);
 
                 gbc.gridx = 2;
@@ -537,6 +540,7 @@ public class Purchases_List extends javax.swing.JPanel {
 
                 gbc.gridx = 3;
                 JTextField chequeNoField = new JTextField(10);
+                chequeNoField.setText("This should be deleted");
                 panel.add(chequeNoField, gbc);
 
                 gbc.gridx = 4;
@@ -546,6 +550,8 @@ public class Purchases_List extends javax.swing.JPanel {
 
                 gbc.gridx = 5;
                 JTextField receiptNoField = new JTextField(10);
+                receiptNoField.setText(purchase.code());
+                receiptNoField.setEnabled(false);
                 panel.add(receiptNoField, gbc);
 
                 // Shift remaining rows down by one row
@@ -559,6 +565,7 @@ public class Purchases_List extends javax.swing.JPanel {
                 gbc.gridx = 1;
                 gbc.gridwidth = 7;
                 JTextArea noteArea = new JTextArea(3, 50);
+                noteArea.setText(purchase.note());
                 panel.add(new JScrollPane(noteArea), gbc);
 
                 // Adjusting other elements to fit below the new Discount and Transport Cost row
@@ -570,7 +577,7 @@ public class Purchases_List extends javax.swing.JPanel {
                 panel.add(purchaseDateLabel, gbc);
 
                 gbc.gridx = 1;
-                JDatePickerImpl purchaseDatePicker = createDatePicker();
+                JDatePickerImpl purchaseDatePicker = createDatePicker(purchase.purchaseDate());
                 panel.add(purchaseDatePicker, gbc);
 
                 gbc.gridx = 2;
@@ -579,7 +586,7 @@ public class Purchases_List extends javax.swing.JPanel {
                 panel.add(poDateLabel, gbc);
 
                 gbc.gridx = 3;
-                JDatePickerImpl poDatePicker = createDatePicker();
+                JDatePickerImpl poDatePicker = createDatePicker(purchase.poDate());
                 panel.add(poDatePicker, gbc);
 
                 gbc.gridx = 4;
@@ -589,6 +596,7 @@ public class Purchases_List extends javax.swing.JPanel {
 
                 gbc.gridx = 5;
                 JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Active", "Inactive"});
+                statusCombo.setSelectedItem(purchase.status().equals(PurchaseStatus.ACTIVE) ? "Active" : "Inactive");
                 panel.add(statusCombo, gbc);
 
                 // Shift remaining elements down one row to make space for the new panel
@@ -611,7 +619,7 @@ public class Purchases_List extends javax.swing.JPanel {
                 totalGbc.gridx = 1;
                 totalGbc.gridwidth = 2;
                 totalPaidField = new JTextField(10); // Regular text field for Total Paid
-                totalPaidField.setText("0");
+                totalPaidField.setText(String.valueOf(purchase.totalPaid()));
                 totalPanel.add(totalPaidField, totalGbc);
 
                 totalPaidField.addFocusListener(new FocusListener() {
@@ -649,7 +657,7 @@ public class Purchases_List extends javax.swing.JPanel {
                 netTotalField = new JTextField(); // Placeholder for Net Total display
                 netTotalField.setFont(new Font("Arial", Font.BOLD, 24)); // Set to larger, bold font
                 netTotalField.setEnabled(false);
-                netTotalField.setText("0");
+                netTotalField.setText(String.valueOf(purchase.netTotal()));
                 totalPanel.add(netTotalField, totalGbc);
 
                 // Add the new Total Panel to the main panel
@@ -657,6 +665,7 @@ public class Purchases_List extends javax.swing.JPanel {
                 gbc.gridy = 8;
                 gbc.gridwidth = 8; // Span the entire row for alignment
                 panel.add(totalPanel, gbc);
+
 
                 // Show the panel in a dialog
                 int result = JOptionPane.showConfirmDialog(null, panel, "Create Purchase Order", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
@@ -738,8 +747,6 @@ public class Purchases_List extends javax.swing.JPanel {
                     );
 
                     purchaseService.update(dto);
-
-                    // Process the collected data...
                 }
                 loadPurchases();
             }
@@ -750,6 +757,21 @@ public class Purchases_List extends javax.swing.JPanel {
                 // Set the current date
                 LocalDate currentDate = LocalDate.now();
                 model.setDate(currentDate.getYear(), currentDate.getMonthValue() - 1, currentDate.getDayOfMonth());
+                model.setSelected(true);  // Automatically selects the current date
+
+                Properties p = new Properties();
+                p.put("text.today", "Today");
+                p.put("text.month", "Month");
+                p.put("text.year", "Year");
+
+                JDatePanelImpl datePanel = new JDatePanelImpl(model, p);
+                return new JDatePickerImpl(datePanel, new DateLabelFormatter());
+            }
+
+            private JDatePickerImpl createDatePicker(LocalDate localDate) {
+                UtilDateModel model = new UtilDateModel();
+                // Set the current date
+                model.setDate(localDate.getYear(), localDate.getMonthValue() - 1, localDate.getDayOfMonth());
                 model.setSelected(true);  // Automatically selects the current date
 
                 Properties p = new Properties();
@@ -846,9 +868,12 @@ public class Purchases_List extends javax.swing.JPanel {
 
                 if (confirmation == JOptionPane.YES_OPTION) {
                     DefaultTableModel model = (DefaultTableModel) table.getModel();
-                    model.removeRow(row);
+                    int purchaseId = (Integer) model.getValueAt(row, 1);
+                    PurchaseService purchaseService = new PurchaseService();
+                    purchaseService.delete(purchaseId);
                     JOptionPane.showMessageDialog(null, "Product Deleted Successfully",
                             "Deleted", JOptionPane.INFORMATION_MESSAGE);
+                    loadPurchases();
                 }
             }
 
@@ -1151,7 +1176,7 @@ public class Purchases_List extends javax.swing.JPanel {
             int row = e.getFirstRow();
             int column = e.getColumn();
 
-            if (column == 4 || column == 5 || column == 6) { // Check if it's the "Quantity" or "Purchase Price" column
+            if (column == 4 || column == 5 || column == 6) { // Check if it's the "Quantity", "Selling" or "Purchase Price" column
                 List<PurchaseListedProduct> insertedRows = getAllRows(tableModel);
 
                 // this is for specific selected column or cell
@@ -1708,6 +1733,7 @@ public class Purchases_List extends javax.swing.JPanel {
 
             purchaseService.add(dto, purchaseItemRequestDtoSet);
             JOptionPane.showMessageDialog(null, "Purchase added");
+            loadPurchases();
         }
     }
 
@@ -1729,7 +1755,6 @@ public class Purchases_List extends javax.swing.JPanel {
 
         BigDecimal totalNet = ((subtotalTax.add(subtotalNet).add(transportCost).add(totalTax)).subtract(discount)).subtract(totalPaid);
         netTotalField.setText(String.valueOf(totalNet));
-        System.out.println(totalNet);
     }
 
     private void computeTotalTax() {

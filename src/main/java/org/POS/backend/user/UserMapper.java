@@ -1,18 +1,28 @@
 package org.POS.backend.user;
 
+import org.POS.backend.code_generator.CodeGeneratorService;
+import org.POS.backend.global_variable.GlobalVariable;
+import org.mindrot.jbcrypt.BCrypt;
+
 import java.time.LocalDate;
 import java.util.List;
 
 public class UserMapper {
 
+    private CodeGeneratorService codeGeneratorService;
+
+    public UserMapper(){
+        this.codeGeneratorService = new CodeGeneratorService();
+    }
+
     public User toUser(AddUserRequestDto dto){
         User user = new User();
         user.setName(dto.name());
-        user.setEmployeeId(dto.userId());
+        user.setEmployeeId(this.codeGeneratorService.generateProductCode(GlobalVariable.USER_PREFIX));
         user.setContactNumber(dto.contactNumber());
         user.setRole(dto.role());
         user.setUsername(dto.username());
-        user.setPassword(dto.password());
+        user.setPassword(BCrypt.hashpw(dto.password(), BCrypt.gensalt()));
         user.setEmail(dto.email());
         user.setStatus(dto.status());
         user.setCreatedAt(LocalDate.now());
@@ -47,6 +57,7 @@ public class UserMapper {
 
     public UserResponseDto toUserResponseDto(User user){
         return new UserResponseDto(
+                user.getId(),
                 user.getName(),
                 user.getEmployeeId(),
                 user.getContactNumber(),

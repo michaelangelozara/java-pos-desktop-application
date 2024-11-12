@@ -26,7 +26,7 @@ public class UserDAO {
 
            session.getTransaction().commit();
        } catch (Exception e){
-           System.out.println("Error saving user: " + e.getMessage());
+           throw new IllegalArgumentException("Username is already existing.");
        }
     }
 
@@ -100,6 +100,18 @@ public class UserDAO {
 
             if(!user.getExpenses().isEmpty()){
                 Hibernate.initialize(user.getExpenses());
+            }
+
+            if(!user.getOpenCashes().isEmpty()){
+                Hibernate.initialize(user.getOpenCashes());
+            }
+
+            if(!user.getCashTransactions().isEmpty()){
+                Hibernate.initialize(user.getCashTransactions());
+            }
+
+            if(!user.getPurchases().isEmpty()){
+                Hibernate.initialize(user.getPurchases());
             }
 
             session.getTransaction().commit();

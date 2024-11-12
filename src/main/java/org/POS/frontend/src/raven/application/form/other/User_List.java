@@ -1,7 +1,10 @@
 
 package org.POS.frontend.src.raven.application.form.other;
 
+import org.POS.backend.user.AddUserRequestDto;
+import org.POS.backend.user.UserRole;
 import org.POS.backend.user.UserService;
+import org.POS.backend.user.UserStatus;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
 import org.POS.frontend.src.raven.cell.TableActionEvent;
@@ -18,11 +21,6 @@ public class User_List extends javax.swing.JPanel {
 
     public User_List() {
         initComponents();
-        Object[][] supplierSampleData = {
-//                {1, "supplier1.jpg", "S001", "Syke Raphael Suarez", "123-456-7890", "syke.raphael@example.com", "Best Supplies Co.", "Active", "Action"},
-//                {2, "supplier2.jpg", "S002", "Cindy Castanares", "987-654-3210", "cindy.castanares@example.com", "Global Tech", "Active", "Action"},
-//                {3, "supplier3.jpg", "S003", "Debbie Castanares", "555-123-4567", "debbie.castanares@example.com", "Johnson Enterprises", "Active", "Action"}
-        };
 
         // Create a DefaultTableModel and set it to the table
         DefaultTableModel model = (DefaultTableModel) table.getModel();
@@ -85,7 +83,7 @@ public class User_List extends javax.swing.JPanel {
         for (int i = 0; i < users.size(); i++) {
             model.addRow(new Object[]{
                     i + 1,
-                    users.get(i).employeeId(),
+                    users.get(i).id(),
                     users.get(i).name(),
                     users.get(i).role().name(),
                     users.get(i).username(),
@@ -347,12 +345,24 @@ public class User_List extends javax.swing.JPanel {
             String contactNumber = contactNumberField.getText();
             String status = (String) statusCombo.getSelectedItem();
 
-            // Perform your submission logic here
-            // Example DTO and Service call
-            // UserDto dto = new UserDto(userId, name, role, username, password, email, contactNumber, status);
-            // userService.addUser(dto);
-
-            JOptionPane.showMessageDialog(null, "User information saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            UserService userService = new UserService();
+            AddUserRequestDto dto = new AddUserRequestDto(
+                    name,
+                    role.equals("Cashier") ? UserRole.CASHIER : role.equals("Admin") ? UserRole.ADMIN : role.equals("Manager") ? UserRole.MANAGER : null,
+                    username,
+                    password,
+                    email,
+                    contactNumber,
+                    status.equals("Active") ? UserStatus.ACTIVE : UserStatus.INACTIVE
+            );
+            try{
+                userService.add(dto);
+                JOptionPane.showMessageDialog(null, "User information saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadUsers();
+            }catch (Exception e){
+                JOptionPane.showMessageDialog(null, e.getMessage(), "Failed", JOptionPane.WARNING_MESSAGE);
+                e.printStackTrace();
+            }
             // Refresh or perform additional actions if needed
         }
     }//GEN-LAST:event_jButton1ActionPerformed

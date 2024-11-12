@@ -1,6 +1,7 @@
 package org.POS.backend.sale;
 
 import jakarta.transaction.Transactional;
+import org.POS.backend.cash_transaction.CashTransaction;
 import org.POS.backend.configuration.HibernateUtil;
 import org.POS.backend.product.Product;
 import org.POS.backend.sale_item.SaleItem;
@@ -32,7 +33,35 @@ public class SaleDAO {
             }
             transaction.commit();
         } catch (Exception e) {
-            if (transaction != null) {
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        }
+        return sale;
+    }
+
+    public Sale add(Sale sale, List<SaleItem> saleItems, List<Product> products, List<Stock> stocks, CashTransaction cashTransaction) {
+        Transaction transaction = null;
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.beginTransaction();
+            sale.setCashTransaction(cashTransaction);
+            session.persist(sale);
+            for (var saleItem : saleItems) {
+                session.persist(saleItem);
+            }
+            for (var stock : stocks) {
+                session.persist(stock);
+            }
+
+            session.persist(cashTransaction);
+
+            for (var product : products) {
+                session.merge(product);
+            }
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null && transaction.isActive()) {
                 transaction.rollback();
             }
             e.printStackTrace();

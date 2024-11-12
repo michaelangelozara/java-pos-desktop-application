@@ -1,6 +1,7 @@
 package org.POS.backend.brand;
 
 import org.POS.backend.configuration.HibernateUtil;
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
@@ -94,19 +95,20 @@ public class BrandDAO {
     }
 
     public Brand getValidBrandById(int brandId){
+        Brand brand = null;
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            Brand brand = session.createQuery("SELECT b FROM Brand b LEFT JOIN FETCH b.productSubcategory WHERE b.id = :brandId AND b.isDeleted = FALSE", Brand.class)
+            brand = session.createQuery("SELECT b FROM Brand b LEFT JOIN FETCH b.productSubcategory WHERE b.id = :brandId AND b.isDeleted = FALSE", Brand.class)
                     .setParameter("brandId", brandId)
                     .getSingleResult();
 
+            Hibernate.initialize(brand.getProductSubcategory());
+            Hibernate.initialize(brand.getProductSubcategory().getProductCategory());
             session.getTransaction().commit();
-            return brand;
         }catch (Exception e){
             System.out.println(e.getMessage());
         }
-
-        return null;
+        return brand;
     }
 }

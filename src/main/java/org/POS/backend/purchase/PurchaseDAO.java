@@ -23,7 +23,6 @@ public class PurchaseDAO {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
-
             session.persist(purchase);
             for (var purchaseItem : purchaseItems) {
                 session.persist(purchaseItem);
@@ -38,14 +37,17 @@ public class PurchaseDAO {
     }
 
     public void update(Purchase purchase) {
+        Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
-            session.beginTransaction();
+            transaction = session.beginTransaction();
 
             session.merge(purchase);
-            session.flush();
 
-            session.getTransaction().commit();
+            transaction.commit();
         } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
             e.printStackTrace();
         }
     }

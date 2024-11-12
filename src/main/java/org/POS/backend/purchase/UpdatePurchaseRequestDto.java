@@ -8,7 +8,7 @@ import java.util.List;
 
 public record UpdatePurchaseRequestDto(
         int purchaseId,
-        List<UpdatePurchaseItemRequestDto> purchaseProducts,
+        List<UpdatePurchaseItemRequestDto> purchaseItems,
         String purchaseOrderReference,
         String paymentTerm,
         double purchaseTax,

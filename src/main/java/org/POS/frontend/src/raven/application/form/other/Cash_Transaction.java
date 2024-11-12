@@ -401,16 +401,16 @@ public void onView(int row) {
 
         table.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null}
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "#", "Transaction ID", "Reference", "Cash IN", "Cash OUT", "Payment Method", "User", "Status", "Action"
+                "#", "Transaction ID", "Reference", "Cash IN", "Cash OUT", "Payment Method", "User", "Date & Time", "Status", "Action"
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false, false, true
+                false, false, false, false, false, false, false, true, false, true
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -427,7 +427,7 @@ public void onView(int row) {
             table.getColumnModel().getColumn(4).setResizable(false);
             table.getColumnModel().getColumn(5).setResizable(false);
             table.getColumnModel().getColumn(6).setResizable(false);
-            table.getColumnModel().getColumn(7).setResizable(false);
+            table.getColumnModel().getColumn(8).setResizable(false);
         }
 
         jButton2.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N

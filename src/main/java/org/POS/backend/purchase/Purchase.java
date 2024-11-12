@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.POS.backend.person.Person;
 import org.POS.backend.purchased_item.PurchaseItem;
+import org.POS.backend.user.User;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -89,10 +90,14 @@ public class Purchase {
     private String chequeNumber;
 
     @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @ManyToOne
     @JoinColumn(name = "person_id")
     private Person person;
 
-    @OneToMany(mappedBy = "purchase", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PurchaseItem> purchaseItems = new ArrayList<>();
 
     public void addPurchaseItem(PurchaseItem purchaseItem) {

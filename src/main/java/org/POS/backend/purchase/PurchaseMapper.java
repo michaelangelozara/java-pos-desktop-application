@@ -9,6 +9,7 @@ import org.POS.backend.purchased_item.PurchaseItemMapper;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +30,7 @@ public class PurchaseMapper {
     public Purchase toPurchase(AddPurchaseRequestDto dto) {
         Purchase purchase = new Purchase();
         purchase.setPoReference(dto.purchaseOrderReference());
+        purchase.setCreatedDate(LocalDate.now());
 
         purchase.setPaymentTerm(dto.paymentTerm());
         purchase.setPurchaseTax(12);
@@ -64,8 +66,8 @@ public class PurchaseMapper {
         purchase.setChequeNumber(dto.chequeNumber());
         purchase.setReceiptNumber(dto.receiptNumber());
         purchase.setNote(dto.note());
-        purchase.setPurchaseDate(dto.purchaseDate());
-        purchase.setPurchaseOrderDate(dto.purchaseOrderDate());
+//        purchase.setPurchaseDate(dto.purchaseDate());
+//        purchase.setPurchaseOrderDate(dto.purchaseOrderDate());
         purchase.setStatus(dto.status());
 
         BigDecimal netTotal = (dto.subtotalTax().add(dto.netSubtotal()).add(dto.transportCost()).add(dto.totalTax())).subtract(dto.discount()).setScale(2, RoundingMode.HALF_UP);

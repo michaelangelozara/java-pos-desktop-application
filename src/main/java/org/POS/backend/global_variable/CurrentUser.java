@@ -7,4 +7,6 @@ public class CurrentUser {
     public static String employeeId = "";
 
     public static String username = "";
+
+    public static boolean isPosLoginSetup = false;
 }

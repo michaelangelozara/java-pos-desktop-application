@@ -32,7 +32,7 @@ public class PurchaseItemService {
 //                .collect(Collectors.toSet());
 //
 //        Set<Product> products = this.productDAO.getAllValidProductsByProductIds(productIds);
-//        List<PurchaseProduct> purchaseProducts = new ArrayList<>();
+//        List<PurchaseProduct> purchaseItems = new ArrayList<>();
 //
 //        // Build purchase-product relationships
 //        for (var product : products) {
@@ -44,7 +44,7 @@ public class PurchaseItemService {
 //
 //                    purchaseProduct.setProduct(product);
 //                    purchaseProduct.setPurchase(purchase);
-//                    purchaseProducts.add(purchaseProduct);
+//                    purchaseItems.add(purchaseProduct);
 //                    break;
 //                }
 //            }
@@ -52,23 +52,23 @@ public class PurchaseItemService {
 //        return GlobalVariable.PURCHASE_PRODUCT_ADDED;
 //    }
 
-//    public void update(List<UpdatePurchaseProductRequestDto> purchaseProducts, Purchase purchase){
+//    public void update(List<UpdatePurchaseProductRequestDto> purchaseItems, Purchase purchase){
 //        List<PurchaseItem> prurchaseProductList = new ArrayList<>();
-//        for(int i = 0 ; i < purchaseProducts.size(); i++){
+//        for(int i = 0 ; i < purchaseItems.size(); i++){
 //            var purchaseProduct = new PurchaseItem();
-//            purchaseProduct.setId(purchaseProducts.get(i).purchaseProductId() == null ? null : purchaseProducts.get(i).purchaseProductId());
-//            purchaseProduct.setQuantity(purchaseProducts.get(i).quantity());
-//            purchaseProduct.setPurchasePrice(purchaseProducts.get(i).purchasePrice());
-//            purchaseProduct.setSellingPrice(purchaseProducts.get(i).sellingPrice());
-//            purchaseProduct.setTax(purchaseProducts.get(i).taxValue());
-//            purchaseProduct.setSubtotal(purchaseProducts.get(i).subtotal());
-//            purchaseProduct.setProductCode(purchaseProducts.get(i).productCode());
+//            purchaseProduct.setId(purchaseItems.get(i).purchaseItemId() == null ? null : purchaseItems.get(i).purchaseItemId());
+//            purchaseProduct.setQuantity(purchaseItems.get(i).quantity());
+//            purchaseProduct.setPurchasePrice(purchaseItems.get(i).purchasePrice());
+//            purchaseProduct.setSellingPrice(purchaseItems.get(i).sellingPrice());
+//            purchaseProduct.setTax(purchaseItems.get(i).taxValue());
+//            purchaseProduct.setSubtotal(purchaseItems.get(i).subtotal());
+//            purchaseProduct.setProductCode(purchaseItems.get(i).productCode());
 //            prurchaseProductList.add(purchaseProduct);
 //        }
 //
 //        List<String> codes = new ArrayList<>();
-//        for(int i = 0; i < purchaseProducts.size(); i++){
-//            codes.add(purchaseProducts.get(i).productCode());
+//        for(int i = 0; i < purchaseItems.size(); i++){
+//            codes.add(purchaseItems.get(i).productCode());
 //        }
 //
 //        var products = this.productDAO.getAllValidProductByProductCode(codes);

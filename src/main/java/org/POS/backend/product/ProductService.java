@@ -67,8 +67,8 @@ public class ProductService {
         return this.productMapper.productResponseDtoList(this.productDAO.getAllValidProductsBelowAlertQuantity());
     }
 
-    public List<ProductResponseDto> getAllValidProductByProductSubcategoryId(int productSubcategoryId){
-        return this.productMapper.productResponseDtoList(this.productDAO.getAllValidProductsByProductSubcategoryId(productSubcategoryId));
+    public List<ProductResponseDto> getAllValidProductByProductSubcategoryId(int productSubcategoryId, boolean isGreaterThanZero){
+        return this.productMapper.productResponseDtoList(this.productDAO.getAllValidProductsByProductSubcategoryId(productSubcategoryId, isGreaterThanZero));
     }
 
     public List<Product> getAllProductWithStockBySubcategoryId(int subcategoryId){

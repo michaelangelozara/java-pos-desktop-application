@@ -6,8 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.POS.backend.brand.BrandService;
+import org.POS.backend.cash_transaction.CashTransactionPaymentMethod;
 import org.POS.backend.cryptography.Base64Converter;
-import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.person.AddPersonRequestDto;
 import org.POS.backend.person.PersonService;
 import org.POS.backend.person.PersonStatus;
@@ -54,7 +54,6 @@ public class POS extends JPanel {
 
     public POS() {
         selectedItems = new ArrayList<>();
-
         initComponents();
     }
 
@@ -233,7 +232,7 @@ public class POS extends JPanel {
             JComboBox<String> productSubcategoryCombo = new JComboBox<>(subcategoryCombo);
             int productSubcategorySelectedIndex = productSubcategoryCombo.getSelectedIndex();
             int productSubcategoryId = productSubcategoryMap.get(productSubcategorySelectedIndex);
-            var productsUnderSubcategory = productService.getAllValidProductByProductSubcategoryId(productSubcategoryId);
+            var productsUnderSubcategory = productService.getAllValidProductByProductSubcategoryId(productSubcategoryId, true);
             for (int i = 0; i < productsUnderSubcategory.size(); i++) {
                 addItem(new ModelItem(
                         productsUnderSubcategory.get(i).id(),
@@ -377,16 +376,38 @@ public class POS extends JPanel {
                 List<PurchaseListedProduct> products = getAllRows();
 
                 model.setRowCount(0);
-
+                Integer insufficientIndexOccurred = null;
                 for (int i = 0; i < products.size(); i++) {
                     if (products.get(i).getId() == productId) {
+
+                        var fetchedProduct = productService.getValidProductById(productId);
+                        // check if the product's stock is sufficient
+                        if(fetchedProduct.stock() < products.get(i).getQuantity()){
+                            JOptionPane.showMessageDialog(null, "The remaining quantity is only : " + fetchedProduct.stock(), "Insufficient quantity", JOptionPane.PLAIN_MESSAGE);
+                            insufficientIndexOccurred = i;
+                            continue;
+                        }
+
                         products.get(i).setSubtotal((BigDecimal.valueOf(products.get(i).getQuantity()).multiply(products.get(i).getPrice())).setScale(2, RoundingMode.HALF_UP));
                     }
                 }
 
                 for (int i = 0; i < products.size(); i++) {
+                    if(insufficientIndexOccurred != null && i == insufficientIndexOccurred){
+                        model.addRow(new Object[]{
+                                i + 1,
+                                products.get(i).getId(),
+                                products.get(i).getName(),
+                                products.get(i).getPrice(),
+                                1,
+                                products.get(i).getPrice(),
+                                "Remove"
+                        });
+                        continue;
+                    }
+
                     model.addRow(new Object[]{
-                            i+1,
+                            i + 1,
                             products.get(i).getId(),
                             products.get(i).getName(),
                             products.get(i).getPrice(),
@@ -1292,6 +1313,7 @@ public class POS extends JPanel {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // Creating a JPanel with GridBagLayout for better control over positioning
+        // Creating a JPanel with GridBagLayout for better control over positioning
         JPanel paymentPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10); // Padding between elements
@@ -1299,14 +1321,16 @@ public class POS extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
 
         // Creating input fields
-        JTextField amountField = new JTextField(15);
-        JTextField chequeNoField = new JTextField(15);
+        JTextField amountField = new JTextField(20); // Increased field width
         JTextField receiptNoField = new JTextField(15);
-        JTextField poReferenceField = new JTextField(15);
-        JTextField paymentTermsField = new JTextField(15);
-        JTextField deliveryPlaceField = new JTextField(30); // Increased length for Delivery Place
+        JTextField referenceNumberField = new JTextField(15);
+        JTextField deliveryPlaceField = new JTextField(30);
         JTextField dateField = new JTextField(15);
         JTextField noteField = new JTextField(30);
+
+        // Creating a combo box for Payment Method
+        String[] paymentMethods = {"Cash Payment", "PO Payment", "Online Payment"};
+        JComboBox<String> paymentMethodComboBox = new JComboBox<>(paymentMethods);
 
         // Make receiptNoField non-editable
         receiptNoField.setEditable(false);
@@ -1315,62 +1339,75 @@ public class POS extends JPanel {
         LocalDate currentDate = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         dateField.setText(currentDate.format(formatter));
-        dateField.setEditable(false); // Make the date field non-editable if needed
+        dateField.setEditable(false);
 
         // Adding labels and fields to the panel in two columns
-        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
         paymentPanel.add(new JLabel("Receipt No:"), gbc);
         gbc.gridx = 1;
         paymentPanel.add(receiptNoField, gbc);
 
-        gbc.gridx = 2; gbc.gridy = 0;
-        paymentPanel.add(new JLabel("Amount:"), gbc);
-        gbc.gridx = 3;
-        paymentPanel.add(amountField, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridx = 2;
+        gbc.gridy = 0;
         paymentPanel.add(new JLabel("Date:"), gbc);
-        gbc.gridx = 1;
+        gbc.gridx = 3;
         paymentPanel.add(dateField, gbc);
 
-        gbc.gridx = 2; gbc.gridy = 1;
-        paymentPanel.add(new JLabel("Cheque No:"), gbc);
-        gbc.gridx = 3;
-        paymentPanel.add(chequeNoField, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 2;
-        paymentPanel.add(new JLabel("PO Reference:"), gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        paymentPanel.add(new JLabel("Reference Number:"), gbc);
         gbc.gridx = 1;
-        paymentPanel.add(poReferenceField, gbc);
+        paymentPanel.add(referenceNumberField, gbc);
 
-        gbc.gridx = 2; gbc.gridy = 2;
-        paymentPanel.add(new JLabel("Payment Terms:"), gbc);
+        gbc.gridx = 2;
+        gbc.gridy = 1;
+        paymentPanel.add(new JLabel("Payment Method:"), gbc);
         gbc.gridx = 3;
-        paymentPanel.add(paymentTermsField, gbc);
+        paymentPanel.add(paymentMethodComboBox, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 3;
-        paymentPanel.add(new JLabel("Delivery Place:"), gbc);
-        gbc.gridx = 1; gbc.gridwidth = 3; // Span across multiple columns
-        paymentPanel.add(deliveryPlaceField, gbc);
+        // Modify Amount label and field
+        JLabel amountLabel = new JLabel("Amount:");
+        amountLabel.setFont(new Font("Arial", Font.BOLD, 18)); // Set larger font for Amount label
+        amountField.setFont(new Font("Arial", Font.PLAIN, 20));
+        amountField.setPreferredSize(new Dimension(300, 50)); // Increased height
+        amountField.setMinimumSize(new Dimension(300, 50));
+        amountField.setMaximumSize(new Dimension(300, 50)); // Increase field size
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        paymentPanel.add(amountLabel, gbc);
+        gbc.gridx = 1;
+        gbc.gridwidth = 3; // Span across multiple columns
+        paymentPanel.add(amountField, gbc);
         gbc.gridwidth = 1; // Reset grid width for following fields
 
-        gbc.gridx = 0; gbc.gridy = 4;
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        paymentPanel.add(new JLabel("Delivery Place:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridwidth = 3; // Span across multiple columns
+        paymentPanel.add(deliveryPlaceField, gbc);
+        gbc.gridwidth = 1;
+
+        gbc.gridx = 0;
+        gbc.gridy = 4;
         paymentPanel.add(new JLabel("Note:"), gbc);
-        gbc.gridx = 1; gbc.gridwidth = 3;
+        gbc.gridx = 1;
+        gbc.gridwidth = 3;
         paymentPanel.add(noteField, gbc);
 
         // Show the JOptionPane with the custom panel
         int result = JOptionPane.showConfirmDialog(null, paymentPanel, "Add Payment", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-        // Handling OK/Cancel button click
         if (result == JOptionPane.OK_OPTION) {
-            String amount = amountField.getText();
-            String chequeNo = chequeNoField.getText();
+            BigDecimal amountValue = new BigDecimal(amountField.getText().isEmpty() ? "0" : amountField.getText()); // Convert amount to BigDecimal
+
+
+            String paymentMethod = (String) paymentMethodComboBox.getSelectedItem();
             String receiptNo = receiptNoField.getText();
-            String poReference = poReferenceField.getText();
-            String paymentTerms = paymentTermsField.getText();
+            String poReference = referenceNumberField.getText();
             String deliveryPlace = deliveryPlaceField.getText();
-            String date = dateField.getText();
             String note = noteField.getText();
 
             int customerSelectedIndex = jComboBox1.getSelectedIndex();
@@ -1381,6 +1418,7 @@ public class POS extends JPanel {
             BigDecimal discount = BigDecimal.valueOf(Double.parseDouble(jTextField3.getText()));
             BigDecimal transportCost = BigDecimal.valueOf(Double.parseDouble(jTextField2.getText()));
             BigDecimal netTotal = BigDecimal.valueOf(Double.parseDouble(jLabel7.getText()));
+            BigDecimal change = amountValue.subtract(netTotal); // Calculate change
 
             AddSaleRequestDto saleDto = new AddSaleRequestDto(
                     customerId,
@@ -1390,20 +1428,20 @@ public class POS extends JPanel {
                     totalTax,
                     netTotal,
                     receiptNo,
-                    BigDecimal.valueOf(Double.parseDouble(amount)),
+                    amountValue,
                     LocalDate.now(),
-                    chequeNo,
                     poReference,
-                    paymentTerms,
                     deliveryPlace,
-                    note
+                    note,
+                    paymentMethod.equals(paymentMethods[0]) ? CashTransactionPaymentMethod.CASH_PAYMENT : paymentMethod.equals(paymentMethods[1]) ? CashTransactionPaymentMethod.PO_PAYMENT : paymentMethod.equals(paymentMethods[2]) ? CashTransactionPaymentMethod.ONLINE_PAYMENT : null,
+                    change
             );
 
             SaleService saleService = new SaleService();
             Set<AddSaleItemRequestDto> addSaleItemRequestDtoSet = new HashSet<>();
             var choseItems = getAllRows();
 
-            for(var item : choseItems){
+            for (var item : choseItems) {
                 AddSaleItemRequestDto dto = new AddSaleItemRequestDto(
                         item.getId(),
                         item.getPrice(),
@@ -1412,22 +1450,64 @@ public class POS extends JPanel {
                 );
                 addSaleItemRequestDtoSet.add(dto);
             }
-            CurrentUser.id = 1;
-            int transactionId = saleService.add(saleDto, addSaleItemRequestDtoSet);
 
-            // Show a JOptionPane to confirm the payment addition
-            JOptionPane.showMessageDialog(null, "Payment Added:\n"
-                    + "Amount: " + transactionId + "\n"
-                    + "Cheque No: " + chequeNo + "\n"
-                    + "Receipt No: " + receiptNo + "\n"
-                    + "PO Reference: " + poReference + "\n"
-                    + "Payment Terms: " + paymentTerms + "\n"
-                    + "Delivery Place: " + deliveryPlace + "\n"
-                    + "Date: " + date + "\n"
-                    + "Note: " + note);
+            if (amountValue.subtract(netTotal).compareTo(BigDecimal.ZERO) < 0) {
+                JOptionPane.showMessageDialog(null, "The amount is not enough");
+                return;
+            }
 
+            try {
+                int transactionId = saleService.add(saleDto, addSaleItemRequestDtoSet);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            // Create a new JPanel for the confirmation display
+            JPanel confirmationPanel = new JPanel();
+            confirmationPanel.setLayout(new BoxLayout(confirmationPanel, BoxLayout.Y_AXIS));
+            confirmationPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); // Add padding around edges
+
+            // Amount and change labels with improved styling
+            JLabel amountLabelDisplay = new JLabel("Amount: " + amountValue.toString());
+            JLabel changeLabelDisplay = new JLabel("Change: " + change.toString());
+
+            amountLabelDisplay.setFont(new Font("Arial", Font.BOLD, 20));
+            amountLabelDisplay.setForeground(new Color(50, 50, 50));
+            amountLabelDisplay.setAlignmentX(Component.CENTER_ALIGNMENT); // Center-align text
+
+            changeLabelDisplay.setFont(new Font("Arial", Font.BOLD, 20));
+            changeLabelDisplay.setForeground(new Color(50, 50, 50));
+            changeLabelDisplay.setAlignmentX(Component.CENTER_ALIGNMENT); // Center-align text
+
+            confirmationPanel.add(amountLabelDisplay);
+            confirmationPanel.add(Box.createVerticalStrut(15)); // Add vertical space
+            confirmationPanel.add(changeLabelDisplay);
+
+            // Create and style Print Receipt button
+            JButton printButton = new JButton("Print Receipt");
+            printButton.setFont(new Font("Arial", Font.BOLD, 16));
+            printButton.setBackground(new Color(255, 140, 0)); // Light orange color
+            printButton.setForeground(Color.WHITE);
+            printButton.setFocusPainted(false);
+            printButton.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20)); // Add padding inside button
+            printButton.setAlignmentX(Component.CENTER_ALIGNMENT); // Center-align button
+
+            printButton.addActionListener(e -> {
+                // Call the print receipt function (to be implemented)
+                JOptionPane.showMessageDialog(null, "Receipt printed successfully.");
+            });
+
+            confirmationPanel.add(Box.createVerticalStrut(20)); // Add vertical space
+            confirmationPanel.add(printButton);
+
+            // Create a JDialog to hold the confirmation panel and the button
+            JDialog dialog = new JDialog((Frame) null, "Payment Confirmation", true);
+            dialog.setLayout(new BorderLayout());
+            dialog.add(confirmationPanel, BorderLayout.CENTER);
+            dialog.setSize(350, 250); // Increase dialog size for a more spacious look
+            dialog.setLocationRelativeTo(null); // Center the dialog
+            dialog.setVisible(true);
         } else {
-            // Show a message if payment is canceled
             JOptionPane.showMessageDialog(null, "Payment cancelled.");
         }
     }//GEN-LAST:event_jButton1ActionPerformed

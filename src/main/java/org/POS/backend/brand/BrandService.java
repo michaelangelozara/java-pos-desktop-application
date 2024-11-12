@@ -32,11 +32,14 @@ public class BrandService {
 
     public String update(UpdateBrandRequestDto dto){
         var subcategory = this.productSubcategoryDAO.getValidSubcategoryById(dto.subcategoryId());
-
+        var brand = this.brandDAO.getValidBrandById(dto.brandId());
         if(subcategory == null)
             return GlobalVariable.SUBCATEGORY_NOT_FOUND;
 
-        var updatedBrand = this.brandMapper.toUpdatedBrand(dto, subcategory);
+        if(brand == null)
+            return GlobalVariable.BRAND_NOT_FOUND;
+
+        var updatedBrand = this.brandMapper.toUpdatedBrand(brand, dto, subcategory);
         this.brandDAO.update(updatedBrand);
         return GlobalVariable.BRAND_UPDATED;
     }

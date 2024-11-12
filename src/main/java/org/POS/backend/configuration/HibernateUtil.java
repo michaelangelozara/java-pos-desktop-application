@@ -1,10 +1,12 @@
 package org.POS.backend.configuration;
 
 import org.POS.backend.brand.Brand;
+import org.POS.backend.cash_transaction.CashTransaction;
 import org.POS.backend.code_generator.CodeGenerator;
 import org.POS.backend.expense.Expense;
 import org.POS.backend.expense_category.ExpenseCategory;
 import org.POS.backend.expense_subcategory.ExpenseSubcategory;
+import org.POS.backend.open_cash.OpenCash;
 import org.POS.backend.person.Person;
 import org.POS.backend.product.Product;
 import org.POS.backend.product_category.ProductCategory;
@@ -15,10 +17,12 @@ import org.POS.backend.return_product.ReturnProduct;
 import org.POS.backend.sale.Sale;
 import org.POS.backend.sale_item.SaleItem;
 import org.POS.backend.stock.Stock;
-import org.POS.backend.user.User;
+import org.POS.backend.user.*;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class HibernateUtil {
     private static SessionFactory sessionFactory;
@@ -47,6 +51,8 @@ public class HibernateUtil {
                 configuration.addAnnotatedClass(Stock.class);
                 configuration.addAnnotatedClass(Sale.class);
                 configuration.addAnnotatedClass(SaleItem.class);
+                configuration.addAnnotatedClass(CashTransaction.class);
+                configuration.addAnnotatedClass(OpenCash.class);
 
                 // Build the SessionFactory
                 sessionFactory = configuration.buildSessionFactory(
@@ -54,6 +60,26 @@ public class HibernateUtil {
                                 .applySettings(configuration.getProperties())
                                 .build()
                 );
+
+                Session session = sessionFactory.openSession();
+                Long userCount = session.createQuery("SELECT COUNT(u) FROM User u", Long.class)
+                        .getSingleResult();
+
+                if (userCount == 0) {
+                    UserService userService = new UserService();
+                    String plainText = "password";
+                    String encryptedText = BCrypt.hashpw(plainText, BCrypt.gensalt());
+                    AddUserRequestDto dto = new AddUserRequestDto(
+                            "Administrator",
+                            UserRole.SUPER_ADMIN,
+                            "username",
+                            encryptedText,
+                            "michaelangelobuccatzara@gmail.com",
+                            "09090909090",
+                            UserStatus.ACTIVE
+                    );
+                    userService.add(dto);
+                }
                 System.out.println("Database connected");
             } catch (Throwable ex) {
                 // Use a logging framework instead of printStackTrace

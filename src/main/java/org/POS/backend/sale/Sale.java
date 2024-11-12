@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.POS.backend.cash_transaction.CashTransaction;
 import org.POS.backend.person.Person;
 import org.POS.backend.sale_item.SaleItem;
 import org.POS.backend.user.User;
@@ -38,7 +39,7 @@ public class Sale {
     @Column(name = "net_total", precision = 10, scale = 2)
     private BigDecimal netTotal;
 
-    @Column(name = "receipt_number")
+    @Column(name = "receipt_number", columnDefinition = "VARCHAR(50) NOT NULL")
     private String receiptNumber;
 
     @Column(precision = 10, scale = 2)
@@ -46,9 +47,6 @@ public class Sale {
 
     @Column(name = "amount_due", precision = 10, scale = 2)
     private BigDecimal amountDue;
-
-    @Column(name = "cheque_number")
-    private String chequeNumber;
 
     @Column(name = "po_reference")
     private String poReference;
@@ -70,6 +68,10 @@ public class Sale {
 
     @Column(name = "vat_sales", precision = 10, scale = 2)
     private BigDecimal vatSales;
+
+    @OneToOne
+    @JoinColumn(name = "cash_transaction_id")
+    private CashTransaction cashTransaction;
 
     @ManyToOne
     @JoinColumn(name = "person_id")

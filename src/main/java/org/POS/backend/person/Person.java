@@ -54,10 +54,10 @@ public class Person {
     @Column(name = "deleted_at")
     private LocalDate deletedAt;
 
-    @OneToMany(mappedBy = "person", cascade = CascadeType.MERGE)
+    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Purchase> purchases = new ArrayList<>();
 
-    @OneToMany(mappedBy = "person")
+    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Sale> sales = new ArrayList<>();
 
     public void addSale(Sale sale){

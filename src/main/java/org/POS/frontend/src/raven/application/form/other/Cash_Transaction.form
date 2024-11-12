@@ -158,7 +158,7 @@
                 <Component class="javax.swing.JTable" name="table">
                   <Properties>
                     <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
-                      <Table columnCount="9" rowCount="3">
+                      <Table columnCount="10" rowCount="3">
                         <Column editable="false" title="#" type="java.lang.Object"/>
                         <Column editable="false" title="Transaction ID" type="java.lang.Object"/>
                         <Column editable="false" title="Reference" type="java.lang.Object"/>
@@ -166,6 +166,7 @@
                         <Column editable="false" title="Cash OUT" type="java.lang.Object"/>
                         <Column editable="false" title="Payment Method" type="java.lang.Object"/>
                         <Column editable="false" title="User" type="java.lang.Object"/>
+                        <Column editable="true" title="Date &amp; Time" type="java.lang.Object"/>
                         <Column editable="false" title="Status" type="java.lang.Object"/>
                         <Column editable="true" title="Action" type="java.lang.Object"/>
                       </Table>
@@ -203,6 +204,11 @@
                           <Renderer/>
                         </Column>
                         <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="false">
+                          <Title/>
+                          <Editor/>
+                          <Renderer/>
+                        </Column>
+                        <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="true">
                           <Title/>
                           <Editor/>
                           <Renderer/>

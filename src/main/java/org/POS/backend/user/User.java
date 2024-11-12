@@ -3,11 +3,13 @@ package org.POS.backend.user;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.POS.backend.cash_transaction.CashTransaction;
 import org.POS.backend.expense.Expense;
+import org.POS.backend.open_cash.OpenCash;
+import org.POS.backend.purchase.Purchase;
 import org.POS.backend.sale.Sale;
 import org.POS.backend.stock.Stock;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,6 +61,30 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Stock> stocks = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CashTransaction> cashTransactions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OpenCash> openCashes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Purchase> purchases = new ArrayList<>();
+
+    public void addPurchase(Purchase purchase){
+        purchases.add(purchase);
+        purchase.setUser(this);
+    }
+
+    public void addOpenCash(OpenCash openCash){
+        openCashes.add(openCash);
+        openCash.setUser(this);
+    }
+
+    public void addCashTransaction(CashTransaction cashTransaction){
+        cashTransactions.add(cashTransaction);
+        cashTransaction.setUser(this);
+    }
 
     public void addStock(Stock stock){
         stocks.add(stock);

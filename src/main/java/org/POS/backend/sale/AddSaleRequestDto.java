@@ -1,5 +1,7 @@
 package org.POS.backend.sale;
 
+import org.POS.backend.cash_transaction.CashTransactionPaymentMethod;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -13,10 +15,10 @@ public record AddSaleRequestDto(
     String receiptNumber,
     BigDecimal amount,
     LocalDate date,
-    String chequeNumber,
     String poReference,
-    String paymentTerm,
     String deliveryPlace,
-    String note
+    String note,
+    CashTransactionPaymentMethod paymentMethod,
+    BigDecimal change
 ) {
 }

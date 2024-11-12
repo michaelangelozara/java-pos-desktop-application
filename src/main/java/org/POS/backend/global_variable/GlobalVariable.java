@@ -98,4 +98,6 @@ public class GlobalVariable {
     public static String STOCK_IN_PREFIX = "STKI-";
     public static String STOCK_OUT_PREFIX = "STKO-";
     public static String SALE_PREFIX = "SL-";
+    public static String CASH_TRANSACTION_PREFIX = "CSH-";
+    public static String USER_PREFIX = "USR-";
 }

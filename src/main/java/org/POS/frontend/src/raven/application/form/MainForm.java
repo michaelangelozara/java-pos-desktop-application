@@ -15,32 +15,10 @@ import javax.swing.JButton;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+
+import org.POS.backend.global_variable.CurrentUser;
 import org.POS.frontend.src.raven.application.Application;
-import org.POS.frontend.src.raven.application.form.other.POS;
-import org.POS.frontend.src.raven.application.form.other.Products_Category;
-import org.POS.frontend.src.raven.application.form.other.Expenses_Category;
-import org.POS.frontend.src.raven.application.form.other.Products_Sub_Category;
-import org.POS.frontend.src.raven.application.form.other.Expenses_Sub_Category;
-import org.POS.frontend.src.raven.application.form.other.ProductList;
-import org.POS.frontend.src.raven.application.form.other.Expenses_List;
-import org.POS.frontend.src.raven.application.form.other.Purchases_List;
-import org.POS.frontend.src.raven.application.form.other.BrandList;
-import org.POS.frontend.src.raven.application.form.other.Cash_Transaction;
-import org.POS.frontend.src.raven.application.form.other.Quotation_List;
-import org.POS.frontend.src.raven.application.form.other.Return_List;
-import org.POS.frontend.src.raven.application.form.other.Invoice_List;
-import org.POS.frontend.src.raven.application.form.other.Customer_List;
-import org.POS.frontend.src.raven.application.form.other.User_List;
-import org.POS.frontend.src.raven.application.form.other.Inventory;
-import org.POS.frontend.src.raven.application.form.other.InventoryAdjustment;
-import org.POS.frontend.src.raven.application.form.other.Sales_Report;
-import org.POS.frontend.src.raven.application.form.other.ProfitLoss_Report;
-import org.POS.frontend.src.raven.application.form.other.Expense_Report;
-import org.POS.frontend.src.raven.application.form.other.CollectionByUser_Report;
-import org.POS.frontend.src.raven.application.form.other.Inventory_Report;
-import org.POS.frontend.src.raven.application.form.other.CurrentValueandStock_Report;
-import org.POS.frontend.src.raven.application.form.other.Order_List;
-import org.POS.frontend.src.raven.application.form.other.Suppliers_List;
+import org.POS.frontend.src.raven.application.form.other.*;
 import org.POS.frontend.src.raven.menu.Menu;
 import org.POS.frontend.src.raven.menu.MenuAction;
 import org.POS.frontend.src.zeusled.gui.Dashboard;
@@ -131,7 +109,11 @@ public class MainForm extends JLayeredPane {
                         Application.showForm(new Cash_Transaction());
                         
                     } else if (subIndex == 5) {
-                        Application.showForm(new POS());
+                        if(CurrentUser.isPosLoginSetup){
+                            Application.showForm(new POS());
+                        }else{
+                            Application.showForm(new BeforePOS());
+                        }
                     } else {
                         action.cancel();
                     }

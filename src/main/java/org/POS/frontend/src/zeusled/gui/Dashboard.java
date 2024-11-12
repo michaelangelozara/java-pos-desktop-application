@@ -4,7 +4,7 @@ import org.POS.backend.expense.ExpenseService;
 import org.POS.backend.product.ProductService;
 import org.POS.frontend.src.javaswingdev.card.ModelCard;
 import org.POS.frontend.src.raven.application.Application;
-import org.POS.frontend.src.raven.application.form.other.POS;
+import org.POS.frontend.src.raven.application.form.other.BeforePOS;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -20,7 +20,7 @@ public class Dashboard extends JPanel {
 
     private void init() {
         ExpenseService expenseService = new ExpenseService();
-        BigDecimal totalExpense = expenseService.getTheSumOfExpenses();
+        BigDecimal totalExpense = expenseService.getTheSumOfExpenses() != null ? expenseService.getTheSumOfExpenses() : BigDecimal.ZERO;
 
         ProductService productService = new ProductService();
         BigDecimal totalProductValue = BigDecimal.ZERO;
@@ -201,7 +201,7 @@ public class Dashboard extends JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        Application.showForm(new POS());
+        Application.showForm(new BeforePOS());
     }//GEN-LAST:event_jButton1ActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

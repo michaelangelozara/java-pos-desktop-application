@@ -24,9 +24,7 @@ public class SaleMapper {
         sale.setReceiptNumber(dto.receiptNumber());
         sale.setAmount(dto.amount());
         sale.setDate(LocalDate.now());
-        sale.setChequeNumber(dto.chequeNumber());
         sale.setPoReference(dto.poReference());
-        sale.setPayment(dto.paymentTerm());
         sale.setDeliveryPlace(dto.deliveryPlace());
         sale.setNote(dto.note());
         sale.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.SALE_PREFIX));

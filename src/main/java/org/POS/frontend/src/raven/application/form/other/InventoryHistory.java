@@ -247,13 +247,13 @@ public class InventoryHistory extends javax.swing.JPanel {
         jLabel16.setText("Name:");
 
         jLabel17.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
-        jLabel17.setText(this.product.brand().productSubcategory().productCategory().name());
+        jLabel17.setText(this.product.brand().productSubcategory().getProductCategory().getName());
 
         jLabel18.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel18.setText("Category:");
 
         jLabel19.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
-        jLabel19.setText(this.product.brand().productSubcategory().name());
+        jLabel19.setText(this.product.brand().productSubcategory().getName());
 
         jLabel20.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel20.setText("Sub Category:");
