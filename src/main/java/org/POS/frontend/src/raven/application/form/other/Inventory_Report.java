@@ -8,18 +8,26 @@ import org.POS.backend.product.ProductService;
 import org.POS.backend.product_category.ProductCategoryService;
 import org.POS.backend.product_subcategory.ProductSubcategoryService;
 import org.POS.backend.stock.StockType;
+import org.jdatepicker.impl.JDatePanelImpl;
+import org.jdatepicker.impl.JDatePickerImpl;
+import org.jdatepicker.impl.UtilDateModel;
 
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Properties;
 import java.util.Vector;
 
 /**
  * @author CJ
  */
 public class Inventory_Report extends javax.swing.JPanel {
+
+    private Integer recentSubcategoryId = null;
 
     /**
      * Creates new form BalanceSheet_Report
@@ -256,6 +264,11 @@ public class Inventory_Report extends javax.swing.JPanel {
 
         jButton3.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
         jButton3.setText("From - To");
+        jButton3.addActionListener(e -> {
+            if(recentSubcategoryId != null){
+                createDatePickerPanel();
+            }
+        });
 
         ProductCategoryService productCategoryService = new ProductCategoryService();
         Vector<String> categoryNames = new Vector<>();
@@ -288,6 +301,7 @@ public class Inventory_Report extends javax.swing.JPanel {
                 jComboBox2.removeAllItems();
                 jComboBox2.addItem("Select Subcategory");
                 jComboBox2.setSelectedItem("Select Subcategory");
+                jLabel13.setText("");
                 return;
             }
 
@@ -325,6 +339,7 @@ public class Inventory_Report extends javax.swing.JPanel {
             Integer subcategoryId = subcategoryMap.get(subcategoryIndex);
 
             if (subcategoryId != null) {
+                recentSubcategoryId = subcategoryId;
                 loadInventories(subcategoryId);
             }
         });
@@ -448,6 +463,102 @@ public class Inventory_Report extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private JDatePickerImpl createDatePicker() {
+        UtilDateModel model = new UtilDateModel();
+        // Set the current date
+        LocalDate currentDate = LocalDate.now();
+        model.setDate(currentDate.getYear(), currentDate.getMonthValue() - 1, currentDate.getDayOfMonth());
+        model.setSelected(true);  // Automatically selects the current date
+
+        Properties p = new Properties();
+        p.put("text.today", "Today");
+        p.put("text.month", "Month");
+        p.put("text.year", "Year");
+
+        JDatePanelImpl datePanel = new JDatePanelImpl(model, p);
+        return new JDatePickerImpl(datePanel, new DateLabelFormatter());
+    }
+
+    private void createDatePickerPanel() {
+// Create a panel to hold the date pickers for "From" and "To" dates
+        JPanel datePanel = new JPanel(new GridLayout(2, 2, 10, 10));  // GridLayout with 2 rows, 2 columns
+
+        // Create bold and larger font for the labels
+        Font labelFont = new Font("Arial", Font.BOLD, 16);  // 16 size and bold
+
+        JLabel fromLabel = new JLabel("From Date:");
+        fromLabel.setFont(labelFont);  // Set to bold and larger size
+
+        JLabel toLabel = new JLabel("To Date:");
+        toLabel.setFont(labelFont);  // Set to bold and larger size
+
+        // Create the date pickers
+        JDatePickerImpl fromDatePicker = createDatePicker();  // Date picker for "From" date
+        JDatePickerImpl toDatePicker = createDatePicker();    // Date picker for "To" date
+
+        // Add components to the panel
+        datePanel.add(fromLabel);
+        datePanel.add(fromDatePicker);
+        datePanel.add(toLabel);
+        datePanel.add(toDatePicker);
+
+        // Show a dialog with the date pickers
+        int result = JOptionPane.showConfirmDialog(null, datePanel, "Select Date Range", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            // Retrieve the selected dates
+            String fromDateStr = fromDatePicker.getJFormattedTextField().getText();
+            String toDateStr = toDatePicker.getJFormattedTextField().getText();
+
+            // Parse the dates into a Date object or LocalDate for comparison
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");  // Adjust format if necessary
+            LocalDate fromDate = LocalDate.parse(fromDateStr, formatter);
+            LocalDate toDate = LocalDate.parse(toDateStr, formatter);
+
+            // Now, filter the table rows based on the selected date range
+            filterTableByDateRange(fromDate, toDate);
+        }
+    }
+
+    private void filterTableByDateRange(LocalDate fromDate, LocalDate toDate) {
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        model.setRowCount(0);
+
+        ProductService productService = new ProductService();
+        var products = productService.getAllValidProductByRangeAndSubcategoryId(fromDate, toDate, recentSubcategoryId);
+        int i = 1;
+        int stockInSummation = 0;
+        int stockOutSummation = 0;
+        for (var product : products) {
+            int stockIn = 0;
+            int stockOut = 0;
+            for (var stock : product.getStocks()) {
+                if (stock.getType().equals(StockType.IN)) {
+                    stockIn = stock.getStockInOrOut();
+                } else {
+                    stockOut = stock.getStockInOrOut();
+                }
+            }
+
+            model.addRow(new Object[]{
+                    i,
+                    product.getCode(),
+                    product.getDate(),
+                    product.getName(),
+                    stockIn,
+                    stockOut,
+                    product.getStock()
+            });
+            i++;
+            stockInSummation += stockIn;
+            stockOutSummation += stockOut;
+        }
+        int availableStock = (stockInSummation - stockOutSummation) < 0 ? 0 : (stockInSummation - stockOutSummation);
+        jLabel20.setText(String.valueOf(stockInSummation));
+        jLabel21.setText(String.valueOf(stockOutSummation));
+        jLabel22.setText(String.valueOf(availableStock));
+    }
+
     private void loadInventories(int subcategoryId) {
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         model.setRowCount(0);
@@ -485,7 +596,6 @@ public class Inventory_Report extends javax.swing.JPanel {
         jLabel20.setText(String.valueOf(stockInSummation));
         jLabel21.setText(String.valueOf(stockOutSummation));
         jLabel22.setText(String.valueOf(availableStock));
-
     }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed

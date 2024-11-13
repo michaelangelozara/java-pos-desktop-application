@@ -442,13 +442,13 @@ public class User_List extends javax.swing.JPanel {
         sorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
             @Override
             public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
-                // Assuming the date is in the 3rd column (index 2), change as per your table
+                // Assuming the createdAt is in the 3rd column (index 2), change as per your table
                 String dateStr = (String) entry.getValue(2);
                 try {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                     LocalDate rowDate = LocalDate.parse(dateStr, formatter);
 
-                    // Return true if the date is within the selected range
+                    // Return true if the createdAt is within the selected range
                     return !rowDate.isBefore(fromDate) && !rowDate.isAfter(toDate);
                 } catch (Exception e) {
                     // Skip rows with invalid dates

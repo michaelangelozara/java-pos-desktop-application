@@ -8,7 +8,7 @@ import org.POS.backend.product.ProductDAO;
 import org.POS.backend.purchased_item.*;
 import org.POS.backend.user.UserDAO;
 
-import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 
 public class PurchaseService {
@@ -137,7 +137,7 @@ public class PurchaseService {
         }
     }
 
-    public void delete(int purchaseId){
+    public void delete(int purchaseId) {
         this.purchaseDAO.delete(purchaseId);
     }
 
@@ -155,8 +155,12 @@ public class PurchaseService {
                         .toPurchaseResponseDtoList(this.purchaseDAO.getAllValidPurchaseBySupplierId(supplierId));
     }
 
-    public List<PurchaseResponseDto> getAllValidPurchaseByCodeAndSupplierName(String query){
+    public List<PurchaseResponseDto> getAllValidPurchaseByCodeAndSupplierName(String query) {
         return this.purchaseMapper.toPurchaseResponseDtoList(this.purchaseDAO.getAllValidPurchasesByCodeAndSupplier(query));
+    }
+
+    public List<PurchaseResponseDto> getAllValidPurchaseByRange(LocalDate start, LocalDate end) {
+        return this.purchaseMapper.toPurchaseResponseDtoList(this.purchaseDAO.getAllValidPurchaseByRange(start, end));
     }
 
 }

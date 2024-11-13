@@ -126,4 +126,8 @@ public class SaleService {
     public List<SaleResponseDto> getAllValidSales(int numberOfSales) {
         return this.saleMapper.toSaleResponseDtoList(this.saleDAO.getAllValidSales(numberOfSales));
     }
+
+    public List<SaleResponseDto> getAllValidSalesByRange(LocalDate start, LocalDate end){
+        return this.saleMapper.toSaleResponseDtoList(this.saleDAO.getAllValidSalesByRange(start, end));
+    }
 }

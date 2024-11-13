@@ -13,7 +13,9 @@ import org.POS.backend.purchase.AddPurchaseRequestDto;
 import org.POS.backend.purchase.PurchaseService;
 import org.POS.backend.purchase.PurchaseStatus;
 import org.POS.backend.purchase.UpdatePurchaseRequestDto;
-import org.POS.backend.purchased_item.*;
+import org.POS.backend.purchased_item.AddPurchaseItemRequestDto;
+import org.POS.backend.purchased_item.PurchaseItemService;
+import org.POS.backend.purchased_item.UpdatePurchaseItemRequestDto;
 import org.POS.frontend.src.raven.application.Application;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
@@ -26,7 +28,9 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.table.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -38,9 +42,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
 import java.util.List;
 import java.util.Timer;
+import java.util.*;
 
 public class Purchases_List extends javax.swing.JPanel {
 
@@ -758,13 +762,13 @@ public class Purchases_List extends javax.swing.JPanel {
                 loadPurchases();
             }
 
-            // Method to create date pickers with the current date
+            // Method to create createdAt pickers with the current createdAt
             private JDatePickerImpl createDatePicker() {
                 UtilDateModel model = new UtilDateModel();
-                // Set the current date
+                // Set the current createdAt
                 LocalDate currentDate = LocalDate.now();
                 model.setDate(currentDate.getYear(), currentDate.getMonthValue() - 1, currentDate.getDayOfMonth());
-                model.setSelected(true);  // Automatically selects the current date
+                model.setSelected(true);  // Automatically selects the current createdAt
 
                 Properties p = new Properties();
                 p.put("text.today", "Today");
@@ -777,9 +781,9 @@ public class Purchases_List extends javax.swing.JPanel {
 
             private JDatePickerImpl createDatePicker(LocalDate localDate) {
                 UtilDateModel model = new UtilDateModel();
-                // Set the current date
+                // Set the current createdAt
                 model.setDate(localDate.getYear(), localDate.getMonthValue() - 1, localDate.getDayOfMonth());
-                model.setSelected(true);  // Automatically selects the current date
+                model.setSelected(true);  // Automatically selects the current createdAt
 
                 Properties p = new Properties();
                 p.put("text.today", "Today");
@@ -1919,13 +1923,13 @@ public class Purchases_List extends javax.swing.JPanel {
         }
     }
 
-    // Method to create date pickers with the current date
+    // Method to create createdAt pickers with the current createdAt
     private JDatePickerImpl createDatePicker() {
         UtilDateModel model = new UtilDateModel();
-        // Set the current date
+        // Set the current createdAt
         LocalDate currentDate = LocalDate.now();
         model.setDate(currentDate.getYear(), currentDate.getMonthValue() - 1, currentDate.getDayOfMonth());
-        model.setSelected(true);  // Automatically selects the current date
+        model.setSelected(true);  // Automatically selects the current createdAt
 
         Properties p = new Properties();
         p.put("text.today", "Today");
@@ -1937,7 +1941,7 @@ public class Purchases_List extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // Create a panel to hold the date pickers for "From" and "To" dates
+        // Create a panel to hold the createdAt pickers for "From" and "To" dates
         JPanel datePanel = new JPanel(new GridLayout(2, 2, 10, 10));  // GridLayout with 2 rows, 2 columns
 
         // Create bold and larger font for the labels
@@ -1949,9 +1953,9 @@ public class Purchases_List extends javax.swing.JPanel {
         JLabel toLabel = new JLabel("To Date:");
         toLabel.setFont(labelFont);  // Set to bold and larger size
 
-        // Create the date pickers
-        JDatePickerImpl fromDatePicker = createDatePicker();  // Date picker for "From" date
-        JDatePickerImpl toDatePicker = createDatePicker();    // Date picker for "To" date
+        // Create the createdAt pickers
+        JDatePickerImpl fromDatePicker = createDatePicker();  // Date picker for "From" createdAt
+        JDatePickerImpl toDatePicker = createDatePicker();    // Date picker for "To" createdAt
 
         // Add components to the panel
         datePanel.add(fromLabel);
@@ -1959,7 +1963,7 @@ public class Purchases_List extends javax.swing.JPanel {
         datePanel.add(toLabel);
         datePanel.add(toDatePicker);
 
-        // Show a dialog with the date pickers
+        // Show a dialog with the createdAt pickers
         int result = JOptionPane.showConfirmDialog(null, datePanel, "Select Date Range", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {
@@ -1972,7 +1976,7 @@ public class Purchases_List extends javax.swing.JPanel {
             LocalDate fromDate = LocalDate.parse(fromDateStr, formatter);
             LocalDate toDate = LocalDate.parse(toDateStr, formatter);
 
-            // Now, filter the table rows based on the selected date range
+            // Now, filter the table rows based on the selected createdAt range
             filterTableByDateRange(fromDate, toDate);
         }
     }//GEN-LAST:event_jButton2ActionPerformed
@@ -1991,25 +1995,27 @@ public class Purchases_List extends javax.swing.JPanel {
     // End of variables declaration//GEN-END:variables
 
     private void filterTableByDateRange(LocalDate fromDate, LocalDate toDate) {
-        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>((DefaultTableModel) table.getModel());
-        table.setRowSorter(sorter);
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
 
-        sorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
-            @Override
-            public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
-                // Assuming the date is in the 3rd column (index 2), change as per your table
-                String dateStr = (String) entry.getValue(2);
-                try {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                    LocalDate rowDate = LocalDate.parse(dateStr, formatter);
+        PurchaseService purchaseService = new PurchaseService();
+        var purchases = purchaseService.getAllValidPurchaseByRange(fromDate, toDate);
 
-                    // Return true if the date is within the selected range
-                    return !rowDate.isBefore(fromDate) && !rowDate.isAfter(toDate);
-                } catch (Exception e) {
-                    // Skip rows with invalid dates
-                    return false;
-                }
-            }
-        });
+        for (int i = 0; i < purchases.size(); i++) {
+            model.addRow(new Object[]{
+                    String.valueOf(i + 1),
+                    purchases.get(i).id(),
+                    purchases.get(i).code(),
+                    purchases.get(i).date(),
+                    purchases.get(i).supplier().name(),
+                    purchases.get(i).subtotal(),
+                    purchases.get(i).transport(),
+                    purchases.get(i).discount(),
+                    purchases.get(i).netTotal(),
+                    purchases.get(i).totalPaid(),
+                    purchases.get(i).totalDue(),
+                    purchases.get(i).status()
+            });
+        }
     }
 }

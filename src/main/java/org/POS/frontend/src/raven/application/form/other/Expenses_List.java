@@ -165,7 +165,7 @@ public class Expenses_List extends javax.swing.JPanel {
 
                 gbc.gridx = 3;
 
-                // Get the current date
+                // Get the current createdAt
                 LocalDate currentDate = LocalDate.now();
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                 JTextField dateField = new JTextField(currentDate.format(formatter), 15);
@@ -389,7 +389,7 @@ public class Expenses_List extends javax.swing.JPanel {
                     expenses.get(i).subcategory(),
                     expenses.get(i).amount(),
                     expenses.get(i).account(),
-                    expenses.get(i).date(),
+                    expenses.get(i).createdAt(),
                     expenses.get(i).status()
             });
         }
@@ -577,7 +577,7 @@ public class Expenses_List extends javax.swing.JPanel {
                     expenses.get(i).subcategory(),
                     expenses.get(i).amount(),
                     expenses.get(i).account(),
-                    expenses.get(i).date(),
+                    expenses.get(i).createdAt(),
                     expenses.get(i).status().name()
             });
         }
@@ -739,12 +739,12 @@ public class Expenses_List extends javax.swing.JPanel {
         panel.add(dateLabel, gbc);
 
         gbc.gridx = 1;
-        // Get the current date
+        // Get the current createdAt
         LocalDate currentDate = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         JTextField dateField = new JTextField(currentDate.format(formatter), 15);
         dateField.setFont(regularFont);
-        dateField.setEditable(false);  // Make the date field non-editable
+        dateField.setEditable(false);  // Make the createdAt field non-editable
         panel.add(dateField, gbc);
 
         // Status

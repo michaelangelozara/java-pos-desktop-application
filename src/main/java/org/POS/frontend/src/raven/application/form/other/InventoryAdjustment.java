@@ -74,7 +74,7 @@ public void onEdit(int row) {
     JScrollPane noteScrollPane = new JScrollPane(noteField);
     noteField.setText(note);
 
-    JTextField adjustmentDateField = new JTextField(date); // Current date pre-filled
+    JTextField adjustmentDateField = new JTextField(date); // Current createdAt pre-filled
     adjustmentDateField.setEditable(false); // Read-only
 
     JComboBox<String> statusComboBox = new JComboBox<>(new String[]{"Active", "Inactive"});
@@ -387,7 +387,7 @@ noteLabel.setFont(boldFont);
 JTextArea noteArea = new JTextArea(3, 15);
 JScrollPane noteScrollPane = new JScrollPane(noteArea);
 
-// Adjustment Date (real-time date)
+// Adjustment Date (real-time createdAt)
 JLabel adjustmentDateLabel = new JLabel("Adjustment Date:");
 adjustmentDateLabel.setFont(boldFont);
 LocalDate currentDate = LocalDate.now();
@@ -419,7 +419,7 @@ panel.add(noteScrollPane, gbc);
 gbc.gridx = 0; gbc.gridy = 3;
 panel.add(adjustmentDateLabel, gbc);
 gbc.gridx = 1;
-panel.add(adjustmentDateField, gbc); // Real-time date field here
+panel.add(adjustmentDateField, gbc); // Real-time createdAt field here
 
 gbc.gridx = 0; gbc.gridy = 4;
 panel.add(statusLabel, gbc);
@@ -436,7 +436,7 @@ if (result == JOptionPane.OK_OPTION) {
     String adjustmentReason = adjustmentReasonField.getText().trim();
     String selectedProduct = (String) selectProductsComboBox.getSelectedItem(); // Get selected product
     String note = noteArea.getText().trim();
-    String adjustmentDate = adjustmentDateField.getText().trim(); // Real-time date from text field
+    String adjustmentDate = adjustmentDateField.getText().trim(); // Real-time createdAt from text field
     String status = (String) statusComboBox.getSelectedItem();
 
     // Validation logic

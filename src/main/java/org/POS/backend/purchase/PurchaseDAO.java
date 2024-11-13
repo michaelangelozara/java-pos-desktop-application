@@ -1,6 +1,5 @@
 package org.POS.backend.purchase;
 
-import jakarta.transaction.Transactional;
 import org.POS.backend.configuration.HibernateUtil;
 import org.POS.backend.purchased_item.PurchaseItem;
 import org.hibernate.Hibernate;
@@ -128,6 +127,25 @@ public class PurchaseDAO {
             for(var purchase : purchases){
                 Hibernate.initialize(purchase.getPurchaseItems());
             }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return purchases;
+    }
+
+    public List<Purchase> getAllValidPurchaseByRange(LocalDate start, LocalDate end){
+        List<Purchase> purchases = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            purchases = session.createQuery("SELECT p FROM Purchase p WHERE p.createdDate >= :start AND p.createdDate <= :end AND p.isDeleted = FALSE", Purchase.class)
+                    .setParameter("start", start)
+                    .setParameter("end", end)
+                    .getResultList();
+
+            for(var purchase : purchases){
+                Hibernate.initialize(purchase.getPurchaseItems());
+            }
+
         }catch (Exception e){
             e.printStackTrace();
         }

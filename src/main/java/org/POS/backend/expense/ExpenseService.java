@@ -6,6 +6,7 @@ import org.POS.backend.global_variable.GlobalVariable;
 import org.POS.backend.user.UserDAO;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 public class ExpenseService {
@@ -77,5 +78,9 @@ public class ExpenseService {
 
     public List<ExpenseResponseDto> gatAllValidExpenseByReason(String reason){
         return this.expenseMapper.expenseResponseDtoList(this.expenseDAO.getAllValidExpenseByReason(reason));
+    }
+
+    public List<ExpenseResponseDto> getAllValidExpenseByRangeAndSubcategoryId(LocalDate start, LocalDate end, int subcategoryId){
+        return this.expenseMapper.expenseResponseDtoList(this.expenseDAO.getAllValidExpenseByRangeAndSubcategoryId(start, end, subcategoryId));
     }
 }

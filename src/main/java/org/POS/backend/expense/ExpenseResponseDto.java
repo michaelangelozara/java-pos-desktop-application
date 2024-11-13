@@ -5,7 +5,7 @@ import java.time.LocalDate;
 
 public record ExpenseResponseDto(
         int id,
-        LocalDate date,
+        LocalDate createdAt,
         String expenseReason,
         String category,
         String subcategory,

@@ -1406,7 +1406,7 @@ public class POS extends JPanel {
         // Make receiptNoField non-editable
         receiptNoField.setEditable(false);
 
-        // Fetch the current date and set it in dateField
+        // Fetch the current createdAt and set it in dateField
         LocalDate currentDate = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         dateField.setText(currentDate.format(formatter));

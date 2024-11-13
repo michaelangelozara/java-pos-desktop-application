@@ -144,4 +144,24 @@ public class ExpenseDAO {
         return expenseCategories;
     }
 
+    public List<Expense> getAllValidExpenseByRangeAndSubcategoryId(
+            LocalDate start,
+            LocalDate end,
+            int subcategoryId
+    ){
+        List<Expense> expenses = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            expenses = session.createQuery("SELECT e FROM Expense e JOIN FETCH e.expenseSubcategory ex WHERE (e.createdAt >= :start AND e.createdAt <= :end) AND ex.id = :subcategoryId AND e.isDeleted = FALSE ", Expense.class)
+                    .setParameter("start", start)
+                    .setParameter("end", end)
+                    .setParameter("subcategoryId", subcategoryId)
+                    .getResultList();
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return expenses;
+    }
+
 }

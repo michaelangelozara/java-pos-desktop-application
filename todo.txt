@@ -4,3 +4,4 @@
 - inventory deletion not working
 - remove the FROM-TO button in the cash transaction list
 - ask what about the CREATE of INVENTORY
+- tax amount in the onView of product

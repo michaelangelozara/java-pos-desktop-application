@@ -53,9 +53,6 @@ public class Sale {
 
     private String payment;
 
-    @Column(name = "date_of_transaction")
-    private LocalDate dateOfTransaction;
-
     @Column(name = "delivery_place")
     private String deliveryPlace;
 

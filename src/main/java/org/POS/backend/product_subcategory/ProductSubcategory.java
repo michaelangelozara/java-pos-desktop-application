@@ -43,8 +43,5 @@ public class ProductSubcategory {
     @ManyToOne
     @JoinColumn(name = "product_category_id")
     private ProductCategory productCategory;
-
-    @OneToMany(mappedBy = "productSubcategory")
-    private List<Product> products;
 }
 

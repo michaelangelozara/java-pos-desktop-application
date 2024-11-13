@@ -10,6 +10,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -83,5 +84,19 @@ public class SaleDAO {
         return sales;
     }
 
+    public List<Sale> getAllValidSalesByRange(LocalDate start, LocalDate end){
+        List<Sale> sales = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            sales = session.createQuery("SELECT s FROM Sale s WHERE s.date >= :start AND s.date <= :end", Sale.class)
+                    .setParameter("start", start)
+                    .setParameter("end", end)
+                    .getResultList();
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return sales;
+    }
 
 }

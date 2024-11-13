@@ -40,8 +40,6 @@ public class Expense {
 
     private String account;
 
-    private LocalDate date;
-
     @Column(name = "cheque_no")
     private String chequeNo;
 

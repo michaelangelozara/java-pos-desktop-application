@@ -229,4 +229,42 @@ public class ProductDAO {
         return products;
     }
 
+    public List<Product> getALlValidProductByRangeAndSubcategoryId(LocalDate start, LocalDate end, int subcategoryId){
+        List<Product> products = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            products = session.createQuery("SELECT p FROM Product p JOIN FETCH p.brand b JOIN FETCH b.productSubcategory ps WHERE ps.id =:subcategoryId AND (p.date >= :start AND p.date <= :end) AND p.isDeleted = FALSE", Product.class)
+                    .setParameter("start", start)
+                    .setParameter("end", end)
+                    .setParameter("subcategoryId", subcategoryId)
+                    .getResultList();
+
+            for(var product : products){
+                Hibernate.initialize(product.getStocks());
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return products;
+    }
+
+    public List<Product> getALlValidProductByRange(LocalDate start, LocalDate end){
+        List<Product> products = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            products = session.createQuery("SELECT p FROM Product p WHERE (p.date >= :start AND p.date <= :end) AND p.isDeleted = FALSE", Product.class)
+                    .setParameter("start", start)
+                    .setParameter("end", end)
+                    .getResultList();
+
+            for(var product : products){
+                Hibernate.initialize(product.getStocks());
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return products;
+    }
 }

@@ -28,7 +28,6 @@ public class ExpenseMapper {
         expense.setVoucherNo(dto.voucherNo());
         expense.setNote(dto.note());
         expense.setAccount(dto.account());
-        expense.setDate(LocalDate.now());
         expense.setStatus(dto.status());
         expense.setImage(dto.image());
         expense.setCreatedAt(LocalDate.now());
@@ -48,7 +47,7 @@ public class ExpenseMapper {
     public ExpenseResponseDto expenseResponseDto(Expense expense) {
         return new ExpenseResponseDto(
                 expense.getId(),
-                expense.getDate(),
+                expense.getCreatedAt(),
                 expense.getExpenseReason(),
                 expense.getExpenseSubcategory().getExpenseCategory().getName(),
                 expense.getExpenseSubcategory().getName(),

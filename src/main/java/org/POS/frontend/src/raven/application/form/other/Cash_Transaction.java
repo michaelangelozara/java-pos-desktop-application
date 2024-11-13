@@ -19,6 +19,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 import java.util.Timer;
@@ -607,7 +608,7 @@ public class Cash_Transaction extends javax.swing.JPanel {
         }
     }
 
-    // Method to create date pickers with the current date
+    // Method to create createdAt pickers with the current createdAt
     private JDatePickerImpl createDatePicker() {
         UtilDateModel model = new UtilDateModel();
         LocalDate currentDate = LocalDate.now();
@@ -622,7 +623,7 @@ public class Cash_Transaction extends javax.swing.JPanel {
     }
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // Create a panel to hold the date pickers for "From" and "To" dates
+        // Create a panel to hold the createdAt pickers for "From" and "To" dates
         JPanel datePanel = new JPanel(new GridLayout(2, 2, 10, 10));  // GridLayout with 2 rows, 2 columns
 
         // Create bold and larger font for the labels
@@ -634,9 +635,9 @@ public class Cash_Transaction extends javax.swing.JPanel {
         JLabel toLabel = new JLabel("To Date:");
         toLabel.setFont(labelFont);  // Set to bold and larger size
 
-        // Create the date pickers
-        JDatePickerImpl fromDatePicker = createDatePicker();  // Date picker for "From" date
-        JDatePickerImpl toDatePicker = createDatePicker();    // Date picker for "To" date
+        // Create the createdAt pickers
+        JDatePickerImpl fromDatePicker = createDatePicker();  // Date picker for "From" createdAt
+        JDatePickerImpl toDatePicker = createDatePicker();    // Date picker for "To" createdAt
 
         // Add components to the panel
         datePanel.add(fromLabel);
@@ -644,7 +645,7 @@ public class Cash_Transaction extends javax.swing.JPanel {
         datePanel.add(toLabel);
         datePanel.add(toDatePicker);
 
-        // Show a dialog with the date pickers
+        // Show a dialog with the createdAt pickers
         int result = JOptionPane.showConfirmDialog(null, datePanel, "Select Date Range", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {
@@ -657,8 +658,11 @@ public class Cash_Transaction extends javax.swing.JPanel {
             LocalDate fromDate = LocalDate.parse(fromDateStr, formatter);
             LocalDate toDate = LocalDate.parse(toDateStr, formatter);
 
-            // Now, filter the table rows based on the selected date range
-            filterTableByDateRange(fromDate, toDate);
+            LocalDateTime fromDateTime = fromDate.atStartOfDay(); // 00:00
+            LocalDateTime toDateTime = toDate.atTime(23, 59, 59); // 23:59:59
+
+            // Now, filter the table rows based on the selected createdAt range
+            filterTableByDateRange(fromDateTime, toDateTime);
         }
     }//GEN-LAST:event_jButton2ActionPerformed
 
@@ -675,26 +679,24 @@ public class Cash_Transaction extends javax.swing.JPanel {
     private javax.swing.JTable table;
     // End of variables declaration//GEN-END:variables
 
-    private void filterTableByDateRange(LocalDate fromDate, LocalDate toDate) {
-        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>((DefaultTableModel) table.getModel());
-        table.setRowSorter(sorter);
+    private void filterTableByDateRange(LocalDateTime fromDate, LocalDateTime toDate) {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
 
-        sorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
-            @Override
-            public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
-                // Assuming the date is in the 3rd column (index 2), change as per your table
-                String dateStr = (String) entry.getValue(2);
-                try {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                    LocalDate rowDate = LocalDate.parse(dateStr, formatter);
+        CashTransactionService cashTransactionService = new CashTransactionService();
+        var cashTransactions = cashTransactionService.getAllValidCashTransactionsByRange(fromDate, toDate);
 
-                    // Return true if the date is within the selected range
-                    return !rowDate.isBefore(fromDate) && !rowDate.isAfter(toDate);
-                } catch (Exception e) {
-                    // Skip rows with invalid dates
-                    return false;
-                }
-            }
-        });
+        for (int i = 0; i < cashTransactions.size(); i++) {
+            model.addRow(new Object[]{
+                    i + 1,
+                    cashTransactions.get(i).id(),
+                    cashTransactions.get(i).reference(),
+                    cashTransactions.get(i).cashIn(),
+                    cashTransactions.get(i).cashOut(),
+                    cashTransactions.get(i).paymentMethod(),
+                    cashTransactions.get(i).username(),
+                    cashTransactions.get(i).dateTime()
+            });
+        }
     }
 }

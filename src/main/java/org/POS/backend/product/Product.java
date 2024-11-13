@@ -85,10 +85,6 @@ public class Product {
     @JoinColumn(name = "brand_id")
     private Brand brand;
 
-    @ManyToOne
-    @JoinColumn(name = "product_subcategory_id")
-    private ProductSubcategory productSubcategory;
-
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PurchaseItem> purchaseItems = new ArrayList<>();
 

@@ -697,7 +697,7 @@ public class Customer_Details extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // Create a panel to hold the date pickers for "From" and "To" dates
+        // Create a panel to hold the createdAt pickers for "From" and "To" dates
         JPanel datePanel = new JPanel(new GridLayout(2, 2, 10, 10));  // GridLayout with 2 rows, 2 columns
 
         // Create bold and larger font for the labels
@@ -709,9 +709,9 @@ public class Customer_Details extends javax.swing.JPanel {
         JLabel toLabel = new JLabel("To Date:");
         toLabel.setFont(labelFont);  // Set to bold and larger size
 
-        // Create the date pickers
-        JDatePickerImpl fromDatePicker = createDatePicker();  // Date picker for "From" date
-        JDatePickerImpl toDatePicker = createDatePicker();    // Date picker for "To" date
+        // Create the createdAt pickers
+        JDatePickerImpl fromDatePicker = createDatePicker();  // Date picker for "From" createdAt
+        JDatePickerImpl toDatePicker = createDatePicker();    // Date picker for "To" createdAt
 
         // Add components to the panel
         datePanel.add(fromLabel);
@@ -719,7 +719,7 @@ public class Customer_Details extends javax.swing.JPanel {
         datePanel.add(toLabel);
         datePanel.add(toDatePicker);
 
-        // Show a dialog with the date pickers
+        // Show a dialog with the createdAt pickers
         int result = JOptionPane.showConfirmDialog(null, datePanel, "Select Date Range", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {
@@ -732,7 +732,7 @@ public class Customer_Details extends javax.swing.JPanel {
             LocalDate fromDate = LocalDate.parse(fromDateStr, formatter);
             LocalDate toDate = LocalDate.parse(toDateStr, formatter);
 
-            // Now, filter the table rows based on the selected date range
+            // Now, filter the table rows based on the selected createdAt range
             filterTableByDateRange(fromDate, toDate);
         }
     }//GEN-LAST:event_jButton2ActionPerformed
@@ -816,13 +816,13 @@ public class Customer_Details extends javax.swing.JPanel {
         sorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
             @Override
             public boolean include(RowFilter.Entry<? extends DefaultTableModel, ? extends Integer> entry) {
-                // Assuming the date is in the 3rd column (index 2), change as per your table
+                // Assuming the createdAt is in the 3rd column (index 2), change as per your table
                 String dateStr = (String) entry.getValue(2);
                 try {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                     LocalDate rowDate = LocalDate.parse(dateStr, formatter);
 
-                    // Return true if the date is within the selected range
+                    // Return true if the createdAt is within the selected range
                     return !rowDate.isBefore(fromDate) && !rowDate.isAfter(toDate);
                 } catch (Exception e) {
                     // Skip rows with invalid dates
