@@ -9,3 +9,16 @@
 
 SWING WORKER OPERATION
 - total sales in dashboard
+- inventory adjustment
+- order
+
+
+
+SEARCH MECHANISM
+- inventory adjustment
+- invoice
+- order
+
+
+SKIPPED Pages
+- Invoice_Details

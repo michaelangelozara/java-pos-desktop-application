@@ -12,7 +12,7 @@ public class CashTransactionMapper {
                 cashTransaction.getReference(),
                 cashTransaction.getCashIn(),
                 cashTransaction.getCashOut(),
-                cashTransaction.getCashTransactionPaymentMethod(),
+                cashTransaction.getTransactionPaymentMethod(),
                 cashTransaction.getUser().getName(),
                 CustomDateTimeFormatter.getLocalDateTime(cashTransaction.getDateTime())
         );

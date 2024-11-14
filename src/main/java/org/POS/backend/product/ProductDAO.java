@@ -118,6 +118,7 @@ public class ProductDAO {
                 Hibernate.initialize(product.getSaleItems());
                 Hibernate.initialize(product.getPurchaseItems());
                 Hibernate.initialize(product.getStocks());
+                Hibernate.initialize(product.getQuotedItems());
                 productsSet.add(product);
             }
         } catch (Exception e) {

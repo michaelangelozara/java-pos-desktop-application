@@ -101,4 +101,7 @@ public class GlobalVariable {
     public static String CASH_TRANSACTION_PREFIX = "CSH-";
     public static String USER_PREFIX = "USR-";
     public static String INVENTORY_ADJUSTMENT_PREFIX = "INVA-";
+    public static String ORDER_PREFIX = "ORD-";
+    public static String INVOICE_PREFIX = "INVO-";
+    public static String QUOTATION_PREFIX = "QT-";
 }

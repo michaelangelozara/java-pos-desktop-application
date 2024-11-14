@@ -1,6 +1,7 @@
 package org.POS.backend.person;
 
 import org.POS.backend.configuration.HibernateUtil;
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
@@ -96,10 +97,13 @@ public class PersonDAO {
         Person person = null;
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
-            person = session.createQuery("SELECT p FROM Person p LEFT JOIN FETCH p.purchases WHERE p.id = :personId AND p.isDeleted = FALSE AND p.type = :type ", Person.class)
+            person = session.createQuery("SELECT p FROM Person p WHERE p.id = :personId AND p.isDeleted = FALSE AND p.type = :type ", Person.class)
                     .setParameter("personId", personId)
                     .setParameter("type", type)
                     .getSingleResult();
+
+            Hibernate.initialize(person.getPurchases());
+            Hibernate.initialize(person.getQuotations());
             session.getTransaction().commit();
         }catch (Exception e){
             e.printStackTrace();

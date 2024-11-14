@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.POS.backend.brand.BrandService;
-import org.POS.backend.cash_transaction.CashTransactionPaymentMethod;
+import org.POS.backend.cash_transaction.TransactionPaymentMethod;
 import org.POS.backend.cryptography.Base64Converter;
 import org.POS.backend.person.AddPersonRequestDto;
 import org.POS.backend.person.PersonService;
@@ -1393,8 +1393,10 @@ public class POS extends JPanel {
 
         // Creating input fields
         JTextField amountField = new JTextField(20); // Increased field width
+        amountField.setText("0");
         JTextField receiptNoField = new JTextField(15);
         JTextField referenceNumberField = new JTextField(15);
+        referenceNumberField.setEnabled(false);
         JTextField deliveryPlaceField = new JTextField(30);
         JTextField dateField = new JTextField(15);
         JTextField noteField = new JTextField(30);
@@ -1402,7 +1404,6 @@ public class POS extends JPanel {
         // Creating a combo box for Payment Method
         String[] paymentMethods = {"Cash Payment", "PO Payment", "Online Payment"};
         JComboBox<String> paymentMethodComboBox = new JComboBox<>(paymentMethods);
-
         // Make receiptNoField non-editable
         receiptNoField.setEditable(false);
 
@@ -1427,15 +1428,24 @@ public class POS extends JPanel {
 
         gbc.gridx = 0;
         gbc.gridy = 1;
-        paymentPanel.add(new JLabel("Reference Number:"), gbc);
+        paymentPanel.add(new JLabel( "Payment Method:"), gbc);
         gbc.gridx = 1;
-        paymentPanel.add(referenceNumberField, gbc);
+        paymentPanel.add(paymentMethodComboBox, gbc);
+
+        paymentMethodComboBox.addActionListener(e -> {
+            String selectedItem = (String) paymentMethodComboBox.getSelectedItem();
+            if(!selectedItem.equals(paymentMethods[2])){
+                referenceNumberField.setEnabled(false);
+            }else{
+                referenceNumberField.setEnabled(true);
+            }
+        });
 
         gbc.gridx = 2;
         gbc.gridy = 1;
-        paymentPanel.add(new JLabel("Payment Method:"), gbc);
+        paymentPanel.add(new JLabel("Reference Number:"), gbc);
         gbc.gridx = 3;
-        paymentPanel.add(paymentMethodComboBox, gbc);
+        paymentPanel.add(referenceNumberField, gbc);
 
         // Modify Amount label and field
         JLabel amountLabel = new JLabel("Amount:");
@@ -1482,7 +1492,12 @@ public class POS extends JPanel {
             String note = noteField.getText();
 
             int customerSelectedIndex = jComboBox1.getSelectedIndex();
-            int customerId = clientMap.get(customerSelectedIndex);
+            Integer customerId = clientMap.get(customerSelectedIndex);
+
+            if(customerId == null){
+                JOptionPane.showMessageDialog(null, "Please select customer first", "Transaction Failed", JOptionPane.PLAIN_MESSAGE);
+                return;
+            }
 
             String discountType = (String) jComboBox4.getSelectedItem();
             BigDecimal totalTax = BigDecimal.valueOf(Double.parseDouble(jComboBox5.getSelectedItem().toString().isEmpty() ? "0" : jComboBox5.getSelectedItem().toString()));
@@ -1504,7 +1519,7 @@ public class POS extends JPanel {
                     poReference,
                     deliveryPlace,
                     note,
-                    paymentMethod.equals(paymentMethods[0]) ? CashTransactionPaymentMethod.CASH_PAYMENT : paymentMethod.equals(paymentMethods[1]) ? CashTransactionPaymentMethod.PO_PAYMENT : paymentMethod.equals(paymentMethods[2]) ? CashTransactionPaymentMethod.ONLINE_PAYMENT : null,
+                    paymentMethod.equals(paymentMethods[0]) ? TransactionPaymentMethod.CASH_PAYMENT : paymentMethod.equals(paymentMethods[1]) ? TransactionPaymentMethod.PO_PAYMENT : paymentMethod.equals(paymentMethods[2]) ? TransactionPaymentMethod.ONLINE_PAYMENT : null,
                     change
             );
 
@@ -1521,8 +1536,8 @@ public class POS extends JPanel {
                 );
                 addSaleItemRequestDtoSet.add(dto);
             }
-
-            if (amountValue.subtract(netTotal).compareTo(BigDecimal.ZERO) < 0) {
+//            paymentMethods = {"Cash Payment", "PO Payment", "Online Payment"};
+            if (amountValue.subtract(netTotal).compareTo(BigDecimal.ZERO) < 0 && (paymentMethod.equals(paymentMethods[0]) || paymentMethod.equals(paymentMethods[2]))) {
                 JOptionPane.showMessageDialog(null, "The amount is not enough");
                 return;
             }
@@ -1540,7 +1555,13 @@ public class POS extends JPanel {
 
             // Amount and change labels with improved styling
             JLabel amountLabelDisplay = new JLabel("Amount: " + amountValue.toString());
-            JLabel changeLabelDisplay = new JLabel("Change: " + change.toString());
+            JLabel changeLabelDisplay = new JLabel();
+
+            if(paymentMethod.equals(paymentMethods[1])){
+                changeLabelDisplay.setText("Balance: " + change.abs().toString());
+            }else{
+                changeLabelDisplay.setText("Change: " + change.toString());
+            }
 
             amountLabelDisplay.setFont(new Font("Arial", Font.BOLD, 20));
             amountLabelDisplay.setForeground(new Color(50, 50, 50));

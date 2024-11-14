@@ -3,7 +3,9 @@ package org.POS.backend.person;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.POS.backend.order.Order;
 import org.POS.backend.purchase.Purchase;
+import org.POS.backend.quotation.Quotation;
 import org.POS.backend.sale.Sale;
 import org.POS.backend.stock.Stock;
 
@@ -59,6 +61,22 @@ public class Person {
 
     @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Sale> sales = new ArrayList<>();
+
+    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Order> orders = new ArrayList<>();
+
+    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Quotation> quotations = new ArrayList<>();
+
+    public void addQuotation(Quotation quotation){
+        quotations.add(quotation);
+        quotation.setPerson(this);
+    }
+
+    public void addOrder(Order order){
+        orders.add(order);
+        order.setPerson(this);
+    }
 
     public void addSale(Sale sale){
         sales.add(sale);

@@ -118,6 +118,10 @@ public class UserDAO {
             if(!user.getInventoryAdjustments().isEmpty()){
                 Hibernate.initialize(user.getInventoryAdjustments());
             }
+
+            if(!user.getQuotations().isEmpty()){
+                Hibernate.initialize(user.getQuotations());
+            }
             session.getTransaction().commit();
         } catch (Exception e){
             e.printStackTrace();

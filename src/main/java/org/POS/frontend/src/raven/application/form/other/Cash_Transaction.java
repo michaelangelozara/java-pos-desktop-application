@@ -376,7 +376,7 @@ public class Cash_Transaction extends javax.swing.JPanel {
             @Override
 
             public void onView(int row) {
-                Application.showForm(new Invoice_Details());
+//                Application.showForm(new Invoice_Details());
             }
 
 

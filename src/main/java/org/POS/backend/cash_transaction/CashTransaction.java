@@ -35,7 +35,7 @@ public class CashTransaction {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_method")
-    private CashTransactionPaymentMethod cashTransactionPaymentMethod;
+    private TransactionPaymentMethod transactionPaymentMethod;
 
     @Column(name = "date_time")
     private LocalDateTime dateTime;

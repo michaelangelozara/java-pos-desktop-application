@@ -1,25 +1,26 @@
 
 package org.POS.frontend.src.raven.application.form.other;
 
-import javax.swing.*;
-import java.awt.*;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Properties;
-
+import org.POS.backend.order.Order;
+import org.POS.backend.order.OrderService;
+import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
+import org.POS.frontend.src.raven.cell.TableActionEvent;
+import org.jdatepicker.impl.JDatePanelImpl;
+import org.jdatepicker.impl.JDatePickerImpl;
+import org.jdatepicker.impl.UtilDateModel;
 
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
-
-import org.jdatepicker.impl.JDatePanelImpl;
-import org.jdatepicker.impl.JDatePickerImpl;
-import org.jdatepicker.impl.UtilDateModel;
-import org.POS.frontend.src.raven.application.Application;
-import org.POS.frontend.src.raven.cell.TableActionCellEditor;
-import org.POS.frontend.src.raven.cell.TableActionEvent;
+import java.awt.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 
 
 public class Order_List extends javax.swing.JPanel {
@@ -57,24 +58,16 @@ public class Order_List extends javax.swing.JPanel {
                 JTextField referenceField = new JTextField("Reference-001", 15);
                 panel.add(referenceField, gbc);
 
-                // Row 2: Select Products (with combo box extending all the way to the right)
+                // Row 2: Products label
                 gbc.gridy = 1;
                 gbc.gridx = 0;
                 gbc.gridwidth = 6;
-                JLabel selectProductsLabel = new JLabel("Select Products:");
-                selectProductsLabel.setFont(labelFont);
-                panel.add(selectProductsLabel, gbc);
-
-                gbc.gridy = 2;
-                JComboBox<String> productCombo = new JComboBox<>(new String[]{
-                        "Plywood 12mm", "PVC Pipes 3 inch", "Acrylic Paint 5L", "Cement 50kg Bag", "Paint Roller Set"
-                });
-                gbc.gridwidth = 6; // Extend the combo box all the way to the right
-                panel.add(productCombo, gbc);
-
+                JLabel productsLabel = new JLabel("Products:");
+                productsLabel.setFont(labelFont);
+                panel.add(productsLabel, gbc);
 
                 // Row 4: Product Table with hardware-related items
-                gbc.gridy = 4;
+                gbc.gridy = 2;
                 gbc.gridx = 0;
                 gbc.gridwidth = 6;
                 String[] columnNames = {"#", "Code", "Product Name", "Invoice Qty", "Price", "Unit Price", "Tax", "Subtotal", "Action"};
@@ -88,7 +81,7 @@ public class Order_List extends javax.swing.JPanel {
                 JTable table = new JTable(model) {
                     @Override
                     public boolean isCellEditable(int row, int column) {
-                        return column == 3 || column == 8;  // Make only quantity and action columns editable
+                        return column == 3 || column == 8;
                     }
                 };
 
@@ -101,18 +94,22 @@ public class Order_List extends javax.swing.JPanel {
                 actionColumn.setCellRenderer(new ButtonRenderer());
                 actionColumn.setCellEditor(new ButtonEditor(new JCheckBox(), table, model));
 
+                // Wrap the table in a JScrollPane
                 JScrollPane tableScrollPane = new JScrollPane(table);
-                gbc.weightx = 1.0;
-                gbc.weighty = 1.0;
+
+                // Set preferred size for the JScrollPane to control table height
+                tableScrollPane.setPreferredSize(new Dimension(table.getPreferredSize().width, 150));
+
+                // Add the JScrollPane to the panel
                 panel.add(tableScrollPane, gbc);
 
-                // Reset grid constraints for following components
+                // Reset GridBag constraints for subsequent components
                 gbc.gridwidth = 1;
                 gbc.weightx = 0;
                 gbc.weighty = 0;
 
                 // Row 5: Discount Type, Discount, and Transport Cost Fields
-                gbc.gridy = 5;
+                gbc.gridy = 3;
                 gbc.gridx = 0;
                 JLabel discountTypeLabel = new JLabel("Discount Type:");
                 discountTypeLabel.setFont(labelFont);
@@ -141,14 +138,14 @@ public class Order_List extends javax.swing.JPanel {
                 panel.add(transportCostField, gbc);
 
                 // Row 6: Invoice Tax, Total Tax, and Net Total Fields
-                gbc.gridy = 6;
+                gbc.gridy = 4;
                 gbc.gridx = 0;
                 JLabel invoiceTaxLabel = new JLabel("Invoice Tax:");
                 invoiceTaxLabel.setFont(labelFont);
                 panel.add(invoiceTaxLabel, gbc);
 
                 gbc.gridx = 1;
-                JTextField invoiceTaxField = new JTextField("VAT@10", 10);
+                JTextField invoiceTaxField = new JTextField("VAT@12%", 12);
                 panel.add(invoiceTaxField, gbc);
 
                 gbc.gridx = 2;
@@ -167,11 +164,11 @@ public class Order_List extends javax.swing.JPanel {
 
                 gbc.gridx = 5;
                 JTextField netTotalField = new JTextField("20597.50", 10);
-                netTotalField.setEditable(false);  // Calculated automatically
+                netTotalField.setEditable(false);
                 panel.add(netTotalField, gbc);
 
                 // Row 7: PO Reference, Payment Terms
-                gbc.gridy = 7;
+                gbc.gridy = 5;
                 gbc.gridx = 0;
                 JLabel poReferenceLabel2 = new JLabel("PO Reference:");
                 poReferenceLabel2.setFont(labelFont);
@@ -190,8 +187,8 @@ public class Order_List extends javax.swing.JPanel {
                 JTextField paymentTermsField = new JTextField("30 days", 10);
                 panel.add(paymentTermsField, gbc);
 
-                // Row 8: Delivery Place, Date, Status (just before the Note section)
-                gbc.gridy = 8;
+                // Row 8: Delivery Place, Date, Status
+                gbc.gridy = 6;
                 gbc.gridx = 0;
                 JLabel deliveryPlaceLabel = new JLabel("Delivery Place:");
                 deliveryPlaceLabel.setFont(labelFont);
@@ -220,29 +217,26 @@ public class Order_List extends javax.swing.JPanel {
                 panel.add(statusCombo, gbc);
 
                 // Row 9: Note Section
-                gbc.gridy = 9;
+                gbc.gridy = 7;
                 gbc.gridx = 0;
                 gbc.gridwidth = 6;
                 JLabel noteLabel = new JLabel("Note:");
                 noteLabel.setFont(labelFont);
                 panel.add(noteLabel, gbc);
 
-                gbc.gridy = 10;
+                gbc.gridy = 8;
                 gbc.gridx = 0;
                 JTextArea noteArea = new JTextArea(3, 50);
                 panel.add(new JScrollPane(noteArea), gbc);
 
-                // Display the dialog
-                int result = JOptionPane.showConfirmDialog(null, panel, "Edit Invoice", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+                // Display the dialog with "Pay" instead of "OK"
+                Object[] options = {"Pay", "Cancel"};
+                int result = JOptionPane.showOptionDialog(null, panel, "Edit Invoice",
+                        JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE,
+                        null, options, options[0]);
 
                 if (result == JOptionPane.OK_OPTION) {
                     // Handle user inputs
-                    String client = clientField.getText();
-                    String reference = referenceField.getText();
-                    String paymentTerms = paymentTermsField.getText();
-                    String deliveryPlace = deliveryPlaceField.getText();
-                    String date = datePicker.getJFormattedTextField().getText();
-                    // Additional processing can go here
                 }
             }
 
@@ -370,19 +364,54 @@ public class Order_List extends javax.swing.JPanel {
             @Override
 
             public void onView(int row) {
-                Application.showForm(new Invoice_Details());
+
+//                Application.showForm(new Invoice_Details());
             }
 
 
         };
-        table.getColumnModel().getColumn(7).setCellRenderer(new TableActionCellRender());
-        table.getColumnModel().getColumn(7).setCellEditor(new TableActionCellEditor(event));
+        table.getColumnModel().getColumn(9).setCellRenderer(new TableActionCellRender());
+        table.getColumnModel().getColumn(9).setCellEditor(new TableActionCellEditor(event));
         loadOrders();
     }
 
-    private void loadOrders(){
+    private void loadOrders() {
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         model.setRowCount(0);
+
+        OrderService orderService = new OrderService();
+        SwingWorker<List<Order>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<Order> doInBackground() throws Exception {
+                var orders = orderService.getAllValidOrder(50);
+                return orders;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var orders = get();
+                    for (int i = 0; i < orders.size(); i++) {
+                        model.addRow(new Object[]{
+                                i + 1,
+                                orders.get(i).getId(),
+                                orders.get(i).getCode(),
+                                orders.get(i).getOrderDate(),
+                                orders.get(i).getSale().getPerson().getName(),
+                                orders.get(i).getSale().getTransactionMethod().name(),
+                                orders.get(i).getSale().getNetTotal(),
+                                orders.get(i).getSale().getAmountDue(),
+                                orders.get(i).getStatus().name()
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
     }
 
     @SuppressWarnings("unchecked")
@@ -421,16 +450,14 @@ public class Order_List extends javax.swing.JPanel {
 
         table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
-                        {null, null, null, null, null, null, null, null},
-                        {null, null, null, null, null, null, null, null},
-                        {null, null, null, null, null, null, null, null}
+
                 },
                 new String[]{
-                        "#", "Order No	", "Order Date	", "Client	", "Net Total	", "Amount Due", "Status", "Action"
+                        "#", "ID", "Order No	", "Order Date	", "Client	", "Type of Payment", "Net Total	", "Amount Due", "Status", "Action"
                 }
         ) {
             boolean[] canEdit = new boolean[]{
-                    false, false, false, false, false, false, false, true
+                    false, false, false, false, false, true, false, false, false, true
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -444,9 +471,9 @@ public class Order_List extends javax.swing.JPanel {
             table.getColumnModel().getColumn(1).setResizable(false);
             table.getColumnModel().getColumn(2).setResizable(false);
             table.getColumnModel().getColumn(3).setResizable(false);
-            table.getColumnModel().getColumn(4).setResizable(false);
             table.getColumnModel().getColumn(5).setResizable(false);
             table.getColumnModel().getColumn(6).setResizable(false);
+            table.getColumnModel().getColumn(7).setResizable(false);
         }
 
         jButton2.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N

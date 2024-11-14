@@ -103,7 +103,7 @@ public class PurchaseDAO {
 
             String hqlQuery = "SELECT p FROM Purchase p WHERE p.person.id = :supplierId AND p.isDeleted = FALSE ";
             purchases = session.createQuery(hqlQuery, Purchase.class)
-                    .setParameter("supplierId", supplierId)
+                    .setParameter("clientId", supplierId)
                     .getResultList();
 
             session.getTransaction().commit();

@@ -1,39 +1,30 @@
-package org.POS.backend.order;
+package org.POS.backend.invoice;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.POS.backend.cash_transaction.CashTransaction;
-import org.POS.backend.person.Person;
 import org.POS.backend.sale.Sale;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "orders")
+@Table(name = "invoices")
 @Getter
 @Setter
 @NoArgsConstructor
-public class Order {
+public class Invoice {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(columnDefinition = "VARCHAR(50) NOT NULL")
     private String code;
 
-    @Column(name = "order_date")
-    private LocalDate orderDate;
+    private LocalDate date;
 
     @Enumerated(EnumType.STRING)
-    private OrderStatus status;
-
-    @ManyToOne
-    @JoinColumn(name = "person_id")
-    private Person person;
+    private InvoiceStatus status;
 
     @OneToOne
     @JoinColumn(name = "sale_id")

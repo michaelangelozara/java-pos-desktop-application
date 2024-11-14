@@ -8,6 +8,7 @@ import org.POS.backend.brand.Brand;
 import org.POS.backend.inventory_adjustment.InventoryAdjustment;
 import org.POS.backend.product_subcategory.ProductSubcategory;
 import org.POS.backend.purchased_item.PurchaseItem;
+import org.POS.backend.quoted_item.QuotedItem;
 import org.POS.backend.sale_item.SaleItem;
 import org.POS.backend.stock.Stock;
 
@@ -80,6 +81,34 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InventoryAdjustment> inventoryAdjustments = new ArrayList<>();
 
+    @ManyToOne
+    @JoinColumn(name = "brand_id")
+    private Brand brand;
+
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PurchaseItem> purchaseItems = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SaleItem> saleItems = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<QuotedItem> quotedItems = new ArrayList<>();
+
+    public void addQuotedItem(QuotedItem quotedItem){
+        quotedItems.add(quotedItem);
+        quotedItem.setProduct(this);
+    }
+
+    public void addPurchaseItem(PurchaseItem purchaseItem){
+        purchaseItems.add(purchaseItem);
+        purchaseItem.setProduct(this);
+    }
+
+    public void addSaleItem(SaleItem saleItem){
+        saleItems.add(saleItem);
+        saleItem.setProduct(this);
+    }
+
     public void addInventoryAdjustment(InventoryAdjustment adjustment){
         inventoryAdjustments.add(adjustment);
         adjustment.setProduct(this);
@@ -88,25 +117,5 @@ public class Product {
     public void addStock(Stock stock){
         stocks.add(stock);
         stock.setProduct(this);
-    }
-
-    @ManyToOne
-    @JoinColumn(name = "brand_id")
-    private Brand brand;
-
-    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PurchaseItem> purchaseItems = new ArrayList<>();
-
-    public void addPurchaseItem(PurchaseItem purchaseItem){
-        purchaseItems.add(purchaseItem);
-        purchaseItem.setProduct(this);
-    }
-
-    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<SaleItem> saleItems = new ArrayList<>();
-
-    public void addSaleItem(SaleItem saleItem){
-        saleItems.add(saleItem);
-        saleItem.setProduct(this);
     }
 }

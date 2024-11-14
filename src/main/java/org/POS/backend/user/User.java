@@ -8,6 +8,7 @@ import org.POS.backend.expense.Expense;
 import org.POS.backend.inventory_adjustment.InventoryAdjustment;
 import org.POS.backend.open_cash.OpenCash;
 import org.POS.backend.purchase.Purchase;
+import org.POS.backend.quotation.Quotation;
 import org.POS.backend.sale.Sale;
 import org.POS.backend.stock.Stock;
 
@@ -74,6 +75,14 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InventoryAdjustment> inventoryAdjustments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Quotation> quotations = new ArrayList<>();
+
+    public void addQuotation(Quotation quotation){
+        quotations.add(quotation);
+        quotation.setUser(this);
+    }
 
     public void addInventoryAdjustment(InventoryAdjustment adjustment){
         inventoryAdjustments.add(adjustment);

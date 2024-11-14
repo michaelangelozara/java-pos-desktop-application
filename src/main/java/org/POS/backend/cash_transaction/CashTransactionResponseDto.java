@@ -7,7 +7,7 @@ public record CashTransactionResponseDto(
         String reference,
         BigDecimal cashIn,
         BigDecimal cashOut,
-        CashTransactionPaymentMethod paymentMethod,
+        TransactionPaymentMethod paymentMethod,
         String username,
         String dateTime
 ) {

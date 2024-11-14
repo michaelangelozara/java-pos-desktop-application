@@ -54,4 +54,25 @@ public class CodeGeneratorService {
 
         return GlobalVariable.GENERATING_CODE_ERROR;
     }
+
+    public String generateProductCode() {
+        Integer COUNT;
+        try (Session session = this.sessionFactory.openSession()){
+            session.beginTransaction();
+            CodeGenerator counter = session.createQuery("SELECT c FROM CodeGenerator c", CodeGenerator.class)
+                    .getSingleResult();
+            COUNT = counter.getLastCount();
+
+            // update the count
+            counter.setLastCount(counter.getLastCount() + 1);
+            session.merge(counter);
+
+            session.getTransaction().commit();
+            return formatter.format(COUNT);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return GlobalVariable.GENERATING_CODE_ERROR;
+    }
 }

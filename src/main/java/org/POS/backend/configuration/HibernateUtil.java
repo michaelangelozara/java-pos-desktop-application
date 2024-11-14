@@ -7,6 +7,7 @@ import org.POS.backend.expense.Expense;
 import org.POS.backend.expense_category.ExpenseCategory;
 import org.POS.backend.expense_subcategory.ExpenseSubcategory;
 import org.POS.backend.inventory_adjustment.InventoryAdjustment;
+import org.POS.backend.invoice.Invoice;
 import org.POS.backend.open_cash.OpenCash;
 import org.POS.backend.order.Order;
 import org.POS.backend.person.Person;
@@ -15,6 +16,8 @@ import org.POS.backend.product_category.ProductCategory;
 import org.POS.backend.product_subcategory.ProductSubcategory;
 import org.POS.backend.purchase.Purchase;
 import org.POS.backend.purchased_item.PurchaseItem;
+import org.POS.backend.quotation.Quotation;
+import org.POS.backend.quoted_item.QuotedItem;
 import org.POS.backend.return_product.ReturnProduct;
 import org.POS.backend.sale.Sale;
 import org.POS.backend.sale_item.SaleItem;
@@ -57,6 +60,9 @@ public class HibernateUtil {
                 configuration.addAnnotatedClass(OpenCash.class);
                 configuration.addAnnotatedClass(InventoryAdjustment.class);
                 configuration.addAnnotatedClass(Order.class);
+                configuration.addAnnotatedClass(Invoice.class);
+                configuration.addAnnotatedClass(Quotation.class);
+                configuration.addAnnotatedClass(QuotedItem.class);
 
                 // Build the SessionFactory
                 sessionFactory = configuration.buildSessionFactory(

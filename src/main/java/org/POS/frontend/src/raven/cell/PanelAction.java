@@ -2,6 +2,7 @@ package org.POS.frontend.src.raven.cell;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.concurrent.ExecutionException;
 
 /**
  *
@@ -32,7 +33,13 @@ public class PanelAction extends javax.swing.JPanel {
         cmdView.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                event.onView(row);
+                try {
+                    event.onView(row);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
     }

@@ -1,9 +1,10 @@
 package org.POS.backend.sale;
 
-import jakarta.transaction.Transactional;
 import org.POS.backend.cash_transaction.CashTransaction;
-import org.POS.backend.cash_transaction.CashTransactionPaymentMethod;
+import org.POS.backend.cash_transaction.TransactionPaymentMethod;
 import org.POS.backend.configuration.HibernateUtil;
+import org.POS.backend.invoice.Invoice;
+import org.POS.backend.order.Order;
 import org.POS.backend.product.Product;
 import org.POS.backend.sale_item.SaleItem;
 import org.POS.backend.stock.Stock;
@@ -20,7 +21,14 @@ public class SaleDAO {
 
     private SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
 
-    public Sale add(Sale sale, List<SaleItem> saleItems, List<Product> products, List<Stock> stocks) {
+    public Sale add(
+            Sale sale,
+            List<SaleItem> saleItems,
+            List<Product> products,
+            List<Stock> stocks,
+            Order order,
+            Invoice invoice
+    ) {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
@@ -34,6 +42,9 @@ public class SaleDAO {
             for (var product : products) {
                 session.merge(product);
             }
+
+            session.persist(order);
+            session.persist(invoice);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null && transaction.isActive()) {
@@ -44,7 +55,15 @@ public class SaleDAO {
         return sale;
     }
 
-    public Sale add(Sale sale, List<SaleItem> saleItems, List<Product> products, List<Stock> stocks, CashTransaction cashTransaction) {
+    public Sale add(
+            Sale sale,
+            List<SaleItem> saleItems,
+            List<Product> products,
+            List<Stock> stocks,
+            CashTransaction cashTransaction,
+            Order order,
+            Invoice invoice
+    ) {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
@@ -62,6 +81,9 @@ public class SaleDAO {
             for (var product : products) {
                 session.merge(product);
             }
+
+            session.persist(order);
+            session.persist(invoice);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null && transaction.isActive()) {
@@ -105,7 +127,7 @@ public class SaleDAO {
         return sales;
     }
 
-    public List<Sale> getAllSalesByCashTransactionType(CashTransactionPaymentMethod type){
+    public List<Sale> getAllSalesByCashTransactionType(TransactionPaymentMethod type){
         List<Sale> sales = new ArrayList<>();
         try (Session session = sessionFactory.openSession()){
 

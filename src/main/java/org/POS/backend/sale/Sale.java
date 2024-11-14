@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.POS.backend.cash_transaction.CashTransaction;
+import org.POS.backend.invoice.Invoice;
+import org.POS.backend.order.Order;
 import org.POS.backend.person.Person;
 import org.POS.backend.sale_item.SaleItem;
 import org.POS.backend.user.User;
@@ -60,6 +62,9 @@ public class Sale {
 
     private LocalDate date;
 
+    @Enumerated(EnumType.STRING)
+    private SaleTransactionMethod transactionMethod;
+
     @Column(columnDefinition = "VARCHAR(50) NOT NULL")
     private String code;
 
@@ -80,6 +85,12 @@ public class Sale {
 
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<SaleItem> saleItems = new HashSet<>();
+
+    @OneToOne(mappedBy = "sale")
+    private Order order;
+
+    @OneToOne(mappedBy = "sale")
+    private Invoice invoice;
 
     public void addSaleItem(SaleItem saleItem){
         saleItems.add(saleItem);

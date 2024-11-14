@@ -1,12 +1,14 @@
 package org.POS.backend.sale;
 
-import jakarta.transaction.Transactional;
 import org.POS.backend.cash_transaction.CashTransaction;
-import org.POS.backend.cash_transaction.CashTransactionPaymentMethod;
+import org.POS.backend.cash_transaction.TransactionPaymentMethod;
 import org.POS.backend.code_generator.CodeGeneratorService;
-import org.POS.backend.exception.ResourceNotFoundException;
 import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.global_variable.GlobalVariable;
+import org.POS.backend.invoice.Invoice;
+import org.POS.backend.invoice.InvoiceStatus;
+import org.POS.backend.order.Order;
+import org.POS.backend.order.OrderStatus;
 import org.POS.backend.person.PersonDAO;
 import org.POS.backend.product.Product;
 import org.POS.backend.product.ProductDAO;
@@ -15,7 +17,6 @@ import org.POS.backend.sale_item.SaleItem;
 import org.POS.backend.sale_item.SaleItemMapper;
 import org.POS.backend.stock.Stock;
 import org.POS.backend.stock.StockType;
-import org.POS.backend.user.User;
 import org.POS.backend.user.UserDAO;
 
 import java.math.BigDecimal;
@@ -101,25 +102,57 @@ public class SaleService {
                 }
             }
 
-            if (!dto.paymentMethod().equals(CashTransactionPaymentMethod.PO_PAYMENT) && !dto.paymentMethod().equals(CashTransactionPaymentMethod.ONLINE_PAYMENT)) {
+            String orderInvoiceCode = this.codeGeneratorService.generateProductCode();
+
+            Order order = new Order();
+            order.setSale(sale);
+            order.setOrderDate(LocalDate.now());
+            order.setCode(GlobalVariable.ORDER_PREFIX + orderInvoiceCode);
+
+            Invoice invoice = new Invoice();
+            invoice.setSale(sale);
+            invoice.setCode(GlobalVariable.INVOICE_PREFIX+orderInvoiceCode);
+            invoice.setDate(LocalDate.now());
+
+            if (dto.paymentMethod().equals(TransactionPaymentMethod.CASH_PAYMENT)) {
                 // cash transaction
                 CashTransaction cashTransaction = new CashTransaction();
                 cashTransaction.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.CASH_TRANSACTION_PREFIX));
                 cashTransaction.setReference(sale.getNote());
                 cashTransaction.setCashIn(sale.getNetTotal());
                 cashTransaction.setCashOut(sale.getAmount().subtract(sale.getNetTotal()));
-                cashTransaction.setCashTransactionPaymentMethod(dto.paymentMethod());
+                cashTransaction.setTransactionPaymentMethod(dto.paymentMethod());
                 cashTransaction.setDateTime(LocalDateTime.now());
 
+                order.setStatus(OrderStatus.COMPLETED);
+                invoice.setStatus(InvoiceStatus.COMPLETED);
+
                 currentUser.addCashTransaction(cashTransaction);
-                var savedSale = this.saleDAO.add(sale, saleItems, updatedProducts, stocks, cashTransaction);
+
+                sale.setTransactionMethod(SaleTransactionMethod.CASH_PAYMENT);
+                sale.setAmountDue(BigDecimal.ZERO);
+
+                var savedSale = this.saleDAO.add(sale, saleItems, updatedProducts, stocks, cashTransaction, order, invoice);
+                return savedSale.getId();
+            }else if(dto.paymentMethod().equals(TransactionPaymentMethod.PO_PAYMENT)){
+                // this is PO payment
+                order.setStatus(OrderStatus.PENDING);
+                invoice.setStatus(InvoiceStatus.PENDING);
+                sale.setTransactionMethod(SaleTransactionMethod.PO_PAYMENT);
+                sale.setAmountDue(dto.netTotal().subtract(dto.amount()));
+                var savedSale = this.saleDAO.add(sale, saleItems, updatedProducts, stocks, order, invoice);
+                return savedSale.getId();
+            }else{
+                // online payment
+                order.setStatus(OrderStatus.COMPLETED);
+                invoice.setStatus(InvoiceStatus.COMPLETED);
+
+                sale.setAmountDue(dto.netTotal().subtract(dto.amount()));
+                sale.setTransactionMethod(SaleTransactionMethod.ONLINE_PAYMENT);
+                var savedSale = this.saleDAO.add(sale, saleItems, updatedProducts, stocks, order, invoice);
                 return savedSale.getId();
             }
-
-            var savedSale = this.saleDAO.add(sale, saleItems, updatedProducts, stocks);
-            return savedSale.getId();
         }
-
         return -1;
     }
 
@@ -135,7 +168,7 @@ public class SaleService {
         return this.saleDAO.getAllValidSales(numberOfSales);
     }
 
-    public List<Sale> getAllValidSalesByCashTransactionType(CashTransactionPaymentMethod type){
+    public List<Sale> getAllValidSalesByCashTransactionType(TransactionPaymentMethod type){
         return this.saleDAO.getAllSalesByCashTransactionType(type);
     }
 }
