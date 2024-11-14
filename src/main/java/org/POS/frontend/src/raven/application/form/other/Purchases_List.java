@@ -4,15 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.POS.backend.person.PersonResponseDto;
 import org.POS.backend.person.PersonService;
 import org.POS.backend.person.PersonType;
 import org.POS.backend.product.ProductResponseDto;
 import org.POS.backend.product.ProductService;
 import org.POS.backend.product.ProductTaxType;
-import org.POS.backend.purchase.AddPurchaseRequestDto;
-import org.POS.backend.purchase.PurchaseService;
-import org.POS.backend.purchase.PurchaseStatus;
-import org.POS.backend.purchase.UpdatePurchaseRequestDto;
+import org.POS.backend.purchase.*;
 import org.POS.backend.purchased_item.AddPurchaseItemRequestDto;
 import org.POS.backend.purchased_item.PurchaseItemService;
 import org.POS.backend.purchased_item.UpdatePurchaseItemRequestDto;
@@ -45,6 +43,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Timer;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 public class Purchases_List extends javax.swing.JPanel {
 
@@ -112,15 +111,39 @@ public class Purchases_List extends javax.swing.JPanel {
                 panel.add(productsCombo, gbc);
 
                 ProductService productService = new ProductService();
-                var products = productService.getAllValidProducts();
                 Map<Integer, Integer> productMap = new HashMap<>();
-                // Populate ComboBox with product names
-                productsCombo.addItem("Select Product");
 
-                for (int i = 0; i < products.size(); i++) {
-                    productsCombo.addItem(products.get(i).name());
-                    productMap.put(i + 1, products.get(i).id());
-                }
+                SwingWorker<List<ProductResponseDto>, Void> productWorker = new SwingWorker<>() {
+                    @Override
+                    protected List<ProductResponseDto> doInBackground() throws Exception {
+                        SwingUtilities.invokeLater(() -> {
+                            productsCombo.addItem("Loading Products");
+                            productsCombo.setSelectedItem("Loading Products");
+                            productsCombo.setEnabled(false);
+                        });
+                        var products = productService.getAllValidProducts();
+                        return products;
+                    }
+
+                    @Override
+                    protected void done() {
+                        try {
+                            var products = get();
+                            SwingUtilities.invokeLater(() -> {
+                                productsCombo.setEnabled(true);
+                                productsCombo.removeAllItems();
+                                productsCombo.addItem("Select Product");
+                                for (int i = 0; i < products.size(); i++) {
+                                    productsCombo.addItem(products.get(i).name());
+                                    productMap.put(i + 1, products.get(i).id());
+                                }
+                            });
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+                productWorker.execute();
 
                 // Table setup below Supplier and Select Products
                 gbc.gridx = 0;
@@ -272,7 +295,7 @@ public class Purchases_List extends javax.swing.JPanel {
                     int productIndex = productsCombo.getSelectedIndex();
                     Integer productId = productMap.get(productIndex);
 
-                    if(productId != null){
+                    if (productId != null) {
                         String productName = (String) productsCombo.getSelectedItem();
 
                         List<PurchaseListedProduct> rows = getAllRows(tableModel);
@@ -292,28 +315,34 @@ public class Purchases_List extends javax.swing.JPanel {
                             BigDecimal SubtotalSummation = BigDecimal.ZERO;
 
 
-                            for (ProductResponseDto product : products) {
+                            try {
+                                for (ProductResponseDto product : productWorker.get()) {
 
-                                if (product.id() == productId) {
-                                    BigDecimal updatedSubtotal = BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice().multiply(BigDecimal.valueOf(1.12)));
+                                    if (product.id() == productId) {
+                                        BigDecimal updatedSubtotal = BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice().multiply(BigDecimal.valueOf(1.12)));
 
-                                    BigDecimal taxValueForInclusive = (product.sellingPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP));
+                                        BigDecimal taxValueForInclusive = (product.sellingPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP));
 
-                                    tableModel.addRow(new Object[]{
-                                            tableModel.getRowCount() + 1, // Row number
-                                            null,
-                                            product.code(),
-                                            product.name(),
-                                            String.valueOf(product.stock()), // Ensuring stock is a String
-                                            product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().subtract(taxValueForInclusive).setScale(2, RoundingMode.HALF_UP),
-                                            product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().multiply(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().setScale(2, RoundingMode.HALF_UP),
-                                            product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.subtract((BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice()))).setScale(2, RoundingMode.HALF_UP) : taxValueForInclusive.setScale(2, RoundingMode.HALF_UP),
-                                            product.taxType().name(), // Assuming taxType() returns an enum, use name() to get String
-                                            product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.setScale(2, RoundingMode.HALF_UP) : BigDecimal.valueOf(product.stock()).multiply(product.sellingPrice()).setScale(2, RoundingMode.HALF_UP), // Subtotal calculation
-                                            "Remove"
-                                    });
-                                    break;
+                                        tableModel.addRow(new Object[]{
+                                                tableModel.getRowCount() + 1, // Row number
+                                                null,
+                                                product.code(),
+                                                product.name(),
+                                                String.valueOf(product.stock()), // Ensuring stock is a String
+                                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().subtract(taxValueForInclusive).setScale(2, RoundingMode.HALF_UP),
+                                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().multiply(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().setScale(2, RoundingMode.HALF_UP),
+                                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.subtract((BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice()))).setScale(2, RoundingMode.HALF_UP) : taxValueForInclusive.setScale(2, RoundingMode.HALF_UP),
+                                                product.taxType().name(), // Assuming taxType() returns an enum, use name() to get String
+                                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.setScale(2, RoundingMode.HALF_UP) : BigDecimal.valueOf(product.stock()).multiply(product.sellingPrice()).setScale(2, RoundingMode.HALF_UP), // Subtotal calculation
+                                                "Remove"
+                                        });
+                                        break;
+                                    }
                                 }
+                            } catch (InterruptedException ex) {
+                                throw new RuntimeException(ex);
+                            } catch (ExecutionException ex) {
+                                throw new RuntimeException(ex);
                             }
 
                             for (int i = 0; i < tableModel.getRowCount(); i++) {
@@ -762,23 +791,6 @@ public class Purchases_List extends javax.swing.JPanel {
                 loadPurchases();
             }
 
-            // Method to create createdAt pickers with the current createdAt
-            private JDatePickerImpl createDatePicker() {
-                UtilDateModel model = new UtilDateModel();
-                // Set the current createdAt
-                LocalDate currentDate = LocalDate.now();
-                model.setDate(currentDate.getYear(), currentDate.getMonthValue() - 1, currentDate.getDayOfMonth());
-                model.setSelected(true);  // Automatically selects the current createdAt
-
-                Properties p = new Properties();
-                p.put("text.today", "Today");
-                p.put("text.month", "Month");
-                p.put("text.year", "Year");
-
-                JDatePanelImpl datePanel = new JDatePanelImpl(model, p);
-                return new JDatePickerImpl(datePanel, new DateLabelFormatter());
-            }
-
             private JDatePickerImpl createDatePicker(LocalDate localDate) {
                 UtilDateModel model = new UtilDateModel();
                 // Set the current createdAt
@@ -889,8 +901,9 @@ public class Purchases_List extends javax.swing.JPanel {
             }
 
             @Override
-
             public void onView(int row) {
+                DefaultTableModel model = (DefaultTableModel) table.getModel();
+                int purchaseId = (Integer) model.getValueAt(row, 1);
                 Application.showForm(new Product_Details());
             }
 
@@ -906,23 +919,40 @@ public class Purchases_List extends javax.swing.JPanel {
         model.setRowCount(0);
 
         PurchaseService purchaseService = new PurchaseService();
-        var purchases = purchaseService.getAllValidPurchases();
-        for (int i = 0; i < purchases.size(); i++) {
-            model.addRow(new Object[]{
-                    String.valueOf(i + 1),
-                    purchases.get(i).id(),
-                    purchases.get(i).code(),
-                    purchases.get(i).date(),
-                    purchases.get(i).supplier().name(),
-                    purchases.get(i).subtotal(),
-                    purchases.get(i).transport(),
-                    purchases.get(i).discount(),
-                    purchases.get(i).netTotal(),
-                    purchases.get(i).totalPaid(),
-                    purchases.get(i).totalDue(),
-                    purchases.get(i).status()
-            });
-        }
+        SwingWorker<List<PurchaseResponseDto>, Void> worker = new SwingWorker<List<PurchaseResponseDto>, Void>() {
+            @Override
+            protected List<PurchaseResponseDto> doInBackground() throws Exception {
+                var purchases = purchaseService.getAllValidPurchases();
+                return purchases;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var purchases = get();
+
+                    for (int i = 0; i < purchases.size(); i++) {
+                        model.addRow(new Object[]{
+                                String.valueOf(i + 1),
+                                purchases.get(i).id(),
+                                purchases.get(i).code(),
+                                purchases.get(i).date(),
+                                purchases.get(i).supplier().name(),
+                                purchases.get(i).subtotal(),
+                                purchases.get(i).transport(),
+                                purchases.get(i).discount(),
+                                purchases.get(i).netTotal(),
+                                purchases.get(i).totalPaid(),
+                                purchases.get(i).totalDue(),
+                                purchases.get(i).status()
+                        });
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        worker.execute();
     }
 
     @SuppressWarnings("unchecked")
@@ -1116,23 +1146,41 @@ public class Purchases_List extends javax.swing.JPanel {
 
         PurchaseService purchaseService = new PurchaseService();
 
-        var purchase = purchaseService.getAllValidPurchaseByCodeAndSupplierName(query);
-        for (int i = 0; i < purchase.size(); i++) {
-            model.addRow(new Object[]{
-                    i + 1,
-                    purchase.get(i).id(),
-                    purchase.get(i).code(),
-                    purchase.get(i).date(),
-                    purchase.get(i).supplier().name(),
-                    purchase.get(i).subtotal(),
-                    purchase.get(i).transport(),
-                    purchase.get(i).discount(),
-                    purchase.get(i).netTotal(),
-                    purchase.get(i).totalPaid(),
-                    purchase.get(i).totalDue(),
-                    purchase.get(i).status().name()
-            });
-        }
+        SwingWorker<List<PurchaseResponseDto>, Void> worker = new SwingWorker<List<PurchaseResponseDto>, Void>() {
+            @Override
+            protected List<PurchaseResponseDto> doInBackground() throws Exception {
+                var purchases = purchaseService.getAllValidPurchaseByCodeAndSupplierName(query);
+                return purchases;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var purchases = get();
+
+                    for (int i = 0; i < purchases.size(); i++) {
+                        model.addRow(new Object[]{
+                                i + 1,
+                                purchases.get(i).id(),
+                                purchases.get(i).code(),
+                                purchases.get(i).date(),
+                                purchases.get(i).supplier().name(),
+                                purchases.get(i).subtotal(),
+                                purchases.get(i).transport(),
+                                purchases.get(i).discount(),
+                                purchases.get(i).netTotal(),
+                                purchases.get(i).totalPaid(),
+                                purchases.get(i).totalDue(),
+                                purchases.get(i).status().name()
+                        });
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        worker.execute();
     }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -1158,15 +1206,44 @@ public class Purchases_List extends javax.swing.JPanel {
         gbc.gridx = 1;
         JComboBox<String> supplierCombo = new JComboBox<>();
         panel.add(supplierCombo, gbc);
-        supplierCombo.addItem("Select Supplier");
+
 
         Map<Integer, Integer> supplierMap = new HashMap<>();
         PersonService personService = new PersonService();
-        var suppliers = personService.getAllValidPeopleByType(PersonType.SUPPLIER);
-        for (int i = 0; i < suppliers.size(); i++) {
-            supplierCombo.addItem(suppliers.get(i).name());
-            supplierMap.put(i + 1, suppliers.get(i).id());
-        }
+
+        SwingWorker<List<PersonResponseDto>, Void> supplierWorker = new SwingWorker<>() {
+            @Override
+            protected List<PersonResponseDto> doInBackground() throws Exception {
+                SwingUtilities.invokeLater(() -> {
+                    supplierCombo.addItem("Loading Suppliers");
+                    supplierCombo.setSelectedItem("Loading Suppliers");
+                    supplierCombo.setEnabled(false);
+                });
+                var suppliers = personService.getAllValidPeopleByType(PersonType.SUPPLIER);
+                return suppliers;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var suppliers = get();
+
+                    SwingUtilities.invokeLater(() -> {
+                        supplierCombo.setEnabled(true);
+                        supplierCombo.removeAllItems();
+                        supplierCombo.addItem("Select Supplier");
+
+                        for (int i = 0; i < suppliers.size(); i++) {
+                            supplierCombo.addItem(suppliers.get(i).name());
+                            supplierMap.put(i + 1, suppliers.get(i).id());
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        supplierWorker.execute();
 
         gbc.gridx = 2;
         JLabel productsLabel = new JLabel("Select Products:");
@@ -1178,15 +1255,42 @@ public class Purchases_List extends javax.swing.JPanel {
         panel.add(productsCombo, gbc);
 
         ProductService productService = new ProductService();
-        var products = productService.getAllValidProducts();
         Map<Integer, Integer> productMap = new HashMap<>();
         // Populate ComboBox with product names
-        productsCombo.addItem("Select Product");
 
-        for (int i = 0; i < products.size(); i++) {
-            productsCombo.addItem(products.get(i).name());
-            productMap.put(i + 1, products.get(i).id());
-        }
+
+        SwingWorker<List<ProductResponseDto>, Void> productWorker = new SwingWorker<>() {
+            @Override
+            protected List<ProductResponseDto> doInBackground() throws Exception {
+                SwingUtilities.invokeLater(() -> {
+                    productsCombo.addItem("Loading Products");
+                    productsCombo.setSelectedItem("Loading Products");
+                    productsCombo.setEnabled(false);
+                });
+                return productService.getAllValidProducts();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var products = get();
+                    SwingUtilities.invokeLater(() -> {
+                        productsCombo.removeAllItems();
+                        productsCombo.addItem("Select Product");
+                        productsCombo.setSelectedItem("Select Product");
+                        productsCombo.setEnabled(true);
+
+                        for (int i = 0; i < products.size(); i++) {
+                            productsCombo.addItem(products.get(i).name());
+                            productMap.put(i + 1, products.get(i).id());
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        productWorker.execute();
 
         // Table setup below Supplier and Select Products
         gbc.gridx = 0;
@@ -1213,7 +1317,6 @@ public class Purchases_List extends javax.swing.JPanel {
                         return column == 4 || column == 6;
                     }
                 }
-
                 // Default case: no cells are editable if tax type is neither "exclusive" nor "inclusive"
                 return false;
             }
@@ -1323,7 +1426,7 @@ public class Purchases_List extends javax.swing.JPanel {
             int productIndex = productsCombo.getSelectedIndex();
             Integer productId = productMap.get(productIndex);
 
-            if(productId != null){
+            if (productId != null) {
                 List<PurchaseListedProduct> rows = getAllRows(tableModel);
                 for (int i = 0; i < rows.size(); i++) {
                     // check if that product is already added
@@ -1341,28 +1444,34 @@ public class Purchases_List extends javax.swing.JPanel {
                     BigDecimal SubtotalSummation = BigDecimal.ZERO;
 
 
-                    for (ProductResponseDto product : products) {
+                    try {
+                        for (ProductResponseDto product : productWorker.get()) {
 
-                        if (product.id() == productId) {
-                            BigDecimal updatedSubtotal = BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice().multiply(BigDecimal.valueOf(1.12)));
+                            if (product.id() == productId) {
+                                BigDecimal updatedSubtotal = BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice().multiply(BigDecimal.valueOf(1.12)));
 
-                            BigDecimal taxValueForInclusive = (product.sellingPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP));
+                                BigDecimal taxValueForInclusive = (product.sellingPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP));
 
-                            tableModel.addRow(new Object[]{
-                                    tableModel.getRowCount() + 1, // Row number
-                                    product.id(),
-                                    product.code(),
-                                    product.name(),
-                                    String.valueOf(product.stock()), // Ensuring stock is a String
-                                    product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().subtract(taxValueForInclusive).setScale(2, RoundingMode.HALF_UP),
-                                    product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().multiply(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().setScale(2, RoundingMode.HALF_UP),
-                                    product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.subtract((BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice()))).setScale(2, RoundingMode.HALF_UP) : taxValueForInclusive.setScale(2, RoundingMode.HALF_UP),
-                                    product.taxType().name(), // Assuming taxType() returns an enum, use name() to get String
-                                    product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.setScale(2, RoundingMode.HALF_UP) : BigDecimal.valueOf(product.stock()).multiply(product.sellingPrice()).setScale(2, RoundingMode.HALF_UP), // Subtotal calculation
-                                    "Remove"
-                            });
-                            break;
+                                tableModel.addRow(new Object[]{
+                                        tableModel.getRowCount() + 1, // Row number
+                                        product.id(),
+                                        product.code(),
+                                        product.name(),
+                                        String.valueOf(product.stock()), // Ensuring stock is a String
+                                        product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().subtract(taxValueForInclusive).setScale(2, RoundingMode.HALF_UP),
+                                        product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().multiply(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().setScale(2, RoundingMode.HALF_UP),
+                                        product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.subtract((BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice()))).setScale(2, RoundingMode.HALF_UP) : taxValueForInclusive.setScale(2, RoundingMode.HALF_UP),
+                                        product.taxType().name(), // Assuming taxType() returns an enum, use name() to get String
+                                        product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.setScale(2, RoundingMode.HALF_UP) : BigDecimal.valueOf(product.stock()).multiply(product.sellingPrice()).setScale(2, RoundingMode.HALF_UP), // Subtotal calculation
+                                        "Remove"
+                                });
+                                break;
+                            }
                         }
+                    } catch (InterruptedException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (ExecutionException ex) {
+                        throw new RuntimeException(ex);
                     }
 
                     for (int i = 0; i < tableModel.getRowCount(); i++) {
@@ -1999,23 +2108,43 @@ public class Purchases_List extends javax.swing.JPanel {
         model.setRowCount(0);
 
         PurchaseService purchaseService = new PurchaseService();
-        var purchases = purchaseService.getAllValidPurchaseByRange(fromDate, toDate);
 
-        for (int i = 0; i < purchases.size(); i++) {
-            model.addRow(new Object[]{
-                    String.valueOf(i + 1),
-                    purchases.get(i).id(),
-                    purchases.get(i).code(),
-                    purchases.get(i).date(),
-                    purchases.get(i).supplier().name(),
-                    purchases.get(i).subtotal(),
-                    purchases.get(i).transport(),
-                    purchases.get(i).discount(),
-                    purchases.get(i).netTotal(),
-                    purchases.get(i).totalPaid(),
-                    purchases.get(i).totalDue(),
-                    purchases.get(i).status()
-            });
-        }
+
+        SwingWorker<List<PurchaseResponseDto>, Void> worker = new SwingWorker<List<PurchaseResponseDto>, Void>() {
+            @Override
+            protected List<PurchaseResponseDto> doInBackground() throws Exception {
+                var purchases = purchaseService.getAllValidPurchaseByRange(fromDate, toDate);
+                return purchases;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var purchases = get();
+
+                    for (int i = 0; i < purchases.size(); i++) {
+                        model.addRow(new Object[]{
+                                String.valueOf(i + 1),
+                                purchases.get(i).id(),
+                                purchases.get(i).code(),
+                                purchases.get(i).date(),
+                                purchases.get(i).supplier().name(),
+                                purchases.get(i).subtotal(),
+                                purchases.get(i).transport(),
+                                purchases.get(i).discount(),
+                                purchases.get(i).netTotal(),
+                                purchases.get(i).totalPaid(),
+                                purchases.get(i).totalDue(),
+                                purchases.get(i).status()
+                        });
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        worker.execute();
+
+
     }
 }

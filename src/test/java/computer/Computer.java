@@ -1,7 +1,6 @@
 package computer;
 
 import org.POS.backend.product.ProductMapper;
-import org.POS.backend.product.ProductTaxType;
 import org.junit.jupiter.api.Test;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -11,12 +10,6 @@ public class Computer {
 
     @Test
     void compute(){
-        double vat = 0.20;
-        double discount = 0.20;
-        double regularPrice = 100D;
-        double discountedValue = (((regularPrice * vat) + regularPrice) * discount);
-        double sellingPrice = ((regularPrice * vat) + regularPrice) - discountedValue;
-        BigDecimal one = BigDecimal.ONE;
 
         String plainText = "password";
         String encryptedText = BCrypt.hashpw(plainText, BCrypt.gensalt());
@@ -24,7 +17,7 @@ public class Computer {
         System.out.println("Hashed password: " + encryptedText);
 
         // Verify the password
-        boolean matches = BCrypt.checkpw(plainText, encryptedText);
+        boolean matches = BCrypt.checkpw(plainText, "$2a$10$ylm0OBvO4xS6GqXa3ITByubcE0uGSV9o4PCT/gg51Y/VqGOKIMdSG");
         System.out.println("Password matches: " + matches);
     }
 

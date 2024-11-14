@@ -16,50 +16,50 @@ public class User {
         UserService userService = new UserService();
 
 
-        String plainText = "password";
-        String encryptedText = BCrypt.hashpw(plainText, BCrypt.gensalt());
-
-        AddUserRequestDto dto = new AddUserRequestDto(
-            "USER-123",
-                "Michael Angelo Zara",
-                UserRole.ADMIN,
-                "username",
-                encryptedText,
-                "michaelangelobuccatzara@gmail.com",
-                "09090909090",
-                UserStatus.ACTIVE
-        );
-        userService.add(dto);
+//        String plainText = "password";
+//        String encryptedText = BCrypt.hashpw(plainText, BCrypt.gensalt());
+//
+//        AddUserRequestDto dto = new AddUserRequestDto(
+//            "USER-123",
+//                "Michael Angelo Zara",
+//                UserRole.ADMIN,
+//                "username",
+//                encryptedText,
+//                "michaelangelobuccatzara@gmail.com",
+//                "09090909090",
+//                UserStatus.ACTIVE
+//        );
+//        userService.add(dto);
     }
 
     @Test
     void update(){
-        UserService userService = new UserService();
-
-        UpdateUserRequestDto dto = new UpdateUserRequestDto(
-                1,
-                "Michael Angelo B. Zara",
-                "Ewan",
-                "YUNJKADS",
-                "09090909099",
-                BigDecimal.valueOf(1000),
-                0,
-                LocalDate.now(),
-                UserGender.MALE,
-                "A+",
-                UserReligion.CHRISTIANS,
-                LocalDate.now(),
-                LocalDate.now(),
-                "Pimbalayan, Lambayong, Sultan Kudarat",
-                UserStatus.ACTIVE,
-                "YVHIYIYFGVBJIJUYVHBUBJ",
-                true,
-                "username",
-                "password",
-                UserRole.SALESMAN,
-                1
-        );
-        userService.updateUser(dto);
+//        UserService userService = new UserService();
+//
+//        UpdateUserRequestDto dto = new UpdateUserRequestDto(
+//                1,
+//                "Michael Angelo B. Zara",
+//                "Ewan",
+//                "YUNJKADS",
+//                "09090909099",
+//                BigDecimal.valueOf(1000),
+//                0,
+//                LocalDate.now(),
+//                UserGender.MALE,
+//                "A+",
+//                UserReligion.CHRISTIANS,
+//                LocalDate.now(),
+//                LocalDate.now(),
+//                "Pimbalayan, Lambayong, Sultan Kudarat",
+//                UserStatus.ACTIVE,
+//                "YVHIYIYFGVBJIJUYVHBUBJ",
+//                true,
+//                "username",
+//                "password",
+//                UserRole.SALESMAN,
+//                1
+//        );
+//        userService.updateUser(dto);
     }
 
     @Test

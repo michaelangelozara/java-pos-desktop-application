@@ -1,10 +1,7 @@
 package org.POS.frontend.src.raven.application.form.other;
 
 import org.POS.backend.cryptography.Base64Converter;
-import org.POS.backend.expense.AddExpenseRequestDto;
-import org.POS.backend.expense.ExpenseService;
-import org.POS.backend.expense.ExpenseStatus;
-import org.POS.backend.expense.UpdateExpenseRequestDto;
+import org.POS.backend.expense.*;
 import org.POS.backend.expense_category.ExpenseCategoryService;
 import org.POS.backend.expense_subcategory.ExpenseSubcategoryService;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
@@ -24,6 +21,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.List;
 import java.util.Timer;
 
 public class Expenses_List extends javax.swing.JPanel {
@@ -379,20 +377,37 @@ public class Expenses_List extends javax.swing.JPanel {
         model.setRowCount(0);
 
         ExpenseService expenseService = new ExpenseService();
-        var expenses = expenseService.getAllValidExpenses(number);
-        for (int i = 0; i < expenses.size(); i++) {
-            model.addRow(new Object[]{
-                    String.valueOf(i + 1),
-                    expenses.get(i).id(),
-                    expenses.get(i).expenseReason(),
-                    expenses.get(i).category(),
-                    expenses.get(i).subcategory(),
-                    expenses.get(i).amount(),
-                    expenses.get(i).account(),
-                    expenses.get(i).createdAt(),
-                    expenses.get(i).status()
-            });
-        }
+        SwingWorker<List<ExpenseResponseDto>, Void> worker = new SwingWorker<List<ExpenseResponseDto>, Void>() {
+            @Override
+            protected List<ExpenseResponseDto> doInBackground() throws Exception {
+                var expenses = expenseService.getAllValidExpenses(number);
+                return expenses;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var expenses = get();
+
+                    for (int i = 0; i < expenses.size(); i++) {
+                        model.addRow(new Object[]{
+                                String.valueOf(i + 1),
+                                expenses.get(i).id(),
+                                expenses.get(i).expenseReason(),
+                                expenses.get(i).category(),
+                                expenses.get(i).subcategory(),
+                                expenses.get(i).amount(),
+                                expenses.get(i).account(),
+                                expenses.get(i).createdAt(),
+                                expenses.get(i).status()
+                        });
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        worker.execute();
     }
 
     @SuppressWarnings("unchecked")
@@ -567,20 +582,37 @@ public class Expenses_List extends javax.swing.JPanel {
         }
 
         ExpenseService expenseService = new ExpenseService();
-        var expenses = expenseService.gatAllValidExpenseByReason(reason);
-        for (int i = 0; i < expenses.size(); i++) {
-            model.addRow(new Object[]{
-                    i + 1,
-                    expenses.get(i).id(),
-                    expenses.get(i).expenseReason(),
-                    expenses.get(i).category(),
-                    expenses.get(i).subcategory(),
-                    expenses.get(i).amount(),
-                    expenses.get(i).account(),
-                    expenses.get(i).createdAt(),
-                    expenses.get(i).status().name()
-            });
-        }
+        SwingWorker<List<ExpenseResponseDto>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<ExpenseResponseDto> doInBackground() throws Exception {
+                var expenses = expenseService.gatAllValidExpenseByReason(reason);
+                return expenses;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var expenses = get();
+
+                    for (int i = 0; i < expenses.size(); i++) {
+                        model.addRow(new Object[]{
+                                i + 1,
+                                expenses.get(i).id(),
+                                expenses.get(i).expenseReason(),
+                                expenses.get(i).category(),
+                                expenses.get(i).subcategory(),
+                                expenses.get(i).amount(),
+                                expenses.get(i).account(),
+                                expenses.get(i).createdAt(),
+                                expenses.get(i).status().name()
+                        });
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        worker.execute();
     }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -640,7 +672,7 @@ public class Expenses_List extends javax.swing.JPanel {
                 int selectCategoryIndex = categoryCombo.getSelectedIndex();
                 Integer categoryId = categoryMap.get(selectCategoryIndex);
 
-                if(categoryId != null){
+                if (categoryId != null) {
                     var subcategories = expenseSubcategoryService.getAllValidExpenseSubcategoriesByExpenseCategoryId(categoryId);
 
                     // clear all subcategories

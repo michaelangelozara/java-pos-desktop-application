@@ -130,4 +130,12 @@ public class SaleService {
     public List<SaleResponseDto> getAllValidSalesByRange(LocalDate start, LocalDate end){
         return this.saleMapper.toSaleResponseDtoList(this.saleDAO.getAllValidSalesByRange(start, end));
     }
+
+    public List<Sale> getAllValidSalesWithNoDto(int numberOfSales){
+        return this.saleDAO.getAllValidSales(numberOfSales);
+    }
+
+    public List<Sale> getAllValidSalesByCashTransactionType(CashTransactionPaymentMethod type){
+        return this.saleDAO.getAllSalesByCashTransactionType(type);
+    }
 }

@@ -2,10 +2,12 @@ package org.POS.backend.sale;
 
 import jakarta.transaction.Transactional;
 import org.POS.backend.cash_transaction.CashTransaction;
+import org.POS.backend.cash_transaction.CashTransactionPaymentMethod;
 import org.POS.backend.configuration.HibernateUtil;
 import org.POS.backend.product.Product;
 import org.POS.backend.sale_item.SaleItem;
 import org.POS.backend.stock.Stock;
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -78,6 +80,10 @@ public class SaleDAO {
                     .setMaxResults(number)
                     .getResultList();
 
+            for(var sale : sales){
+                Hibernate.initialize(sale.getSaleItems());
+            }
+
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -99,4 +105,22 @@ public class SaleDAO {
         return sales;
     }
 
+    public List<Sale> getAllSalesByCashTransactionType(CashTransactionPaymentMethod type){
+        List<Sale> sales = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            sales = session.createQuery("SELECT s FROM Sale s JOIN FETCH s.cashTransaction ct WHERE ct.cashTransactionPaymentMethod =: type", Sale.class)
+                    .setParameter("type", type)
+                    .setMaxResults(50)
+                    .getResultList();
+
+            for(var sale : sales){
+                Hibernate.initialize(sale.getSaleItems());
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return sales;
+    }
 }

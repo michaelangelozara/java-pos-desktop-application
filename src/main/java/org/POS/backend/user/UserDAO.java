@@ -115,6 +115,9 @@ public class UserDAO {
                 Hibernate.initialize(user.getPurchases());
             }
 
+            if(!user.getInventoryAdjustments().isEmpty()){
+                Hibernate.initialize(user.getInventoryAdjustments());
+            }
             session.getTransaction().commit();
         } catch (Exception e){
             e.printStackTrace();

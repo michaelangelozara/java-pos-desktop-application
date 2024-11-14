@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.POS.backend.brand.Brand;
+import org.POS.backend.inventory_adjustment.InventoryAdjustment;
 import org.POS.backend.product_subcategory.ProductSubcategory;
 import org.POS.backend.purchased_item.PurchaseItem;
 import org.POS.backend.sale_item.SaleItem;
@@ -75,6 +76,14 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Stock> stocks = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InventoryAdjustment> inventoryAdjustments = new ArrayList<>();
+
+    public void addInventoryAdjustment(InventoryAdjustment adjustment){
+        inventoryAdjustments.add(adjustment);
+        adjustment.setProduct(this);
+    }
 
     public void addStock(Stock stock){
         stocks.add(stock);

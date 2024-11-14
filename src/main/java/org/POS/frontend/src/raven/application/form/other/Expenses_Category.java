@@ -1,9 +1,6 @@
 package org.POS.frontend.src.raven.application.form.other;
 
-import org.POS.backend.expense_category.AddExpenseCategoryRequestDto;
-import org.POS.backend.expense_category.ExpenseCategoryService;
-import org.POS.backend.expense_category.ExpenseCategoryStatus;
-import org.POS.backend.expense_category.UpdateExpenseCategoryRequestDto;
+import org.POS.backend.expense_category.*;
 import org.POS.backend.global_variable.GlobalVariable;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
@@ -14,8 +11,10 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
 
 public class Expenses_Category extends javax.swing.JPanel {
 
@@ -142,7 +141,7 @@ public class Expenses_Category extends javax.swing.JPanel {
                         "Confirm Delete", JOptionPane.YES_NO_OPTION);
 
                 if (confirmation == JOptionPane.YES_OPTION) {
-                     DefaultTableModel model = (DefaultTableModel) table.getModel();
+                    DefaultTableModel model = (DefaultTableModel) table.getModel();
                     int id = (Integer) model.getValueAt(row, 1);
                     ExpenseCategoryService service = new ExpenseCategoryService();
                     service.delete(id);
@@ -235,12 +234,38 @@ public class Expenses_Category extends javax.swing.JPanel {
         // clear existing table
         model.setRowCount(0);
 
-        // Clear all existing rows
         ExpenseCategoryService expenseCategoryService = new ExpenseCategoryService();
-        var categories = expenseCategoryService.getAllValidExpenseCategories();
-        for (int i = 0; i < categories.size(); i++) {
-            model.addRow(new Object[]{i + 1, categories.get(i).id(), categories.get(i).name(), categories.get(i).code(), categories.get(i).note(), categories.get(i).status().name()});
-        }
+
+        SwingWorker<List<ExpenseCategoryResponseDto>, Void> categoriesWorker = new SwingWorker<List<ExpenseCategoryResponseDto>, Void>() {
+            @Override
+            protected List<ExpenseCategoryResponseDto> doInBackground() throws Exception {
+                var categories = expenseCategoryService.getAllValidExpenseCategories();
+                return categories;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<ExpenseCategoryResponseDto> categories = get();
+
+                    for (int i = 0; i < categories.size(); i++) {
+                        model.addRow(new Object[]{
+                                i + 1,
+                                categories.get(i).id(),
+                                categories.get(i).name(),
+                                categories.get(i).code(),
+                                categories.get(i).note(),
+                                categories.get(i).status().name()
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        categoriesWorker.execute();
     }
 
     @SuppressWarnings("unchecked")
@@ -416,17 +441,37 @@ public class Expenses_Category extends javax.swing.JPanel {
         }
 
         ExpenseCategoryService expenseCategoryService = new ExpenseCategoryService();
-        var categories = expenseCategoryService.getAllValidExpenseCategoryByName(name);
-        for (int i = 0; i < categories.size(); i++) {
-            model.addRow(new Object[]{
-                    i + 1,
-                    categories.get(i).id(),
-                    categories.get(i).name(),
-                    categories.get(i).code(),
-                    categories.get(i).note(),
-                    categories.get(i).status().name()
-            });
-        }
+
+        SwingWorker<List<ExpenseCategoryResponseDto>, Void> categoryWorker = new SwingWorker<List<ExpenseCategoryResponseDto>, Void>() {
+            @Override
+            protected List<ExpenseCategoryResponseDto> doInBackground() throws Exception {
+
+                var categories = expenseCategoryService.getAllValidExpenseCategoryByName(name);
+                return categories;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var categories = get();
+
+                    for (int i = 0; i < categories.size(); i++) {
+                        model.addRow(new Object[]{
+                                i + 1,
+                                categories.get(i).id(),
+                                categories.get(i).name(),
+                                categories.get(i).code(),
+                                categories.get(i).note(),
+                                categories.get(i).status().name()
+                        });
+                    }
+
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        };
+        categoryWorker.execute();
     }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed

@@ -9,16 +9,13 @@ import org.POS.backend.user.UserService;
 import org.POS.frontend.src.raven.application.Application;
 
 import javax.swing.*;
+import java.util.concurrent.ExecutionException;
 
 public class LoginForm extends javax.swing.JPanel {
 
     public LoginForm() {
         initComponents();
         init();
-        if(!CurrentUser.username.isEmpty() || CurrentUser.id != 0 || !CurrentUser.employeeId.isEmpty()){
-            this.txtUser.setText("");
-            this.txtPass.setText("");
-        }
     }
 
     private void init() {
@@ -104,17 +101,48 @@ public class LoginForm extends javax.swing.JPanel {
 
     private void cmdLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdLoginActionPerformed
         // for default after user logs out
-
         String username = this.txtUser.getText();
         String password = this.txtPass.getText();
         LoginRequestDto dto = new LoginRequestDto(username, password);
         UserService userService = new UserService();
-        if(userService.authenticate(dto)){
-            JOptionPane.showMessageDialog(null, GlobalVariable.USER_LOGGED_IN, "Login Successful", JOptionPane.PLAIN_MESSAGE);
-            Application.login();
-        }else{
-            JOptionPane.showMessageDialog(null, GlobalVariable.USER_INVALID_CREDENTIAL, "Login Error", JOptionPane.WARNING_MESSAGE);
-        }
+
+        SwingWorker<Boolean, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Boolean doInBackground() throws Exception {
+                SwingUtilities.invokeLater(() -> {
+                    cmdLogin.setText("Logging in ...");
+                    cmdLogin.setEnabled(false);
+                    txtUser.setEnabled(false);
+                    txtPass.setEnabled(false);
+                });
+                return userService.authenticate(dto);
+            }
+
+            @Override
+            protected void done() {
+                SwingUtilities.invokeLater(() -> {
+                    cmdLogin.setEnabled(true);
+                    cmdLogin.setText("Login");
+                    txtUser.setEnabled(true);
+                    txtPass.setEnabled(true);
+                });
+                try {
+                    boolean isAuthenticate = get();
+
+                    if (isAuthenticate) {
+                        JOptionPane.showMessageDialog(null, GlobalVariable.USER_LOGGED_IN, "Login Successful", JOptionPane.PLAIN_MESSAGE);
+                        Application.login();
+                    } else {
+                        JOptionPane.showMessageDialog(null, GlobalVariable.USER_INVALID_CREDENTIAL, "Login Error", JOptionPane.WARNING_MESSAGE);
+                    }
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "An error occurred during login.", "Login Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        };
+
+        worker.execute();
     }//GEN-LAST:event_cmdLoginActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

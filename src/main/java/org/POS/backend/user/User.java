@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.POS.backend.cash_transaction.CashTransaction;
 import org.POS.backend.expense.Expense;
+import org.POS.backend.inventory_adjustment.InventoryAdjustment;
 import org.POS.backend.open_cash.OpenCash;
 import org.POS.backend.purchase.Purchase;
 import org.POS.backend.sale.Sale;
@@ -70,6 +71,14 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Purchase> purchases = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InventoryAdjustment> inventoryAdjustments = new ArrayList<>();
+
+    public void addInventoryAdjustment(InventoryAdjustment adjustment){
+        inventoryAdjustments.add(adjustment);
+        adjustment.setUser(this);
+    }
 
     public void addPurchase(Purchase purchase){
         purchases.add(purchase);

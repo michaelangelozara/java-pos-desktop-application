@@ -85,6 +85,7 @@ public class ProductList extends javax.swing.JPanel {
                 gbc.gridx = 1;
                 JTextField itemStockField = new JTextField(15);
                 itemStockField.setFont(regularFont);
+                itemStockField.setEnabled(false);
                 itemStockField.setText(String.valueOf(product.stock())); // Prepopulate with existing value
                 panel.add(itemStockField, gbc);
 

@@ -91,4 +91,8 @@ public class ProductService {
     public List<Product> getAllValidProductsByRange(LocalDate start, LocalDate end){
         return this.productDAO.getALlValidProductByRange(start, end);
     }
+
+    public List<Product> getAllValidProductsWithoutLimit(){
+        return this.productDAO.getAllValidProductWithoutLimit();
+    }
 }

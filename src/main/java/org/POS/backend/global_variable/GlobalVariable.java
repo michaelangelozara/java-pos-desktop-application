@@ -100,4 +100,5 @@ public class GlobalVariable {
     public static String SALE_PREFIX = "SL-";
     public static String CASH_TRANSACTION_PREFIX = "CSH-";
     public static String USER_PREFIX = "USR-";
+    public static String INVENTORY_ADJUSTMENT_PREFIX = "INVA-";
 }

@@ -6,7 +6,9 @@ import org.POS.backend.code_generator.CodeGenerator;
 import org.POS.backend.expense.Expense;
 import org.POS.backend.expense_category.ExpenseCategory;
 import org.POS.backend.expense_subcategory.ExpenseSubcategory;
+import org.POS.backend.inventory_adjustment.InventoryAdjustment;
 import org.POS.backend.open_cash.OpenCash;
+import org.POS.backend.order.Order;
 import org.POS.backend.person.Person;
 import org.POS.backend.product.Product;
 import org.POS.backend.product_category.ProductCategory;
@@ -53,6 +55,8 @@ public class HibernateUtil {
                 configuration.addAnnotatedClass(SaleItem.class);
                 configuration.addAnnotatedClass(CashTransaction.class);
                 configuration.addAnnotatedClass(OpenCash.class);
+                configuration.addAnnotatedClass(InventoryAdjustment.class);
+                configuration.addAnnotatedClass(Order.class);
 
                 // Build the SessionFactory
                 sessionFactory = configuration.buildSessionFactory(
@@ -67,8 +71,9 @@ public class HibernateUtil {
 
                 if (userCount == 0) {
                     UserService userService = new UserService();
+                    String salt = BCrypt.gensalt(20);
                     String plainText = "password";
-                    String encryptedText = BCrypt.hashpw(plainText, BCrypt.gensalt());
+                    String encryptedText = BCrypt.hashpw(plainText, salt);
                     AddUserRequestDto dto = new AddUserRequestDto(
                             "Administrator",
                             UserRole.SUPER_ADMIN,

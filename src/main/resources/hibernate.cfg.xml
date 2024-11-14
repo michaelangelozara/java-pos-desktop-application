@@ -31,5 +31,7 @@
         <mapping class="org.POS.backend.sale_item.SaleItem"/>
         <mapping class="org.POS.backend.cash_transaction.CashTransaction"/>
         <mapping class="org.POS.backend.open_cash.OpenCash"/>
+        <mapping class="org.POS.backend.inventory_adjustment.InventoryAdjustment"/>
+        <mapping class="org.POS.backend.order.Order"/>
     </session-factory>
 </hibernate-configuration>

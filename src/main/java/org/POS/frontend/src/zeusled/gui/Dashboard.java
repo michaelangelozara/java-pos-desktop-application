@@ -1,6 +1,7 @@
 package org.POS.frontend.src.zeusled.gui;
 
 import org.POS.backend.expense.ExpenseService;
+import org.POS.backend.product.ProductResponseDto;
 import org.POS.backend.product.ProductService;
 import org.POS.frontend.src.javaswingdev.card.ModelCard;
 import org.POS.frontend.src.raven.application.Application;
@@ -10,6 +11,8 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class Dashboard extends JPanel {
 
@@ -20,16 +23,8 @@ public class Dashboard extends JPanel {
 
     private void init() {
         ExpenseService expenseService = new ExpenseService();
-        BigDecimal totalExpense = expenseService.getTheSumOfExpenses() != null ? expenseService.getTheSumOfExpenses() : BigDecimal.ZERO;
 
         ProductService productService = new ProductService();
-        BigDecimal totalProductValue = BigDecimal.ZERO;
-        var products = productService.getAllValidProducts();
-        for(var product : products){
-            totalProductValue = totalProductValue.add((BigDecimal.valueOf(product.stock()).multiply(product.sellingPrice())));
-        }
-
-        var productsBelowAlertQuantity = productService.getAllValidProductsBelowAlertQuantity();
 
         DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer();
         cellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
@@ -46,21 +41,91 @@ public class Dashboard extends JPanel {
         }
 
         table1.fixTable(jScrollPane1);
-        for(int i = 0; i < productsBelowAlertQuantity.size(); i++){
-            table1.addRow(new Object[]{
-                    i+1,
-                    productsBelowAlertQuantity.get(i).code(),
-                    productsBelowAlertQuantity.get(i).name(),
-                    productsBelowAlertQuantity.get(i).stock(),
-                    productsBelowAlertQuantity.get(i).alertQuantity()
-            });
-        }
+
+        SwingWorker<List<ProductResponseDto>, Void> productOutOfStockWorker = new SwingWorker<>() {
+            @Override
+            protected List<ProductResponseDto> doInBackground() throws Exception {
+                var productsBelowAlertQuantity = productService.getAllValidProductsBelowAlertQuantity();
+                return productsBelowAlertQuantity;
+            }
+
+            @Override
+            protected void done() {
+                try {
+
+                    var output = get();
+
+                    card2.setData(new ModelCard(null, null, null, String.valueOf(output.size()), "Items Out of Stock"));
+
+
+                    for(int i = 0; i < output.size(); i++){
+                        table1.addRow(new Object[]{
+                                i+1,
+                                output.get(i).code(),
+                                output.get(i).name(),
+                                output.get(i).stock(),
+                                output.get(i).alertQuantity()
+                        });
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "Unable to fetch the out of stock products");
+                }
+            }
+        };
+        productOutOfStockWorker.execute();
+
+        SwingWorker<BigDecimal, Void> totalProductValueWorker = new SwingWorker<>() {
+            @Override
+            protected BigDecimal doInBackground() throws InterruptedException {
+                BigDecimal totalProductValue = BigDecimal.ZERO;
+                var products = productService.getAllValidProducts();
+                for(var product : products){
+                    totalProductValue = totalProductValue.add((BigDecimal.valueOf(product.stock()).multiply(product.sellingPrice())));
+                }
+                return totalProductValue;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    BigDecimal totalValue = get();
+
+                    card3.setData(new ModelCard(null, null, null, "₱ " + totalValue, "Inventory Value"));
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        totalProductValueWorker.execute();
+
+        SwingWorker<BigDecimal, Void> totalExpenseWorker = new SwingWorker<BigDecimal, Void>() {
+            @Override
+            protected BigDecimal doInBackground() throws Exception {
+                BigDecimal totalExpense = expenseService.getTheSumOfExpenses() != null ? expenseService.getTheSumOfExpenses() : BigDecimal.ZERO;
+                return totalExpense;
+            }
+
+            @Override
+            protected void done() {
+
+                try {
+                    BigDecimal totalExpense = get();
+                    card4.setData(new ModelCard(null, null, null, "₱ " + totalExpense, "Expenses"));
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        };
+        totalExpenseWorker.execute();
 
         //  init card data
         card1.setData(new ModelCard(null, null, null, "₱ 500.00", "Total Sales"));
-        card2.setData(new ModelCard(null, null, null, String.valueOf(productsBelowAlertQuantity.size()), "Items Out of Stock"));
-        card3.setData(new ModelCard(null, null, null, "₱ " + totalProductValue, "Inventory Value"));
-        card4.setData(new ModelCard(null, null, null, "₱ " + totalExpense, "Expenses"));
+        card2.setData(new ModelCard(null, null, null, "Loading...", "Items Out of Stock"));
+        card3.setData(new ModelCard(null, null, null, "₱ Loading...", "Inventory Value"));
+        card4.setData(new ModelCard(null, null, null, "₱ Loading...", "Expenses"));
     }
 
     @SuppressWarnings("unchecked")

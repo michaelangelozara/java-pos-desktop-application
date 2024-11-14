@@ -1,10 +1,7 @@
 package org.POS.frontend.src.raven.application.form.other;
 
 import org.POS.backend.expense_category.ExpenseCategoryService;
-import org.POS.backend.expense_subcategory.AddExpenseSubcategoryRequestDto;
-import org.POS.backend.expense_subcategory.ExpenseSubcategoryService;
-import org.POS.backend.expense_subcategory.ExpenseSubcategoryStatus;
-import org.POS.backend.expense_subcategory.UpdateExpenseSubcategoryRequestDto;
+import org.POS.backend.expense_subcategory.*;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
 import org.POS.frontend.src.raven.cell.TableActionEvent;
@@ -14,6 +11,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.List;
 import java.util.Timer;
 import java.util.*;
 
@@ -56,19 +54,11 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
                 categoryNames.add("Select a category");
                 for (int i = 0; i < validCategories.size(); i++) {
                     categoryNames.add(validCategories.get(i).name());
-//                    categories[i] = validCategories.get(i - 1).name();
                     categoryMap.put(i + 1, validCategories.get(i).id());
                 }
 
                 JComboBox<String> categoryComboBox = new JComboBox<>(categoryNames);
                 categoryComboBox.setFont(detailsFont);
-
-                // Subcategory Code
-//                JLabel subCategoryCodeLabel = new JLabel("SubCategory Code:");
-//                subCategoryCodeLabel.setFont(largerFont);
-//                JTextField subCategoryCodeField = new JTextField(15);
-//                subCategoryCodeField.setText(currentSubCategoryCode);
-//                subCategoryCodeField.setFont(detailsFont);
 
                 // Subcategory Name
                 JLabel nameLabel = new JLabel("SubCategory Name:");
@@ -102,17 +92,6 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
                 gbc.gridx = 1;
                 panel.add(categoryComboBox, gbc);
 
-//                gbc.gridx = 0;
-//                gbc.gridy = 1;
-//                panel.add(subCategoryCodeLabel, gbc);
-//                gbc.gridx = 1;
-//                panel.add(subCategoryCodeField, gbc);
-
-//                gbc.gridx = 0;
-//                gbc.gridy = 2;
-//                panel.add(nameLabel, gbc);
-//                gbc.gridx = 1;
-//                panel.add(nameField, gbc);
                 gbc.gridx = 0;
                 gbc.gridy = 1;
                 panel.add(nameLabel, gbc);
@@ -314,10 +293,35 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
 
         // Clear all existing rows
         ExpenseSubcategoryService expenseSubcategoryService = new ExpenseSubcategoryService();
-        var subcategories = expenseSubcategoryService.getAllValidExpenseSubcategories();
-        for (int i = 0; i < subcategories.size(); i++) {
-            model.addRow(new Object[]{i + 1, subcategories.get(i).id(), subcategories.get(i).expenseCategoryResponseDto().name(), subcategories.get(i).name(), subcategories.get(i).code(), subcategories.get(i).status().name()});
-        }
+
+        SwingWorker<List<ExpenseSubcategoryResponseDto>, Void> worker = new SwingWorker<List<ExpenseSubcategoryResponseDto>, Void>() {
+            @Override
+            protected List<ExpenseSubcategoryResponseDto> doInBackground() throws Exception {
+                var subcategories = expenseSubcategoryService.getAllValidExpenseSubcategories();
+                return subcategories;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var subcategories = get();
+
+                    for (int i = 0; i < subcategories.size(); i++) {
+                        model.addRow(new Object[]{
+                                i + 1,
+                                subcategories.get(i).id(),
+                                subcategories.get(i).expenseCategoryResponseDto().name(),
+                                subcategories.get(i).name(),
+                                subcategories.get(i).code(),
+                                subcategories.get(i).status().name()
+                        });
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        };
+        worker.execute();
     }
 
     private void scheduleQuery() {
@@ -343,19 +347,38 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
             loadSubcategories();
             return;
         }
-
         ExpenseSubcategoryService expenseSubcategoryService = new ExpenseSubcategoryService();
-        var subcategories = expenseSubcategoryService.getAllValidExpenseSubcategoryByName(name);
-        for (int i = 0; i < subcategories.size(); i++) {
-            model.addRow(new Object[]{
-                    i + 1,
-                    subcategories.get(i).id(),
-                    subcategories.get(i).expenseCategoryResponseDto().name(),
-                    subcategories.get(i).name(),
-                    subcategories.get(i).code(),
-                    subcategories.get(i).status().name()
-            });
-        }
+
+        SwingWorker<List<ExpenseSubcategoryResponseDto>, Void> worker = new SwingWorker<List<ExpenseSubcategoryResponseDto>, Void>() {
+            @Override
+            protected List<ExpenseSubcategoryResponseDto> doInBackground() throws Exception {
+                var subcategories = expenseSubcategoryService.getAllValidExpenseSubcategoryByName(name);
+                return subcategories;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var subcategories = get();
+
+                    for (int i = 0; i < subcategories.size(); i++) {
+                        model.addRow(new Object[]{
+                                i + 1,
+                                subcategories.get(i).id(),
+                                subcategories.get(i).expenseCategoryResponseDto().name(),
+                                subcategories.get(i).name(),
+                                subcategories.get(i).code(),
+                                subcategories.get(i).status().name()
+                        });
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        worker.execute();
+
     }
 
     @SuppressWarnings("unchecked")

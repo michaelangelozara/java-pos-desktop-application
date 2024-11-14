@@ -45,19 +45,24 @@ public class UserService {
     }
 
     public boolean authenticate(LoginRequestDto dto){
-        var user = this.userDAO.authenticateUserByUsernameAndPassword(dto.username());
-        if(user == null)
-            return false;
+        try{
+            var user = this.userDAO.authenticateUserByUsernameAndPassword(dto.username());
+            if(user == null)
+                return false;
 
-        String hashedPassword = user.getPassword();
-        if(!BCrypt.checkpw(dto.password(), hashedPassword))
-            return false;
+            String hashedPassword = user.getPassword();
+            if(!BCrypt.checkpw(dto.password(), hashedPassword))
+                return false;
 
-        CurrentUser.id = user.getId();
-        CurrentUser.employeeId = user.getEmployeeId();
-        CurrentUser.username = user.getUsername();
+            CurrentUser.id = user.getId();
+            CurrentUser.employeeId = user.getEmployeeId();
+            CurrentUser.username = user.getUsername();
 
-        return true;
+            return true;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public List<UserResponseDto> getAllValidUserByName(String name){

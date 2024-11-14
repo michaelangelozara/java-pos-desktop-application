@@ -1,11 +1,7 @@
 package org.POS.frontend.src.javaswingdev.form;
 
-import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.product.ProductService;
 import org.POS.frontend.src.javaswingdev.card.ModelCard;
-import org.POS.frontend.src.raven.application.Application;
-import org.POS.frontend.src.raven.application.form.other.BeforePOS;
-import org.POS.frontend.src.raven.application.form.other.POS;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -46,28 +42,6 @@ public class Form_Dashboard extends javax.swing.JPanel {
                     productsBelowAlertQuantity.get(i).alertQuantity()
             });
         }
-
-//        table1.addRow(new Object[]{"1", "ITEM-001", "Steel Bar Wide", "243", "15"});
-//        table1.addRow(new Object[]{"2", "ITEM-001", "Steel Bar Narrow", "21", "15"});
-//        table1.addRow(new Object[]{"3", "ITEM-001", "Steel Bar", "342", "15"});
-//        table1.addRow(new Object[]{"4", "ITEM-002", "Aluminum Sheet Large", "150", "20"});
-//        table1.addRow(new Object[]{"5", "ITEM-002", "Aluminum Sheet Small", "45", "20"});
-//        table1.addRow(new Object[]{"6", "ITEM-003", "Copper Wire Thick", "76", "30"});
-//        table1.addRow(new Object[]{"7", "ITEM-003", "Copper Wire Thin", "135", "30"});
-//        table1.addRow(new Object[]{"8", "ITEM-004", "Brass Pipe", "89", "25"});
-//        table1.addRow(new Object[]{"9", "ITEM-005", "Iron Rod", "200", "10"});
-//        table1.addRow(new Object[]{"10", "ITEM-006", "Plastic Tube", "300", "5"});
-//        table1.addRow(new Object[]{"11", "ITEM-007", "Stainless Steel Bolt", "500", "8"});
-//        table1.addRow(new Object[]{"12", "ITEM-008", "PVC Pipe", "230", "12"});
-//        table1.addRow(new Object[]{"13", "ITEM-009", "Galvanized Nail", "750", "5"});
-//        table1.addRow(new Object[]{"14", "ITEM-010", "Rubber Gasket", "125", "3"});
-//        table1.addRow(new Object[]{"15", "ITEM-011", "Wooden Plank", "180", "10"});
-//        table1.addRow(new Object[]{"16", "ITEM-012", "Ceramic Tile", "320", "7"});
-//        table1.addRow(new Object[]{"17", "ITEM-013", "Glass Panel", "90", "25"});
-//        table1.addRow(new Object[]{"18", "ITEM-014", "Concrete Block", "60", "50"});
-//        table1.addRow(new Object[]{"19", "ITEM-015", "Iron Nail", "900", "4"});
-//        table1.addRow(new Object[]{"20", "ITEM-016", "Brass Fitting", "130", "18"});
-
 
         //  init card data
         card1.setData(new ModelCard(null, null, null, "₱ 500.00", "Total Sales"));

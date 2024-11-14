@@ -69,6 +69,7 @@ public class ProductDAO {
             Product product = session.createQuery("SELECT p FROM Product p WHERE p.id = :productId AND p.isDeleted = FALSE", Product.class)
                     .setParameter("productId", productId)
                     .getSingleResult();
+            Hibernate.initialize(product.getInventoryAdjustments());
 
             session.getTransaction().commit();
             return product;
@@ -261,6 +262,19 @@ public class ProductDAO {
             for(var product : products){
                 Hibernate.initialize(product.getStocks());
             }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return products;
+    }
+
+    public List<Product> getAllValidProductWithoutLimit(){
+        List<Product> products = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            products = session.createQuery("SELECT p FROM Product p WHERE p.isDeleted = FALSE", Product.class)
+                    .getResultList();
 
         }catch (Exception e){
             e.printStackTrace();
