@@ -59,8 +59,8 @@ public class ProductService {
         return this.productMapper.productResponseDto(product);
     }
 
-    public List<ProductResponseDto> getAllValidProducts() {
-        var products = this.productDAO.getAllValidProducts();
+    public List<ProductResponseDto> getAllValidProductsWithLimit() {
+        var products = this.productDAO.getAllValidProductsWithLimit();
         return this.productMapper.productResponseDtoList(products);
     }
 
@@ -94,5 +94,13 @@ public class ProductService {
 
     public List<Product> getAllValidProductsWithoutLimit(){
         return this.productDAO.getAllValidProductWithoutLimit();
+    }
+
+    public List<ProductResponseDto> getALlValidProductsWithoutLimitDtoResponse(){
+        return this.productMapper.productResponseDtoList(this.productDAO.getAllValidProductWithoutLimit());
+    }
+
+    public List<ProductResponseDto> getAllValidProducts(){
+        return this.productMapper.productResponseDtoList(this.productDAO.getAllValidProducts());
     }
 }

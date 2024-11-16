@@ -49,10 +49,30 @@ public class QuotationDAO {
         return quotations;
     }
 
+    public void update(Quotation quotation, List<QuotedItem> quotedItems){
+        Transaction transaction = null;
+        try (Session session = sessionFactory.openSession()){
+            transaction = session.beginTransaction();
+
+            session.merge(quotation);
+
+            for(var quotedItem : quotedItems){
+                session.merge(quotedItem);
+            }
+
+            transaction.commit();
+        }catch (Exception e){
+            if(transaction != null && transaction.isActive()){
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        }
+    }
+
     public Quotation getValidQuotationById(int id){
         Quotation quotation = null;
         try (Session session = sessionFactory.openSession()){
-            quotation = session.createQuery("SELECT q FROM Quotation q WHERE q.id =: id AND q.isDeleted = FALSE ", Quotation.class)
+            quotation = session.createQuery("SELECT q FROM Quotation q WHERE q.id =: id AND q.isDeleted = FALSE", Quotation.class)
                     .setParameter("id", id)
                     .getSingleResult();
 
@@ -62,5 +82,19 @@ public class QuotationDAO {
             e.printStackTrace();
         }
         return quotation;
+    }
+
+    public List<Quotation> getAllValidQuotationByCustomerName(String name){
+        List<Quotation> quotations = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            quotations = session.createQuery("SELECT q FROM Quotation q JOIN FETCH q.person p WHERE p.name LIKE :name AND p.isDeleted = FALSE", Quotation.class)
+                    .setParameter("name", "%" + name + "%")
+                    .getResultList();
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return quotations;
     }
 }

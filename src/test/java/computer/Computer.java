@@ -19,6 +19,7 @@ public class Computer {
         // Verify the password
         boolean matches = BCrypt.checkpw(plainText, "$2a$10$ylm0OBvO4xS6GqXa3ITByubcE0uGSV9o4PCT/gg51Y/VqGOKIMdSG");
         System.out.println("Password matches: " + matches);
+
     }
 
     @Test

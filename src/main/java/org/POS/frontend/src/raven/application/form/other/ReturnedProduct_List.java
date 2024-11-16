@@ -3,15 +3,10 @@ package org.POS.frontend.src.raven.application.form.other;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import org.POS.backend.person.PersonService;
-import org.POS.backend.person.PersonType;
 import org.POS.backend.purchase.PurchaseService;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
 
@@ -23,12 +18,11 @@ import org.jdatepicker.impl.UtilDateModel;
 import org.POS.frontend.src.raven.application.Application;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionEvent;
-import org.POS.frontend.src.raven.application.form.other.Return_Details;
 
 
-public class Return_List extends javax.swing.JPanel {
+public class ReturnedProduct_List extends javax.swing.JPanel {
 
-    public Return_List() {
+    public ReturnedProduct_List() {
         initComponents();
         TableActionEvent event = new TableActionEvent() {
 
@@ -197,7 +191,7 @@ public class Return_List extends javax.swing.JPanel {
                 panel.add(returnDateLabel, gbc);
 
                 gbc.gridx++;
-                JDatePickerImpl returnDatePicker = createDatePicker(); // Create createdAt picker
+                JDatePickerImpl returnDatePicker = createDatePicker(); // Create date picker
                 panel.add(returnDatePicker, gbc);
 
                 gbc.gridx++;
@@ -307,21 +301,21 @@ public class Return_List extends javax.swing.JPanel {
         jTextField1.setText("Search");
 
         table.setModel(new javax.swing.table.DefaultTableModel(
-                new Object[][]{
-                        {null, null, null, null, null, null, null, null, null},
-                        {null, null, null, null, null, null, null, null, null},
-                        {null, null, null, null, null, null, null, null, null}
-                },
-                new String[]{
-                        "#", "Return No	", "Purchase No	", "Supplier", "Return Reason	", "Cost of Return Products	", "Date	", "Status", "Action"
-                }
+            new Object [][] {
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null}
+            },
+            new String [] {
+                "#", "Return No	", "Purchase No	", "Supplier", "Return Reason	", "Cost of Return Products	", "Date	", "Status", "Action"
+            }
         ) {
-            boolean[] canEdit = new boolean[]{
-                    false, false, false, false, false, false, false, false, true
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false, false, true
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit[columnIndex];
+                return canEdit [columnIndex];
             }
         });
         table.setRowHeight(40);
@@ -348,71 +342,71 @@ public class Return_List extends javax.swing.JPanel {
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
-                jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addGap(22, 22, 22)
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jScrollPane1)
-                                        .addGroup(jPanel2Layout.createSequentialGroup()
-                                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                        .addComponent(jLabel2))
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                                        .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                        .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE))))
-                                .addContainerGap())
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(22, 22, 22)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel2))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE))))
+                .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
-                jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jLabel2)
-                                        .addGroup(jPanel2Layout.createSequentialGroup()
-                                                .addGap(7, 7, 7)
-                                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 619, Short.MAX_VALUE)
-                                .addContainerGap())
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel2)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addGap(7, 7, 7)
+                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 619, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
-                jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addGroup(jPanel1Layout.createSequentialGroup()
-                                                .addComponent(jLabel1)
-                                                .addGap(0, 1235, Short.MAX_VALUE)))
-                                .addContainerGap())
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addGap(0, 1235, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
-                jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(jLabel1)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addContainerGap())
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -428,50 +422,51 @@ public class Return_List extends javax.swing.JPanel {
         Font labelFont = new Font("Arial", Font.BOLD, 16);
 
         // Return Reason and Supplier - first row (full width, two fields)
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 1;
-        JLabel returnReasonLabel = new JLabel("Return Reason:");
-        returnReasonLabel.setFont(labelFont);
-        panel.add(returnReasonLabel, gbc);
+    JLabel label1 = new JLabel("Client:");
+    label1.setFont(new Font("Arial", Font.BOLD, 14));
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    panel.add(label1, gbc);
 
-        gbc.gridx = 1;
-        gbc.gridwidth = 2;
-        JTextField returnReasonField = new JTextField(15);
-        panel.add(returnReasonField, gbc);
+    JTextField clientField = new JTextField(20);
+    gbc.gridx = 1;
+    gbc.gridy = 0;
+    panel.add(clientField, gbc);
 
-        gbc.gridx = 3;
-        gbc.gridwidth = 1;
-        JLabel supplierLabel = new JLabel("Supplier:");
-        supplierLabel.setFont(labelFont);
-        panel.add(supplierLabel, gbc);
+    JLabel label2 = new JLabel("Reference:");
+    label2.setFont(new Font("Arial", Font.BOLD, 14));
+    gbc.gridx = 2;
+    gbc.gridy = 0;
+    panel.add(label2, gbc);
 
-        PersonService personService = new PersonService();
-        var suppliers = personService.getAllValidPeopleByType(PersonType.SUPPLIER);
-        Vector<String> supplierNames = new Vector<>();
-        supplierNames.add("Select Supplier");
-        Map<Integer, Integer> supplierMap = new HashMap<>();
-        for(int i = 0; i < suppliers.size(); i++){
-            supplierNames.add(suppliers.get(i).name());
-            supplierMap.put(i+1, suppliers.get(i).id());
-        }
+    JTextField referenceField = new JTextField(20);
+    gbc.gridx = 3;
+    gbc.gridy = 0;
+    panel.add(referenceField, gbc);
+    
+    JLabel label3 = new JLabel("PO Reference:");
+    label3.setFont(new Font("Arial", Font.BOLD, 14));
+    gbc.gridx = 4;
+    gbc.gridy = 0;
+    panel.add(label3, gbc);
 
-        gbc.gridx = 4;
-        gbc.gridwidth = 2;
-        JComboBox<String> supplierCombo = new JComboBox<>(supplierNames);
-        panel.add(supplierCombo, gbc);
+    JTextField poReferenceField = new JTextField(15);
+    gbc.gridx = 5;
+    gbc.gridy = 0;
+    panel.add(poReferenceField, gbc);
+
 
         // Select Purchases - next row (full width)
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.gridwidth = 1;
-        JLabel selectPurchasesLabel = new JLabel("Select Purchases:");
+        JLabel selectPurchasesLabel = new JLabel("Select Products:");
         selectPurchasesLabel.setFont(labelFont);
         panel.add(selectPurchasesLabel, gbc);
 
         PurchaseService purchaseService = new PurchaseService();
         Vector<String> purchaseNames = new Vector<>();
-        purchaseNames.add("Select Purchase code");
+        purchaseNames.add("Select Products");
         Map<Integer, Integer> purchaseMap = new HashMap<>();
 
         gbc.gridx = 1;
@@ -479,20 +474,6 @@ public class Return_List extends javax.swing.JPanel {
         JComboBox<String> purchasesCombo = new JComboBox<>(purchaseNames);
         panel.add(purchasesCombo, gbc);
 
-        supplierCombo.addActionListener(e -> {
-            purchasesCombo.removeAllItems();
-            purchaseMap.clear();
-
-            int supplierSelectedIndex = supplierCombo.getSelectedIndex();
-            int supplierId = supplierMap.get(supplierSelectedIndex);
-            var purchases = purchaseService.getAllValidPurchaseBySupplierId(supplierId);
-            purchaseNames.add("Select Purchase code");
-            for(int i = 0; i < purchases.size(); i++){
-                purchasesCombo.addItem(purchases.get(i).code());
-                purchaseMap.put(i+1, purchases.get(i).id());
-            }
-
-        });
 
         // Return Table - below Select Purchases
         gbc.gridy = 2;
@@ -522,37 +503,7 @@ public class Return_List extends javax.swing.JPanel {
         tableScrollPane.setPreferredSize(new Dimension(800, 150));
         panel.add(tableScrollPane, gbc);
 
-        // Subtotal Panel - below the table
-        gbc.gridy = 3;
-        gbc.gridx = 0;
-        gbc.gridwidth = 8;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        JPanel subtotalPanel = new JPanel(new GridBagLayout());
-        subtotalPanel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
-        subtotalPanel.setBackground(new Color(245, 245, 245));
-
-        GridBagConstraints gbcSubtotal = new GridBagConstraints();
-        gbcSubtotal.insets = new Insets(5, 10, 5, 10);
-        Font subtotalFont = new Font("Arial", Font.BOLD, 14);
-
-        gbcSubtotal.gridx = 0;
-        gbcSubtotal.gridy = 0;
-        JLabel subtotalLabel = new JLabel("Subtotal: ₱0.00");
-        subtotalLabel.setFont(subtotalFont);
-        subtotalPanel.add(subtotalLabel, gbcSubtotal);
-
-        gbcSubtotal.gridx = 1;
-        JLabel taxLabel = new JLabel("Tax: ₱0.00");
-        taxLabel.setFont(subtotalFont);
-        subtotalPanel.add(taxLabel, gbcSubtotal);
-
-        gbcSubtotal.gridx = 2;
-        JLabel totalLabel = new JLabel("Total: ₱0.00");
-        totalLabel.setFont(subtotalFont);
-        subtotalPanel.add(totalLabel, gbcSubtotal);
-
-        panel.add(subtotalPanel, gbc);
+        
 
         // Rest of the components (Discount, Transport Cost, Purchase Tax, etc.)
         gbc.gridy = 4;
@@ -578,7 +529,7 @@ public class Return_List extends javax.swing.JPanel {
         panel.add(transportCostField, gbc);
 
         gbc.gridx = 4;
-        JLabel purchaseTaxLabel = new JLabel("Purchase Tax:");
+        JLabel purchaseTaxLabel = new JLabel("Total Tax:");
         purchaseTaxLabel.setFont(labelFont);
         panel.add(purchaseTaxLabel, gbc);
 
@@ -591,7 +542,7 @@ public class Return_List extends javax.swing.JPanel {
         gbc.gridx = 0;
         gbc.gridy = 5;
         gbc.gridwidth = 1;
-        JLabel purchaseTotalLabel = new JLabel("Purchase Total:");
+        JLabel purchaseTotalLabel = new JLabel("Delivery Place:");
         purchaseTotalLabel.setFont(labelFont);
         panel.add(purchaseTotalLabel, gbc);
 
@@ -601,17 +552,17 @@ public class Return_List extends javax.swing.JPanel {
         panel.add(purchaseTotalField, gbc);
 
         gbc.gridx = 2;
-        JLabel totalPaidLabel = new JLabel("Total Paid:");
+        JLabel totalPaidLabel = new JLabel("Status:");
         totalPaidLabel.setFont(labelFont);
         panel.add(totalPaidLabel, gbc);
 
         gbc.gridx = 3;
-        JTextField totalPaidField = new JTextField(10);
-        totalPaidField.setEditable(false);
-        panel.add(totalPaidField, gbc);
+        JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Active", "Inactive"});
+        panel.add(statusCombo, gbc);
+
 
         gbc.gridx = 4;
-        JLabel purchaseDueLabel = new JLabel("Purchase Due:");
+        JLabel purchaseDueLabel = new JLabel("New Total: ");
         purchaseDueLabel.setFont(labelFont);
         panel.add(purchaseDueLabel, gbc);
 
@@ -633,29 +584,6 @@ public class Return_List extends javax.swing.JPanel {
         JTextArea noteArea = new JTextArea(3, 30);
         panel.add(new JScrollPane(noteArea), gbc);
 
-        // Return Date and Status - final row (full width, two fields)
-        gbc.gridx = 0;
-        gbc.gridy = 7;
-        gbc.gridwidth = 1;
-        JLabel returnDateLabel = new JLabel("Return Date:");
-        returnDateLabel.setFont(labelFont);
-        panel.add(returnDateLabel, gbc);
-
-        gbc.gridx = 1;
-        gbc.gridwidth = 2;
-        JDatePickerImpl returnDatePicker = createDatePicker();
-        panel.add(returnDatePicker, gbc);
-
-        gbc.gridx = 3;
-        gbc.gridwidth = 1;
-        JLabel statusLabel = new JLabel("Status:");
-        statusLabel.setFont(labelFont);
-        panel.add(statusLabel, gbc);
-
-        gbc.gridx = 4;
-        gbc.gridwidth = 2;
-        JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Active", "Inactive"});
-        panel.add(statusCombo, gbc);
 
         // Show the panel in a dialog
         int result = JOptionPane.showConfirmDialog(null, panel, "Create Purchase Return", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
@@ -665,7 +593,7 @@ public class Return_List extends javax.swing.JPanel {
         }
     }
 
-    // Method to create createdAt pickers with the current createdAt
+    // Method to create date pickers with the current date
     private JDatePickerImpl createDatePicker() {
         UtilDateModel model = new UtilDateModel();
         LocalDate currentDate = LocalDate.now();
@@ -679,10 +607,10 @@ public class Return_List extends javax.swing.JPanel {
 
         JDatePanelImpl datePanel = new JDatePanelImpl(model, p);
         return new JDatePickerImpl(datePanel, new DateLabelFormatter());
-    }    //GEN-LAST:event_jButton1ActionPerformed
+    }                                            
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // Create a panel to hold the createdAt pickers for "From" and "To" dates
+        // Create a panel to hold the date pickers for "From" and "To" dates
         JPanel datePanel = new JPanel(new GridLayout(2, 2, 10, 10));  // GridLayout with 2 rows, 2 columns
 
         // Create bold and larger font for the labels
@@ -694,9 +622,9 @@ public class Return_List extends javax.swing.JPanel {
         JLabel toLabel = new JLabel("To Date:");
         toLabel.setFont(labelFont);  // Set to bold and larger size
 
-        // Create the createdAt pickers
-        JDatePickerImpl fromDatePicker = createDatePicker();  // Date picker for "From" createdAt
-        JDatePickerImpl toDatePicker = createDatePicker();    // Date picker for "To" createdAt
+        // Create the date pickers
+        JDatePickerImpl fromDatePicker = createDatePicker();  // Date picker for "From" date
+        JDatePickerImpl toDatePicker = createDatePicker();    // Date picker for "To" date
 
         // Add components to the panel
         datePanel.add(fromLabel);
@@ -704,7 +632,7 @@ public class Return_List extends javax.swing.JPanel {
         datePanel.add(toLabel);
         datePanel.add(toDatePicker);
 
-        // Show a dialog with the createdAt pickers
+        // Show a dialog with the date pickers
         int result = JOptionPane.showConfirmDialog(null, datePanel, "Select Date Range", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {
@@ -717,7 +645,7 @@ public class Return_List extends javax.swing.JPanel {
             LocalDate fromDate = LocalDate.parse(fromDateStr, formatter);
             LocalDate toDate = LocalDate.parse(toDateStr, formatter);
 
-            // Now, filter the table rows based on the selected createdAt range
+            // Now, filter the table rows based on the selected date range
             filterTableByDateRange(fromDate, toDate);
         }
     }//GEN-LAST:event_jButton2ActionPerformed
@@ -742,13 +670,13 @@ public class Return_List extends javax.swing.JPanel {
         sorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
             @Override
             public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
-                // Assuming the createdAt is in the 3rd column (index 2), change as per your table
+                // Assuming the date is in the 3rd column (index 2), change as per your table
                 String dateStr = (String) entry.getValue(2);
                 try {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                     LocalDate rowDate = LocalDate.parse(dateStr, formatter);
 
-                    // Return true if the createdAt is within the selected range
+                    // Return true if the date is within the selected range
                     return !rowDate.isBefore(fromDate) && !rowDate.isAfter(toDate);
                 } catch (Exception e) {
                     // Skip rows with invalid dates

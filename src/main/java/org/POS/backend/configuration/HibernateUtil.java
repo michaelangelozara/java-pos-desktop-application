@@ -84,7 +84,7 @@ public class HibernateUtil {
                             "Administrator",
                             UserRole.SUPER_ADMIN,
                             "username",
-                            encryptedText,
+                            plainText,
                             "michaelangelobuccatzara@gmail.com",
                             "09090909090",
                             UserStatus.ACTIVE

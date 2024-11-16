@@ -1,8 +1,14 @@
 package org.POS.backend.order;
 
 import org.POS.backend.configuration.HibernateUtil;
+import org.POS.backend.product.Product;
+import org.POS.backend.return_product.ReturnProduct;
+import org.POS.backend.sale.Sale;
+import org.POS.backend.sale_item.SaleItem;
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,4 +36,53 @@ public class OrderDAO {
 
         return orders;
     }
+
+    public Order getValidOrderById(int id){
+        Order order = null;
+        try (Session session = sessionFactory.openSession()){
+
+            order = session.createQuery("SELECT o FROM Order o WHERE o.id = :id", Order.class)
+                    .setParameter("id", id)
+                    .getSingleResult();
+
+            Hibernate.initialize(order.getSale());
+            Hibernate.initialize(order.getSale().getSaleItems());
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return order;
+    }
+
+    public void update(ReturnProduct returnProduct, Sale sale, List<Product> products, List<SaleItem> saleItems) {
+        Transaction transaction = null;
+
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.beginTransaction();
+
+            // Update sale
+            session.merge(sale);
+
+            // Update products
+            for (Product product : products) {
+                session.merge(product);
+            }
+
+            // Update saleItems
+            for (SaleItem saleItem : saleItems) {
+                session.merge(saleItem);
+            }
+
+            // Save returnProduct
+            session.merge(returnProduct);
+            // Commit transaction
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        }
+    }
+
 }

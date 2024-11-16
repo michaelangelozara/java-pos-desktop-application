@@ -24,7 +24,7 @@ public class QuotedItem {
     private int quantity;
 
     @Column(name = "is_deleted")
-    private boolean isDelete;
+    private boolean isDeleted;
 
     @Column(name = "deleted_at")
     private LocalDate deletedAt;

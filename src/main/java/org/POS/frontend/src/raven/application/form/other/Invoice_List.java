@@ -1,36 +1,26 @@
 
 package org.POS.frontend.src.raven.application.form.other;
 
-import javax.swing.*;
-import java.awt.*;
-import java.io.File;
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.ExecutionException;
-
 import org.POS.backend.invoice.Invoice;
 import org.POS.backend.invoice.InvoiceService;
+import org.POS.frontend.src.raven.application.Application;
+import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
-
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableRowSorter;
-
+import org.POS.frontend.src.raven.cell.TableActionEvent;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
-import org.POS.frontend.src.raven.application.Application;
-import org.POS.frontend.src.raven.cell.TableActionCellEditor;
-import org.POS.frontend.src.raven.cell.TableActionEvent;
-import org.POS.frontend.src.raven.application.form.other.Invoice_Details;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
+import java.awt.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 
 
 public class Invoice_List extends javax.swing.JPanel {
@@ -60,8 +50,8 @@ public class Invoice_List extends javax.swing.JPanel {
 
 
         };
-        table.getColumnModel().getColumn(13).setCellRenderer(new TableActionCellRender());
-        table.getColumnModel().getColumn(13).setCellEditor(new TableActionCellEditor(event));
+        table.getColumnModel().getColumn(14).setCellRenderer(new TableActionCellRender());
+        table.getColumnModel().getColumn(14).setCellEditor(new TableActionCellEditor(event));
         loadInvoices();
     }
 

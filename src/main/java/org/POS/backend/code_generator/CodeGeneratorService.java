@@ -9,7 +9,7 @@ import org.hibernate.query.Query;
 import java.text.DecimalFormat;
 
 public class CodeGeneratorService {
-    private final DecimalFormat formatter = new DecimalFormat("0000000"); // Pads numbers to 3 digits
+    private final DecimalFormat formatter = new DecimalFormat("000"); // Pads numbers to 3 digits
 
     private SessionFactory sessionFactory;
 

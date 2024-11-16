@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.POS.backend.product.Product;
+import org.POS.backend.return_product.ReturnProduct;
 import org.POS.backend.sale.Sale;
 
 import java.math.BigDecimal;
@@ -25,6 +26,9 @@ public class SaleItem {
     @Column(precision = 10, scale = 2)
     private BigDecimal subtotal;
 
+    @Column(name = "is_returned")
+    private boolean isReturned;
+
     @Column(precision = 10, scale = 2)
     private BigDecimal price;
 
@@ -35,4 +39,8 @@ public class SaleItem {
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
+
+    @ManyToOne
+    @JoinColumn(name = "return_product_id")
+    private ReturnProduct returnProduct;
 }

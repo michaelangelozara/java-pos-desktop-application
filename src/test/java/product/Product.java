@@ -63,7 +63,7 @@ public class Product {
     @Test
     void getAllValidProduct(){
         ProductService productService = new ProductService();
-        productService.getAllValidProducts().forEach(p -> {
+        productService.getAllValidProductsWithLimit().forEach(p -> {
             System.out.println(p.name());
         });
     }

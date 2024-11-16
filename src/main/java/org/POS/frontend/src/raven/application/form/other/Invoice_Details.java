@@ -3,12 +3,16 @@ package org.POS.frontend.src.raven.application.form.other;
 
 import javax.swing.*;
 
+import org.POS.backend.invoice.Invoice;
+import org.POS.backend.invoice.InvoiceService;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
 
 import javax.swing.table.DefaultTableModel;
 
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionEvent;
+
+import java.util.concurrent.ExecutionException;
 
 public class Invoice_Details extends javax.swing.JPanel {
     private Integer invoiceId;
@@ -22,8 +26,6 @@ public class Invoice_Details extends javax.swing.JPanel {
             public void onEdit(int row) {
 
             }
-
-
             @Override
             public void onDelete(int row) {
                 if (table4.isEditing()) {
@@ -48,8 +50,46 @@ public class Invoice_Details extends javax.swing.JPanel {
             }
         };
 
-        table4.getColumnModel().getColumn(9).setCellRenderer(new TableActionCellRender());
-        table4.getColumnModel().getColumn(9).setCellEditor(new TableActionCellEditor(event));
+        table4.getColumnModel().getColumn(7).setCellRenderer(new TableActionCellRender());
+        table4.getColumnModel().getColumn(7).setCellEditor(new TableActionCellEditor(event));
+        loadInvoice();
+    }
+
+    private void loadInvoice(){
+        DefaultTableModel model = (DefaultTableModel) table4.getModel();
+        model.setRowCount(0);
+
+        InvoiceService invoiceService = new InvoiceService();
+        SwingWorker<Invoice, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Invoice doInBackground() throws Exception {
+                var invoice = invoiceService.getValidInvoiceById(invoiceId);
+                return invoice;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var invoice = get();
+                    model.addRow(new Object[]{
+                            invoice.getCode(),
+                            invoice.getDate(),
+                            invoice.getSale().getReference(),
+                            invoice.getSale().getTransactionMethod().name(),
+                            invoice.getSale().getDeliveryPlace(),
+                            invoice.getSale().getNote(),
+                            invoice.getStatus().name(),
+                            invoice.getSale().getUser().getName()
+                    });
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
+
     }
 
     @SuppressWarnings("unchecked")
@@ -112,11 +152,11 @@ public class Invoice_Details extends javax.swing.JPanel {
                 new Object[][]{
                 },
                 new String[]{
-                        "Invoice No	", "Invoice Date", "Reference	", "PO Reference	", "Payment Terms	", "Delivery Place	", "Note	", "Status	", "Created By "
+                        "Invoice No	", "Invoice Date", "Reference	", "Type of Payment", "Delivery Place	", "Note	", "Status	", "Created By "
                 }
         ) {
             boolean[] canEdit = new boolean[]{
-                    false, false, false, false, false, false, false, false, false
+                    false, false, false, false, false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -134,7 +174,6 @@ public class Invoice_Details extends javax.swing.JPanel {
             table4.getColumnModel().getColumn(5).setResizable(false);
             table4.getColumnModel().getColumn(6).setResizable(false);
             table4.getColumnModel().getColumn(7).setResizable(false);
-            table4.getColumnModel().getColumn(8).setResizable(false);
         }
 
         javax.swing.GroupLayout jPanel8Layout = new javax.swing.GroupLayout(jPanel8);
@@ -164,7 +203,7 @@ public class Invoice_Details extends javax.swing.JPanel {
                 new Object[][]{
                 },
                 new String[]{
-                        "#", "Code", "Product Name	", "Invoice Quantity	", "Unit Price", "Unit Tax", "Unit Cost", "Total"
+                        "#", "Code", "Product Name", "Quantity", "Selling Price", "Tax", "Transport Cost", "Subtotal"
                 }
         ) {
             boolean[] canEdit = new boolean[]{

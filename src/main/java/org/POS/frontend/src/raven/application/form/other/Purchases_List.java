@@ -1,5 +1,6 @@
 package org.POS.frontend.src.raven.application.form.other;
 
+import jakarta.persistence.NoResultException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -73,7 +74,13 @@ public class Purchases_List extends javax.swing.JPanel {
                 int purchaseId = (Integer) model.getValueAt(row, 1);
 
                 PurchaseService purchaseService = new PurchaseService();
-                var purchase = purchaseService.getValidPurchaseByPurchaseId(purchaseId);
+                PurchaseResponseDto purchase = null;
+
+                try {
+                    purchase = purchaseService.getValidPurchaseByPurchaseId(purchaseId);
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null, e.getMessage());
+                }
 
                 JPanel panel = new JPanel();
                 panel.setLayout(new GridBagLayout());
@@ -121,7 +128,7 @@ public class Purchases_List extends javax.swing.JPanel {
                             productsCombo.setSelectedItem("Loading Products");
                             productsCombo.setEnabled(false);
                         });
-                        var products = productService.getAllValidProducts();
+                        var products = productService.getAllValidProductsWithLimit();
                         return products;
                     }
 
@@ -281,7 +288,7 @@ public class Purchases_List extends javax.swing.JPanel {
                             SubtotalSummation = SubtotalSummation.add(subTotal);
                         }
 
-                        // update the computed total tax and computed subtotal
+                        // update the computed total tax and computed returnedSubtotal
                         computeSubtotal(SubtotalSummation);
                         computeSubtotalTax(totalTaxSummation);
                         computeNetTotal();
@@ -352,7 +359,7 @@ public class Purchases_List extends javax.swing.JPanel {
                                 SubtotalSummation = SubtotalSummation.add(subTotal);
                             }
 
-                            // update the computed total tax and computed subtotal
+                            // update the computed total tax and computed returnedSubtotal
                             computeSubtotal(SubtotalSummation);
                             computeSubtotalTax(totalTaxSummation);
                             computeNetTotal();
@@ -371,8 +378,19 @@ public class Purchases_List extends javax.swing.JPanel {
                             PurchaseItemService purchaseItemService = new PurchaseItemService();
                             Integer purchaseProductToBeRemoved = (Integer) productsTable.getValueAt(row, 1);
                             if (purchaseProductToBeRemoved != null) {
-                                purchaseItemService.deletePurchaseProductByPurchaseProductId(purchaseProductToBeRemoved);
+                                SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+                                    @Override
+                                    protected Void doInBackground() throws Exception {
+                                        purchaseItemService.deletePurchaseProductByPurchaseProductId(purchaseProductToBeRemoved);
+                                        return null;
+                                    }
 
+                                    @Override
+                                    protected void done() {
+                                        super.done();
+                                    }
+                                };
+                                worker.execute();
                             }
                             tableModel.removeRow(row);
 
@@ -386,7 +404,7 @@ public class Purchases_List extends javax.swing.JPanel {
                                 SubtotalSummation = SubtotalSummation.add(subTotal);
                             }
 
-                            // update the computed total tax and computed subtotal
+                            // update the computed total tax and computed returnedSubtotal
                             computeSubtotal(SubtotalSummation);
                             computeSubtotalTax(totalTaxSummation);
                             computeNetTotal();
@@ -893,10 +911,22 @@ public class Purchases_List extends javax.swing.JPanel {
                     DefaultTableModel model = (DefaultTableModel) table.getModel();
                     int purchaseId = (Integer) model.getValueAt(row, 1);
                     PurchaseService purchaseService = new PurchaseService();
-                    purchaseService.delete(purchaseId);
-                    JOptionPane.showMessageDialog(null, "Product Deleted Successfully",
-                            "Deleted", JOptionPane.INFORMATION_MESSAGE);
-                    loadPurchases();
+
+                    SwingWorker<Void, Void> worder = new SwingWorker<Void, Void>() {
+                        @Override
+                        protected Void doInBackground() throws Exception {
+                            purchaseService.delete(purchaseId);
+                            return null;
+                        }
+
+                        @Override
+                        protected void done() {
+                            JOptionPane.showMessageDialog(null, "Product Deleted Successfully",
+                                    "Deleted", JOptionPane.INFORMATION_MESSAGE);
+                            loadPurchases();
+                        }
+                    };
+                    worder.execute();
                 }
             }
 
@@ -1267,7 +1297,7 @@ public class Purchases_List extends javax.swing.JPanel {
                     productsCombo.setSelectedItem("Loading Products");
                     productsCombo.setEnabled(false);
                 });
-                return productService.getAllValidProducts();
+                return productService.getAllValidProductsWithLimit();
             }
 
             @Override
@@ -1412,7 +1442,7 @@ public class Purchases_List extends javax.swing.JPanel {
                     SubtotalSummation = SubtotalSummation.add(subTotal);
                 }
 
-                // update the computed total tax and computed subtotal
+                // update the computed total tax and computed returnedSubtotal
                 computeSubtotal(SubtotalSummation);
                 computeSubtotalTax(totalTaxSummation);
                 computeNetTotal();
@@ -1481,7 +1511,7 @@ public class Purchases_List extends javax.swing.JPanel {
                         SubtotalSummation = SubtotalSummation.add(subTotal);
                     }
 
-                    // update the computed total tax and computed subtotal
+                    // update the computed total tax and computed returnedSubtotal
                     computeSubtotal(SubtotalSummation);
                     computeSubtotalTax(totalTaxSummation);
                     computeNetTotal();
@@ -1509,7 +1539,7 @@ public class Purchases_List extends javax.swing.JPanel {
                         SubtotalSummation = SubtotalSummation.add(subTotal);
                     }
 
-                    // update the computed total tax and computed subtotal
+                    // update the computed total tax and computed returnedSubtotal
                     computeSubtotal(SubtotalSummation);
                     computeSubtotalTax(totalTaxSummation);
                     computeNetTotal();
@@ -1965,7 +1995,7 @@ public class Purchases_List extends javax.swing.JPanel {
             int quantity = Integer.parseInt(model.getValueAt(i, 4).toString());
             BigDecimal purchasePrice = new BigDecimal(model.getValueAt(i, 5).toString());
 
-            // Ensure `sellingPrice`, `taxValue`, and `subtotal` are `BigDecimal` values; otherwise, convert them.
+            // Ensure `sellingPrice`, `taxValue`, and `returnedSubtotal` are `BigDecimal` values; otherwise, convert them.
             BigDecimal sellingPrice = new BigDecimal(model.getValueAt(i, 6).toString());
             BigDecimal taxValue = new BigDecimal(model.getValueAt(i, 7).toString());
 

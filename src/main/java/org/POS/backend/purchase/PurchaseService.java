@@ -88,7 +88,6 @@ public class PurchaseService {
 
             // get all the products that equaled to products' codes
             var products = this.productDAO.getAllValidProductByProductCode(productCodes);
-            List<PurchaseItem> purchaseItems = new ArrayList<>();
             // iterate all the product and save the purchase item
             for (var product : products) {
                 for (var purchaseItemDto : newPurchaseItemDtoList) {
@@ -103,7 +102,6 @@ public class PurchaseService {
                         product.addPurchaseItem(purchaseItem);
                         updatedPurchase.addPurchaseItem(purchaseItem);
 
-                        purchaseItems.add(purchaseItem);
                         break;
                     }
                 }
@@ -116,6 +114,9 @@ public class PurchaseService {
                     purchaseItemsIds.add(purchaseItemDto.purchaseItemId());
                 }
             }
+
+            List<PurchaseItem> updatedPurchaseItems = new ArrayList<>();
+
             // fetch all valid purchase items
             var fetchedPurchaseItems = this.purchaseItemDAO.getAllValidPurchaseItemByPurchaseItemIds(purchaseItemsIds);
             for (var fetchedPurchaseItem : fetchedPurchaseItems) {
@@ -126,14 +127,14 @@ public class PurchaseService {
                         fetchedPurchaseItem.setSellingPrice(purchaseItemDto.sellingPrice());
                         fetchedPurchaseItem.setTax(purchaseItemDto.taxValue());
                         fetchedPurchaseItem.setSubtotal(purchaseItemDto.subtotal());
-                        purchaseItems.add(fetchedPurchaseItem);
+                        updatedPurchaseItems.add(fetchedPurchaseItem);
                         break;
                     }
                 }
             }
 
             // save here
-            this.purchaseDAO.update(updatedPurchase);
+            this.purchaseDAO.update(updatedPurchase, updatedPurchaseItems);
         }
     }
 

@@ -1119,7 +1119,7 @@ public class ProductList extends javax.swing.JPanel {
         model.setRowCount(0);
 
         ProductService productService = new ProductService();
-        var products = productService.getAllValidProducts();
+        var products = productService.getAllValidProductsWithLimit();
         for (int i = 0; i < products.size(); i++) {
             model.addRow(new Object[]{
                     i + 1,

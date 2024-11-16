@@ -111,7 +111,7 @@ public class SaleService {
 
             Invoice invoice = new Invoice();
             invoice.setSale(sale);
-            invoice.setCode(GlobalVariable.INVOICE_PREFIX+orderInvoiceCode);
+            invoice.setCode(GlobalVariable.INVOICE_PREFIX + orderInvoiceCode);
             invoice.setDate(LocalDate.now());
 
             if (dto.paymentMethod().equals(TransactionPaymentMethod.CASH_PAYMENT)) {
@@ -131,6 +131,8 @@ public class SaleService {
 
                 sale.setTransactionMethod(SaleTransactionMethod.CASH_PAYMENT);
                 sale.setAmountDue(BigDecimal.ZERO);
+                sale.setReference(this.codeGeneratorService.generateProductCode(GlobalVariable.REFERENCE_PREFIX));
+
 
                 var savedSale = this.saleDAO.add(sale, saleItems, updatedProducts, stocks, cashTransaction, order, invoice);
                 return savedSale.getId();
@@ -140,15 +142,18 @@ public class SaleService {
                 invoice.setStatus(InvoiceStatus.PENDING);
                 sale.setTransactionMethod(SaleTransactionMethod.PO_PAYMENT);
                 sale.setAmountDue(dto.netTotal().subtract(dto.amount()));
+                sale.setReference(this.codeGeneratorService.generateProductCode(GlobalVariable.REFERENCE_PREFIX));
+
                 var savedSale = this.saleDAO.add(sale, saleItems, updatedProducts, stocks, order, invoice);
                 return savedSale.getId();
             }else{
                 // online payment
                 order.setStatus(OrderStatus.COMPLETED);
                 invoice.setStatus(InvoiceStatus.COMPLETED);
-
+                sale.setCode(dto.poReference());
                 sale.setAmountDue(dto.netTotal().subtract(dto.amount()));
                 sale.setTransactionMethod(SaleTransactionMethod.ONLINE_PAYMENT);
+                sale.setReference(dto.poReference());
                 var savedSale = this.saleDAO.add(sale, saleItems, updatedProducts, stocks, order, invoice);
                 return savedSale.getId();
             }

@@ -50,8 +50,8 @@ public class Sale {
     @Column(name = "amount_due", precision = 10, scale = 2)
     private BigDecimal amountDue;
 
-    @Column(name = "po_reference")
-    private String poReference;
+    @Column(name = "reference")
+    private String reference;
 
     private String payment;
 

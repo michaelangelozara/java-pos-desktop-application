@@ -1,5 +1,6 @@
 package org.POS.backend.purchase;
 
+import jakarta.persistence.NoResultException;
 import org.POS.backend.configuration.HibernateUtil;
 import org.POS.backend.purchased_item.PurchaseItem;
 import org.hibernate.Hibernate;
@@ -36,12 +37,16 @@ public class PurchaseDAO {
         }
     }
 
-    public void update(Purchase purchase) {
+    public void update(Purchase purchase, List<PurchaseItem> purchaseItems) {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
 
             session.merge(purchase);
+
+            for(var purchaseItem : purchaseItems){
+                session.merge(purchaseItem);
+            }
 
             transaction.commit();
         } catch (Exception e) {
@@ -73,12 +78,12 @@ public class PurchaseDAO {
         Purchase purchase = null;
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
-            purchase = session.createQuery("SELECT p FROM Purchase p LEFT JOIN FETCH p.purchaseItems pp WHERE p.id = : purchaseId AND p.isDeleted = FALSE AND pp.isDelete = FALSE ", Purchase.class)
+            purchase = session.createQuery("SELECT p FROM Purchase p LEFT JOIN FETCH p.purchaseItems pp WHERE p.id = : purchaseId AND p.isDeleted = FALSE AND pp.isDeleted = FALSE ", Purchase.class)
                     .setParameter("purchaseId", purchaseId)
                     .getSingleResult();
             session.getTransaction().commit();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (NoResultException e) {
+            throw new NoResultException("This purchase is empty, please delete it and create a new");
         }
         return purchase;
     }

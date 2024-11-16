@@ -1,5 +1,6 @@
 package org.POS.backend.invoice;
 
+import jakarta.persistence.NoResultException;
 import org.POS.backend.configuration.HibernateUtil;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
@@ -33,5 +34,19 @@ public class InvoiceDAO {
             e.printStackTrace();
         }
         return invoices;
+    }
+
+    public Invoice getValidInvoiceById(int id){
+        Invoice invoice = null;
+        try (Session session = sessionFactory.openSession()){
+
+            invoice = session.createQuery("SELECT i FROM Invoice i WHERE i.id =: id", Invoice.class)
+                    .setParameter("id", id)
+                    .getSingleResult();
+
+        }catch (Exception e){
+            throw new NoResultException("No invoice found");
+        }
+        return invoice;
     }
 }

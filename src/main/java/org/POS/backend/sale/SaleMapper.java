@@ -24,11 +24,10 @@ public class SaleMapper {
         sale.setReceiptNumber(dto.receiptNumber());
         sale.setAmount(dto.amount());
         sale.setDate(LocalDate.now());
-        sale.setPoReference(dto.poReference());
+        sale.setReference(dto.poReference());
         sale.setDeliveryPlace(dto.deliveryPlace());
         sale.setNote(dto.note());
         sale.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.SALE_PREFIX));
-
         return sale;
     }
 

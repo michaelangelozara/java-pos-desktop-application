@@ -104,4 +104,7 @@ public class GlobalVariable {
     public static String ORDER_PREFIX = "ORD-";
     public static String INVOICE_PREFIX = "INVO-";
     public static String QUOTATION_PREFIX = "QT-";
+    public static String RETURN_PRODUCT_PREFIX = "REF-";
+
+    public static String REFERENCE_PREFIX = "REF-";
 }

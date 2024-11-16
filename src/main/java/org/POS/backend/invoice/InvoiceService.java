@@ -13,4 +13,8 @@ public class InvoiceService {
     public List<Invoice> getAllValidInvoices(int number){
         return this.invoiceDAO.getAllValidInvoices(number);
     }
+
+    public Invoice getValidInvoiceById(int id){
+        return this.invoiceDAO.getValidInvoiceById(id);
+    }
 }

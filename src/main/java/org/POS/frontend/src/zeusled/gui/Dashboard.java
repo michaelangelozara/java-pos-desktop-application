@@ -79,7 +79,7 @@ public class Dashboard extends JPanel {
             @Override
             protected BigDecimal doInBackground() throws InterruptedException {
                 BigDecimal totalProductValue = BigDecimal.ZERO;
-                var products = productService.getAllValidProducts();
+                var products = productService.getAllValidProductsWithLimit();
                 for(var product : products){
                     totalProductValue = totalProductValue.add((BigDecimal.valueOf(product.stock()).multiply(product.sellingPrice())));
                 }

@@ -80,13 +80,35 @@ public class ProductDAO {
         return null;
     }
 
-    public List<Product> getAllValidProducts() {
+    public List<Product> getAllValidProductsWithLimit() {
         List<Product> products = new ArrayList<>();
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
             products = session.createQuery("SELECT p FROM Product p WHERE p.isDeleted = FALSE", Product.class)
                     .setMaxResults(50)
+                    .getResultList();
+
+            for(var product : products){
+                if(!product.getStocks().isEmpty()){
+                    Hibernate.initialize(product.getStocks());
+                }
+            }
+            session.getTransaction().commit();
+            return products;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return products;
+    }
+
+    public List<Product> getAllValidProducts(){
+        List<Product> products = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()) {
+            session.beginTransaction();
+
+            products = session.createQuery("SELECT p FROM Product p WHERE p.isDeleted = FALSE", Product.class)
                     .getResultList();
 
             for(var product : products){
@@ -195,6 +217,7 @@ public class ProductDAO {
 
             for(var product : products){
                 Hibernate.initialize(product.getPurchaseItems());
+                Hibernate.initialize(product.getQuotedItems());
             }
         } catch (Exception e) {
             // Consider logging the exception

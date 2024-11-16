@@ -106,9 +106,10 @@ public class MainForm extends JLayeredPane {
                     } else if (subIndex == 3) {
                         Application.showForm(new Order_List());     
                     } else if (subIndex == 4) {
+                        Application.showForm(new ReturnedProduct_List());
+                    }else if (subIndex == 5) {
                         Application.showForm(new Cash_Transaction());
-                        
-                    } else if (subIndex == 5) {
+                    } else if (subIndex == 6) {
                         if(CurrentUser.isPosLoginSetup){
                             Application.showForm(new POS());
                         }else{
@@ -177,6 +178,7 @@ public class MainForm extends JLayeredPane {
 
                     break;
                 case 15:
+                    CurrentUser.isPosLoginSetup = false;
                     Application.logout();
                     break;
                 default:

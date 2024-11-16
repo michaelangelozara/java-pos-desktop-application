@@ -624,7 +624,7 @@ public class CurrentValueandStock_Report extends javax.swing.JPanel {
         model.setRowCount(0);
 
         ProductDAO productDAO = new ProductDAO();
-        var products = productDAO.getAllValidProducts();
+        var products = productDAO.getAllValidProductsWithLimit();
         int i = 1;
         int stockInSummation = 0;
         int stockOutSummation = 0;
@@ -664,7 +664,7 @@ public class CurrentValueandStock_Report extends javax.swing.JPanel {
         model.setRowCount(0);
 
         ProductDAO productDAO = new ProductDAO();
-        var products = productDAO.getAllValidProducts();
+        var products = productDAO.getAllValidProductsWithLimit();
 
         int i = 1;
         BigDecimal totalValue = BigDecimal.ZERO;

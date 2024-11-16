@@ -66,8 +66,6 @@ public class PurchaseMapper {
         purchase.setChequeNumber(dto.chequeNumber());
         purchase.setReceiptNumber(dto.receiptNumber());
         purchase.setNote(dto.note());
-//        purchase.setPurchaseDate(dto.purchaseDate());
-//        purchase.setPurchaseOrderDate(dto.purchaseOrderDate());
         purchase.setStatus(dto.status());
 
         BigDecimal netTotal = (dto.subtotalTax().add(dto.netSubtotal()).add(dto.transportCost()).add(dto.totalTax())).subtract(dto.discount()).setScale(2, RoundingMode.HALF_UP);
