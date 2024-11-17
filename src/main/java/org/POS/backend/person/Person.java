@@ -3,6 +3,7 @@ package org.POS.backend.person;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.POS.backend.invoice.Invoice;
 import org.POS.backend.order.Order;
 import org.POS.backend.purchase.Purchase;
 import org.POS.backend.quotation.Quotation;
@@ -57,6 +58,9 @@ public class Person {
     private LocalDate deletedAt;
 
     @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Invoice> invoices = new ArrayList<>();
+
+    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Purchase> purchases = new ArrayList<>();
 
     @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -67,6 +71,11 @@ public class Person {
 
     @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Quotation> quotations = new ArrayList<>();
+
+    public void addInvoice(Invoice invoice){
+        invoices.add(invoice);
+        invoice.setPerson(this);
+    }
 
     public void addQuotation(Quotation quotation){
         quotations.add(quotation);

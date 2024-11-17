@@ -1,24 +1,18 @@
-- vat tax of the POS
-- the customer shouldn't make a transaction if the product is out of stock
-    Search mechanism
-- inventory deletion not working
 - remove the FROM-TO button in the cash transaction list
-- ask what about the CREATE of INVENTORY
-- tax amount in the onView of product
-
+- Changing the status of the order after returning product
+        Possible solution is to re-fetch entire sale item after i update and
+            check if they are all returned
+- supplier details
 
 SWING WORKER OPERATION
 - total sales in dashboard
 - inventory adjustment
 - order
 
-
-
 SEARCH MECHANISM
 - inventory adjustment
 - invoice
 - order
-
 
 SKIPPED Pages
 - Invoice_Details

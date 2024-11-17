@@ -50,8 +50,8 @@ public class Invoice_List extends javax.swing.JPanel {
 
 
         };
-        table.getColumnModel().getColumn(14).setCellRenderer(new TableActionCellRender());
-        table.getColumnModel().getColumn(14).setCellEditor(new TableActionCellEditor(event));
+        table.getColumnModel().getColumn(13).setCellRenderer(new TableActionCellRender());
+        table.getColumnModel().getColumn(13).setCellEditor(new TableActionCellEditor(event));
         loadInvoices();
     }
 

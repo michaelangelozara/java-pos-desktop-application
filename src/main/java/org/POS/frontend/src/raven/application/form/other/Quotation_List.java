@@ -2003,13 +2003,13 @@ public class Quotation_List extends javax.swing.JPanel {
     }
 
     private void computeTotalTax() {
-        BigDecimal totalTax = BigDecimal.valueOf(Double.parseDouble(subtotalLabel.getText())).multiply(BigDecimal.valueOf(0.12)).setScale(2, RoundingMode.HALF_UP);
-        totalTaxField.setText(String.valueOf(totalTax));
+        BigDecimal currentNetTotal = new BigDecimal(netTotalField.getText());
+        BigDecimal totalTax = currentNetTotal.multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12));
+        totalTaxField.setText(String.valueOf(totalTax.setScale(2, RoundingMode.HALF_UP)));
     }
 
     private void computeSubtotal(BigDecimal subtotals) {
         subtotalLabel.setText(String.valueOf(subtotals.setScale(2, RoundingMode.HALF_UP)));
-        computeTotalTax();
     }
 
     private void computeSubtotalTax(BigDecimal totalTaxes) {
@@ -2027,13 +2027,14 @@ public class Quotation_List extends javax.swing.JPanel {
 
         BigDecimal transportCost = new BigDecimal(transportCostField.getText());
         BigDecimal discount = new BigDecimal(discountField.getText());
-        BigDecimal totalTax = new BigDecimal(totalTaxField.getText());
-        BigDecimal totalPaid = new BigDecimal(totalPaidField.getText());
-        BigDecimal subtotalTax = new BigDecimal(totalTaxProductLabel.getText());
+//        BigDecimal totalTax = new BigDecimal(totalTaxField.getText());
+//        BigDecimal totalPaid = new BigDecimal(totalPaidField.getText());
+//        BigDecimal subtotalTax = new BigDecimal(totalTaxProductLabel.getText());
         BigDecimal subtotalNet = new BigDecimal(subtotalLabel.getText());
 
-        BigDecimal totalNet = ((subtotalTax.add(subtotalNet).add(transportCost).add(totalTax)).subtract(discount)).subtract(totalPaid);
+        BigDecimal totalNet = (subtotalNet.add(transportCost)).subtract(discount);
         netTotalField.setText(String.valueOf(totalNet));
+        computeTotalTax();
     }
 
     // Method to create createdAt pickers with the current createdAt

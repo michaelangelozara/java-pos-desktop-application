@@ -1,6 +1,7 @@
 package org.POS.backend.purchased_item;
 
 import org.POS.backend.configuration.HibernateUtil;
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -23,9 +24,13 @@ public class PurchaseItemDAO {
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
-            purchaseItems = session.createQuery("SELECT pi FROM PurchaseItem pi WHERE pi.id IN (:ids) AND pi.isDelete = FALSE", PurchaseItem.class)
+            purchaseItems = session.createQuery("SELECT pi FROM PurchaseItem pi WHERE pi.id IN (:ids) AND pi.isDeleted = FALSE", PurchaseItem.class)
                     .setParameter("ids", ids)
                     .getResultList();
+
+            for(var purchaseItem : purchaseItems){
+                Hibernate.initialize(purchaseItem.getReturnPurchases());
+            }
 
             session.getTransaction().commit();
         }catch (Exception e){

@@ -45,11 +45,11 @@ public class PurchaseMapper {
         purchase.setStatus(dto.status());
         purchase.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.PURCHASE_PREFIX));
 
-        BigDecimal netTotal = (dto.subtotalTax().add(dto.netSubtotal()).add(dto.transportCost()).add(dto.totalTax())).subtract(dto.discount()).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal netTotal = dto.netSubtotal().add(dto.transportCost()).subtract(dto.discount()).setScale(2, RoundingMode.HALF_UP);
         purchase.setBalance(netTotal.subtract(dto.totalPaid()));
         purchase.setTotalPaid(dto.totalPaid());
         purchase.setSubtotalTax(dto.subtotalTax());
-        purchase.setTotalTax(dto.netSubtotal().multiply(BigDecimal.valueOf(0.12)));
+        purchase.setTotalTax((dto.netSubtotal().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12))).setScale(2, RoundingMode.HALF_UP));
         purchase.setSubtotal(dto.netSubtotal());
         purchase.setNetTotal(netTotal);
 
@@ -138,7 +138,8 @@ public class PurchaseMapper {
                 purchase.getAccount(),
                 purchase.getChequeNumber(),
                 purchase.getReceiptNumber(),
-                purchase.getNote()
+                purchase.getNote(),
+                purchase.getBalance()
         );
     }
 

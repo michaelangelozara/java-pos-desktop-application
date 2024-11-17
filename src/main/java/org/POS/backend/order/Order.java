@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.POS.backend.cash_transaction.CashTransaction;
 import org.POS.backend.person.Person;
+import org.POS.backend.return_product.ReturnProduct;
 import org.POS.backend.sale.Sale;
 
 import java.math.BigDecimal;
@@ -38,4 +39,7 @@ public class Order {
     @OneToOne
     @JoinColumn(name = "sale_id")
     private Sale sale;
+
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ReturnProduct returnProduct;
 }

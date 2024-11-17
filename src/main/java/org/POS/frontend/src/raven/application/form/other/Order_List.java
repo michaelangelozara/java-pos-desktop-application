@@ -282,14 +282,6 @@ public class Order_List extends javax.swing.JPanel {
                 payButton.setBackground(new Color(34, 139, 34)); // Forest Green
                 payButton.setForeground(Color.WHITE);
 
-                // Add an ActionListener to handle Pay button click
-                payButton.addActionListener(e -> {
-                    // Logic to handle payment
-                    JOptionPane.showMessageDialog(null, "Payment initiated for " + netTotalField.getText(), "Payment", JOptionPane.INFORMATION_MESSAGE);
-                });
-
-                panel.add(payButton, gbc);
-
                 SwingWorker<Order, Void> worker = new SwingWorker<>() {
                     @Override
                     protected Order doInBackground() throws Exception {
@@ -334,11 +326,17 @@ public class Order_List extends javax.swing.JPanel {
                                 noteArea.setText(order.getSale().getNote());
 
                                 date.setText(String.valueOf(order.getSale().getDate()));
+
+                                if(order.getStatus().equals(OrderStatus.COMPLETED)){
+                                    payButton.setEnabled(false);
+                                }
                             });
+
+
 
                             int i = 1;
                             for (var saleItem : order.getSale().getSaleItems()) {
-                                if(saleItem.isReturned()) continue;
+                                if (saleItem.isReturned()) continue;
                                 model.addRow(new Object[]{
                                         i,
                                         saleItem.getId(),
@@ -361,6 +359,115 @@ public class Order_List extends javax.swing.JPanel {
                 };
                 worker.execute();
 
+                // Add an ActionListener to handle Pay button click
+                payButton.addActionListener(e -> {
+                    // Logic to handle payment
+                    JPanel paymentPanel = new JPanel(new GridBagLayout());
+                    GridBagConstraints gbc2 = new GridBagConstraints();
+                    gbc2.insets = new Insets(10, 10, 10, 10); // Padding between elements
+                    gbc2.fill = GridBagConstraints.HORIZONTAL;
+                    gbc2.anchor = GridBagConstraints.WEST;
+
+                    // Create input fields
+                    JTextField amountField = new JTextField(20); // Increased field width
+                    amountField.setText("0");
+
+                    JTextField dateField = new JTextField(15);
+                    JTextField balanceField = new JTextField(15);
+
+                    // Make balanceField non-editable
+                    try {
+                        balanceField.setText(String.valueOf(worker.get().getSale().getAmountDue())); // Example initial value
+                    } catch (InterruptedException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (ExecutionException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    balanceField.setEditable(false);
+
+                    // Fetch the current date and set it in dateField
+                    LocalDate currentDate = LocalDate.now();
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                    dateField.setText(currentDate.format(formatter));
+                    dateField.setEditable(false);
+
+                    // Adding labels and fields to the panel
+                    gbc2.gridx = 0;
+                    gbc2.gridy = 0;
+                    paymentPanel.add(new JLabel("Date:"), gbc2);
+                    gbc2.gridx = 1;
+                    paymentPanel.add(dateField, gbc2);
+
+                    // Add Balance label and field
+                    gbc2.gridx = 0;
+                    gbc2.gridy = 1;
+                    paymentPanel.add(new JLabel("Balance:"), gbc2);
+                    gbc2.gridx = 1;
+                    paymentPanel.add(balanceField, gbc2);
+
+                    // Modify Amount label and field
+                    JLabel amountLabel = new JLabel("Amount:");
+                    amountLabel.setFont(new Font("Arial", Font.BOLD, 18)); // Set larger font for Amount label
+                    amountField.setFont(new Font("Arial", Font.PLAIN, 20));
+                    amountField.setPreferredSize(new Dimension(300, 50)); // Increased height
+                    amountField.setMinimumSize(new Dimension(300, 50));
+                    amountField.setMaximumSize(new Dimension(300, 50)); // Increase field size
+
+                    gbc2.gridx = 0;
+                    gbc2.gridy = 2;
+                    paymentPanel.add(amountLabel, gbc2);
+                    gbc2.gridx = 1;
+                    gbc2.gridwidth = 3; // Span across multiple columns
+                    paymentPanel.add(amountField, gbc2);
+
+                    // Show the dialog
+                    int result = JOptionPane.showConfirmDialog(null, paymentPanel, "Pay Debt", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+                    if (result == JOptionPane.OK_OPTION) {
+                        // Logic to handle payment confirmation
+                        try {
+                            var order = worker.get();
+                            BigDecimal pay = new BigDecimal(amountField.getText());
+                            SwingWorker<Boolean, Void> tempWorker = new SwingWorker<>() {
+                                @Override
+                                protected Boolean doInBackground() throws Exception {
+                                    payButton.setText("Loading...");
+                                    payButton.setEnabled(false);
+                                    Thread.sleep(5000);
+                                    orderService.updateSaleAmountDue(order, pay);
+                                    return true;
+                                }
+
+                                @Override
+                                protected void done() {
+                                    try {
+                                        payButton.setEnabled(true);
+                                        payButton.setText("Pay");
+                                        statusCombo.setSelectedItem(order.getStatus().equals(OrderStatus.COMPLETED) ? "Completed" : order.getStatus().equals(OrderStatus.PENDING) ? "Pending" : "Payment Refunded");
+                                        if(order.getStatus().equals(OrderStatus.COMPLETED)){
+                                            payButton.setEnabled(false);
+                                        }
+                                        boolean result = get();
+                                        if(result)
+                                            JOptionPane.showMessageDialog(null, "Transaction Successful");
+                                    } catch (InterruptedException ex) {
+                                        throw new RuntimeException(ex);
+                                    } catch (ExecutionException ex) {
+                                        throw new RuntimeException(ex);
+                                    }
+                                }
+                            };
+                            tempWorker.execute();
+
+                        } catch (InterruptedException ex) {
+                            throw new RuntimeException(ex);
+                        } catch (ExecutionException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
+                });
+
+                panel.add(payButton, gbc);
+
                 // Display the dialog
                 int result = JOptionPane.showConfirmDialog(null, panel, "Edit Orders", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
@@ -381,12 +488,13 @@ public class Order_List extends javax.swing.JPanel {
                     try {
                         orderService.update(dto);
                         JOptionPane.showMessageDialog(null, "Order updated");
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                         JOptionPane.showMessageDialog(null, e.getMessage());
                     }
 
                 }
+                loadOrders();
             }
 
             private void computeNetTotal(BigDecimal subtotal) {
@@ -444,9 +552,6 @@ public class Order_List extends javax.swing.JPanel {
                 }
             }
 
-// ButtonRenderer and ButtonEditor are already defined in your previous code.
-
-
             // Custom ButtonEditor class for the "Remove" button functionality
             class ButtonEditor extends DefaultCellEditor {
                 protected JButton button;
@@ -483,7 +588,7 @@ public class Order_List extends javax.swing.JPanel {
                         computeNetTotal(removeSubtotal);
                         returnedProductIds.add(removedProductId);
                         if (row >= 0) {
-                            tableModel.removeRow(row);
+                            SwingUtilities.invokeLater(() -> tableModel.removeRow(row));
                         }
                     }
                     isPushed = false;

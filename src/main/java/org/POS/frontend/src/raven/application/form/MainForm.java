@@ -3,19 +3,6 @@ package org.POS.frontend.src.raven.application.form;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.util.UIScale;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.ComponentOrientation;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Insets;
-import java.awt.LayoutManager;
-import java.awt.event.ActionEvent;
-import javax.swing.JButton;
-import javax.swing.JLayeredPane;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-
 import org.POS.backend.global_variable.CurrentUser;
 import org.POS.frontend.src.raven.application.Application;
 import org.POS.frontend.src.raven.application.form.other.*;
@@ -23,8 +10,12 @@ import org.POS.frontend.src.raven.menu.Menu;
 import org.POS.frontend.src.raven.menu.MenuAction;
 import org.POS.frontend.src.zeusled.gui.Dashboard;
 
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+
 /**
- *
  * @author Raven
  */
 public class MainForm extends JLayeredPane {
@@ -81,8 +72,7 @@ public class MainForm extends JLayeredPane {
                         Application.showForm(new Expenses_Sub_Category());
                     } else if (subIndex == 3) {
                         Application.showForm(new Expenses_List());
-                    }
-                    else {
+                    } else {
                         action.cancel();
                     }
                     break;
@@ -92,9 +82,8 @@ public class MainForm extends JLayeredPane {
                     } else if (subIndex == 2) {
                         Application.showForm(new BrandList());
                     } else if (subIndex == 3) {
-                        Application.showForm(new Return_List());
-                    }
-                    else {
+                        Application.showForm(new ReturnedPurchase_List());
+                    } else {
                         action.cancel();
                     }
                     break;
@@ -104,15 +93,15 @@ public class MainForm extends JLayeredPane {
                     } else if (subIndex == 2) {
                         Application.showForm(new Invoice_List());
                     } else if (subIndex == 3) {
-                        Application.showForm(new Order_List());     
+                        Application.showForm(new Order_List());
                     } else if (subIndex == 4) {
-                        Application.showForm(new ReturnedProduct_List());
-                    }else if (subIndex == 5) {
+                        Application.showForm(new Return_List());
+                    } else if (subIndex == 5) {
                         Application.showForm(new Cash_Transaction());
                     } else if (subIndex == 6) {
-                        if(CurrentUser.isPosLoginSetup){
+                        if (CurrentUser.isPosLoginSetup) {
                             Application.showForm(new POS());
-                        }else{
+                        } else {
                             Application.showForm(new BeforePOS());
                         }
                     } else {
@@ -135,8 +124,7 @@ public class MainForm extends JLayeredPane {
                         Application.showForm(new Products_Sub_Category());
                     } else if (subIndex == 3) {
                         Application.showForm(new ProductList());
-                    }
-                    else {
+                    } else {
                         action.cancel();
                     }
                     break;

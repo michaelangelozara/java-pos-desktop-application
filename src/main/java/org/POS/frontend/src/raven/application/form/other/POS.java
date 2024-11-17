@@ -1383,8 +1383,6 @@ public class POS extends JPanel {
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // Creating a JPanel with GridBagLayout for better control over positioning
-        // Creating a JPanel with GridBagLayout for better control over positioning
         JPanel paymentPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10); // Padding between elements

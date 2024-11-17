@@ -6,9 +6,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.POS.backend.product.Product;
 import org.POS.backend.purchase.Purchase;
+import org.POS.backend.return_purchase.ReturnPurchase;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "purchase_items")
@@ -28,6 +31,18 @@ public class PurchaseItem {
 
     @Column(name = "deleted_at")
     private LocalDate deletedAt;
+
+    @Column(name = "is_returned")
+    private boolean isReturned;
+
+    @Column(name = "returned_at")
+    private LocalDate returnedAt;
+
+    @Column(name = "return_quantity")
+    private int returnQuantity;
+
+    @Column(name = "return_price")
+    private BigDecimal returnPrice;
 
     @Column(name = "purchase_price", precision = 10, scale = 2)
     private BigDecimal purchasePrice;
@@ -50,4 +65,11 @@ public class PurchaseItem {
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
+
+    @ManyToMany(mappedBy = "purchaseItems")
+    private List<ReturnPurchase> returnPurchases = new ArrayList<>();
+
+    public void addReturnPurchase(ReturnPurchase returnPurchase){
+        returnPurchases.add(returnPurchase);
+    }
 }

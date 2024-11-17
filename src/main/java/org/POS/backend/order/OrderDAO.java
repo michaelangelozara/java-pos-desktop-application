@@ -54,25 +54,21 @@ public class OrderDAO {
         return order;
     }
 
-    public void update(ReturnProduct returnProduct, Sale sale, List<Product> products, List<SaleItem> saleItems) {
+    public void update(Order order, ReturnProduct returnProduct, Sale sale, List<Product> products, List<SaleItem> saleItems) {
         Transaction transaction = null;
-
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
-
+            session.merge(order);
             // Update sale
             session.merge(sale);
-
             // Update products
             for (Product product : products) {
                 session.merge(product);
             }
-
             // Update saleItems
             for (SaleItem saleItem : saleItems) {
                 session.merge(saleItem);
             }
-
             // Save returnProduct
             session.merge(returnProduct);
             // Commit transaction
@@ -85,4 +81,20 @@ public class OrderDAO {
         }
     }
 
+    public void updateOrderAmountDue(Order order, Sale sale){
+        Transaction transaction = null;
+        try (Session session = sessionFactory.openSession()){
+            transaction = session.beginTransaction();
+
+            session.merge(order);
+            session.merge(sale);
+
+            transaction.commit();
+        }catch (Exception e){
+            if(transaction != null && transaction.isActive()){
+                transaction.rollback();
+            }
+            throw new RuntimeException(e.getMessage());
+        }
+    }
 }

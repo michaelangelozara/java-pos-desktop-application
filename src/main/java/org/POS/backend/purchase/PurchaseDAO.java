@@ -82,6 +82,8 @@ public class PurchaseDAO {
                     .setParameter("purchaseId", purchaseId)
                     .getSingleResult();
             session.getTransaction().commit();
+
+            Hibernate.initialize(purchase.getReturnPurchases());
         } catch (NoResultException e) {
             throw new NoResultException("This purchase is empty, please delete it and create a new");
         }
@@ -91,9 +93,23 @@ public class PurchaseDAO {
     public List<Purchase> getAllValidPurchases() {
         List<Purchase> purchases = new ArrayList<>();
         try (Session session = sessionFactory.openSession()) {
-            purchases = session.createQuery("SELECT p FROM Purchase p LEFT JOIN FETCH p.purchaseItems WHERE p.isDeleted = FALSE ", Purchase.class)
+            purchases = session.createQuery("SELECT p FROM Purchase p WHERE p.isDeleted = FALSE ", Purchase.class)
+                    .setMaxResults(50)
                     .getResultList();
 
+            purchases.forEach(e -> Hibernate.initialize(e.getPurchaseItems()));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return purchases;
+    }
+    public List<Purchase> getAllValidPurchasesWithoutLimit() {
+        List<Purchase> purchases = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()) {
+            purchases = session.createQuery("SELECT p FROM Purchase p WHERE p.isDeleted = FALSE ", Purchase.class)
+                    .getResultList();
+
+            purchases.forEach(e -> Hibernate.initialize(e.getPurchaseItems()));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -108,8 +124,10 @@ public class PurchaseDAO {
 
             String hqlQuery = "SELECT p FROM Purchase p WHERE p.person.id = :supplierId AND p.isDeleted = FALSE ";
             purchases = session.createQuery(hqlQuery, Purchase.class)
-                    .setParameter("clientId", supplierId)
+                    .setParameter("supplierId", supplierId)
                     .getResultList();
+
+            purchases.forEach(p -> Hibernate.initialize(p.getPurchaseItems()));
 
             session.getTransaction().commit();
         } catch (Exception e) {
@@ -145,6 +163,26 @@ public class PurchaseDAO {
             purchases = session.createQuery("SELECT p FROM Purchase p WHERE p.createdDate >= :start AND p.createdDate <= :end AND p.isDeleted = FALSE", Purchase.class)
                     .setParameter("start", start)
                     .setParameter("end", end)
+                    .getResultList();
+
+            for(var purchase : purchases){
+                Hibernate.initialize(purchase.getPurchaseItems());
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return purchases;
+    }
+
+    public List<Purchase> getAllValidPurchaseByRangeAndSupplierId(LocalDate start, LocalDate end, int id){
+        List<Purchase> purchases = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            purchases = session.createQuery("SELECT p FROM Purchase p WHERE p.person.id =: id AND (p.createdDate >= :start AND p.createdDate <= :end) AND p.isDeleted = FALSE", Purchase.class)
+                    .setParameter("start", start)
+                    .setParameter("end", end)
+                    .setParameter("id", id)
                     .getResultList();
 
             for(var purchase : purchases){

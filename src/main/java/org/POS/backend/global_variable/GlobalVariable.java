@@ -105,6 +105,7 @@ public class GlobalVariable {
     public static String INVOICE_PREFIX = "INVO-";
     public static String QUOTATION_PREFIX = "QT-";
     public static String RETURN_PRODUCT_PREFIX = "REF-";
+    public static String RETURN_PURCHASE_PREFIX = "RP-";
 
     public static String REFERENCE_PREFIX = "REF-";
 }

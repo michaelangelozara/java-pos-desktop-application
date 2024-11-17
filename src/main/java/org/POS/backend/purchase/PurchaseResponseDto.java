@@ -30,6 +30,7 @@ public record PurchaseResponseDto(
         String account,
         String chequeNumber,
         String receiptNumber,
-        String note
+        String note,
+        BigDecimal balance
 ) {
 }

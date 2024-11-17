@@ -233,9 +233,9 @@
                                   <EmptySpace max="-2" attributes="0"/>
                                   <Component id="jSeparator2" min="-2" pref="10" max="-2" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
-                                  <Group type="103" groupAlignment="3" attributes="0">
-                                      <Component id="jLabel4" alignment="3" min="-2" max="-2" attributes="0"/>
-                                      <Component id="jLabel10" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Group type="103" groupAlignment="0" attributes="0">
+                                      <Component id="jLabel10" min="-2" max="-2" attributes="0"/>
+                                      <Component id="jLabel4" min="-2" pref="25" max="-2" attributes="0"/>
                                   </Group>
                                   <EmptySpace min="-2" max="-2" attributes="0"/>
                                   <Component id="jSeparator3" min="-2" pref="10" max="-2" attributes="0"/>
@@ -302,7 +302,7 @@
                             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                               <Font name="Segoe UI" size="18" style="1"/>
                             </Property>
-                            <Property name="text" type="java.lang.String" value="Customer ID"/>
+                            <Property name="text" type="java.lang.String" value="Supplier ID"/>
                           </Properties>
                         </Component>
                         <Component class="javax.swing.JSeparator" name="jSeparator3">

@@ -24,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
 
 
 public class Customer_List extends javax.swing.JPanel {
@@ -235,12 +236,27 @@ public class Customer_List extends javax.swing.JPanel {
                 int clientId = (Integer) model.getValueAt(row, 2);
 
                 PersonService personService = new PersonService();
-                var client = personService.getValidPersonById(clientId);
+                SwingWorker<PersonResponseDto, Void> worker = new SwingWorker<>() {
+                    @Override
+                    protected PersonResponseDto doInBackground() throws Exception {
+                        var client = personService.getValidPersonById(clientId);
+                        return client;
+                    }
 
-                Application.showForm(new Customer_Details(client));
+                    @Override
+                    protected void done() {
+                        try {
+                            var client = get();
+                            Application.showForm(new Customer_Details(client));
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        } catch (ExecutionException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                };
+                worker.execute();
             }
-
-
         };
         table.getColumnModel().getColumn(9).setCellRenderer(new TableActionCellRender());
         table.getColumnModel().getColumn(9).setCellEditor(new TableActionCellEditor(event));

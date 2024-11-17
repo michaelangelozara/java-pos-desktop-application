@@ -1,62 +1,84 @@
 
 
 package org.POS.frontend.src.raven.application.form.other;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import org.POS.frontend.src.raven.cell.TableActionCellRender;
-import javax.swing.table.DefaultTableModel;
+
+import org.POS.backend.return_product.ReturnProduct;
+import org.POS.backend.return_product.ReturnProductDAO;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
+import org.POS.frontend.src.raven.cell.TableActionCellRender;
 import org.POS.frontend.src.raven.cell.TableActionEvent;
 
-public class Return_Details extends javax.swing.JPanel {
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.math.BigDecimal;
+import java.util.concurrent.ExecutionException;
 
+public class ReturnOrder_Details extends javax.swing.JPanel {
 
-public Return_Details() {
-    initComponents();
-    
-    TableActionEvent event = new TableActionEvent() {
-@Override
-        public void onEdit(int row) {
+    private Integer id;
 
-        }
-
-
-        @Override
-        public void onDelete(int row) {
-            if (table.isEditing()) {
-                table.getCellEditor().stopCellEditing();
-            }
-
-            // Confirm before deleting
-            int confirmation = JOptionPane.showConfirmDialog(null, 
-                "Are you sure you want to delete this SubCategory?", 
-                "Confirm Delete", JOptionPane.YES_NO_OPTION);
-
-            if (confirmation == JOptionPane.YES_OPTION) {
-                DefaultTableModel model = (DefaultTableModel) table.getModel();
-                model.removeRow(row);
-                JOptionPane.showMessageDialog(null, "SubCategory Deleted Successfully", 
-                    "Deleted", JOptionPane.INFORMATION_MESSAGE);
-            }
-        }
-
-        @Override
-        public void onView(int row) {
-        }
-    };
-
-    if (table.getColumnModel().getColumnCount() > 9) {
-        table.getColumnModel().getColumn(9).setCellRenderer(new TableActionCellRender());
-        table.getColumnModel().getColumn(9).setCellEditor(new TableActionCellEditor(event));
-    } else {
-        System.err.println("Error: Table does not have enough columns!");
+    public ReturnOrder_Details(int id) {
+        this.id = id;
+        initComponents();
+        loadUpperTable();
     }
-}
 
+    private void loadUpperTable() {
+        DefaultTableModel model = (DefaultTableModel) table3.getModel();
+        model.setRowCount(0);
 
+        ReturnProductDAO returnProductDAO = new ReturnProductDAO();
+        SwingWorker<ReturnProduct, Void> worker = new SwingWorker<>() {
+            @Override
+            protected ReturnProduct doInBackground() throws Exception {
+                var returnProduct = returnProductDAO.getValidReturnProductById(id);
+                return returnProduct;
+            }
 
+            @Override
+            protected void done() {
+                try {
+                    var returnProduct = get();
+                    for (var returnedProduct : returnProduct.getReturnedSaleItems()) {
+                        model.addRow(new Object[]{
+                                returnProduct.getOrder().getSale().getCode(),
+                                returnProduct.getCode(),
+                                returnProduct.getOrder().getSale().getDate(),
+                                returnedProduct.getReturnedAt(),
+                                returnProduct.getReturnReason(),
+                                returnProduct.getUser().getName()
+                        });
+                    }
+
+                    loadLowerTable(returnProduct);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
+    }
+
+    private void loadLowerTable(ReturnProduct returnProduct) {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+
+        int i = 1;
+        for (var returnedItem : returnProduct.getReturnedSaleItems()) {
+            model.addRow(new Object[]{
+                    i,
+                    returnedItem.getProduct().getCode(),
+                    returnedItem.getProduct().getName(),
+                    returnedItem.getQuantity(),
+                    returnedItem.getQuantity(),
+                    returnedItem.getPrice(),
+                    returnedItem.getPrice().multiply(BigDecimal.valueOf(returnedItem.getQuantity()))
+            });
+            i++;
+        }
+    }
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -71,25 +93,7 @@ public Return_Details() {
         jPanel4 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         table3 = new javax.swing.JTable();
-        jPanel7 = new javax.swing.JPanel();
-        jLabel5 = new javax.swing.JLabel();
-        jLabel21 = new javax.swing.JLabel();
-        jLabel22 = new javax.swing.JLabel();
-        jLabel26 = new javax.swing.JLabel();
-        jLabel27 = new javax.swing.JLabel();
-        jLabel28 = new javax.swing.JLabel();
-        jLabel29 = new javax.swing.JLabel();
-        jLabel30 = new javax.swing.JLabel();
-        jLabel31 = new javax.swing.JLabel();
-        jLabel32 = new javax.swing.JLabel();
-        jLabel33 = new javax.swing.JLabel();
-        jLabel34 = new javax.swing.JLabel();
-        jLabel35 = new javax.swing.JLabel();
-        jLabel36 = new javax.swing.JLabel();
-        jLabel37 = new javax.swing.JLabel();
-        jLabel38 = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
@@ -108,6 +112,7 @@ public Return_Details() {
         jLabel19 = new javax.swing.JLabel();
         jLabel20 = new javax.swing.JLabel();
         jLabel23 = new javax.swing.JLabel();
+        jLabel24 = new javax.swing.JLabel();
 
         setOpaque(false);
 
@@ -115,16 +120,16 @@ public Return_Details() {
 
         table.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null}
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null}
             },
             new String [] {
-                "#", "Code", "Product Name	", "Purchased Qty	", "Returned Qty	", "Purchase Price", "Total", "Total Return "
+                "#", "Code", "Product Name	", "Purchased Qty	", "Returned Qty	", "Purchase Price", "Total Return "
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false, false
+                false, false, false, false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -141,7 +146,6 @@ public Return_Details() {
             table.getColumnModel().getColumn(4).setResizable(false);
             table.getColumnModel().getColumn(5).setResizable(false);
             table.getColumnModel().getColumn(6).setResizable(false);
-            table.getColumnModel().getColumn(7).setResizable(false);
         }
 
         jLabel4.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
@@ -157,7 +161,7 @@ public Return_Details() {
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(jLabel4)
                         .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jScrollPane1))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 1589, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -166,7 +170,7 @@ public Return_Details() {
                 .addContainerGap()
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 163, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 167, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -174,16 +178,16 @@ public Return_Details() {
 
         table3.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null}
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null}
             },
             new String [] {
-                "Purchase No	", "Return #", "Purchase Date	", "Return Date	", "Return Reason", "Note	", "Status	", "Created By "
+                "Purchase No	", "Return #", "Purchase Date	", "Return Date	", "Return Reason", "Created By "
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false, false
+                false, false, false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -199,8 +203,6 @@ public Return_Details() {
             table3.getColumnModel().getColumn(3).setResizable(false);
             table3.getColumnModel().getColumn(4).setResizable(false);
             table3.getColumnModel().getColumn(5).setResizable(false);
-            table3.getColumnModel().getColumn(6).setResizable(false);
-            table3.getColumnModel().getColumn(7).setResizable(false);
         }
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
@@ -224,123 +226,6 @@ public Return_Details() {
                     .addContainerGap()))
         );
 
-        jPanel7.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-
-        jLabel5.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel5.setText("Subtotal:\t");
-
-        jLabel21.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel21.setText("Cost of Return Products:");
-
-        jLabel22.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel22.setText("Discount:\t");
-
-        jLabel26.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel26.setText("Transport:\t");
-
-        jLabel27.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel27.setText("Tax:");
-
-        jLabel28.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel28.setText("Total:");
-
-        jLabel29.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel29.setText("Total Paid:");
-
-        jLabel30.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel30.setText("Total Due:");
-
-        jLabel31.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel31.setText("123456");
-
-        jLabel32.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel32.setText("123456");
-
-        jLabel33.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel33.setText("123456");
-
-        jLabel34.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel34.setText("123456");
-
-        jLabel35.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel35.setText("123456");
-
-        jLabel36.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel36.setText("123456");
-
-        jLabel37.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel37.setText("123456");
-
-        jLabel38.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel38.setText("123456");
-
-        javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
-        jPanel7.setLayout(jPanel7Layout);
-        jPanel7Layout.setHorizontalGroup(
-            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel7Layout.createSequentialGroup()
-                .addGap(20, 20, 20)
-                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel22)
-                    .addComponent(jLabel26)
-                    .addComponent(jLabel27)
-                    .addComponent(jLabel28)
-                    .addComponent(jLabel29)
-                    .addComponent(jLabel30)
-                    .addComponent(jLabel5)
-                    .addComponent(jLabel21))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel31)
-                    .addComponent(jLabel32)
-                    .addComponent(jLabel33)
-                    .addComponent(jLabel34)
-                    .addComponent(jLabel35)
-                    .addComponent(jLabel36)
-                    .addComponent(jLabel37)
-                    .addComponent(jLabel38))
-                .addContainerGap(20, Short.MAX_VALUE))
-        );
-        jPanel7Layout.setVerticalGroup(
-            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel7Layout.createSequentialGroup()
-                .addGap(29, 29, 29)
-                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(jPanel7Layout.createSequentialGroup()
-                        .addComponent(jLabel31)
-                        .addGap(20, 20, 20)
-                        .addComponent(jLabel32)
-                        .addGap(18, 18, 18)
-                        .addComponent(jLabel33)
-                        .addGap(29, 29, 29)
-                        .addComponent(jLabel34)
-                        .addGap(29, 29, 29)
-                        .addComponent(jLabel35)
-                        .addGap(29, 29, 29)
-                        .addComponent(jLabel36)
-                        .addGap(29, 29, 29)
-                        .addComponent(jLabel37)
-                        .addGap(29, 29, 29)
-                        .addComponent(jLabel38))
-                    .addGroup(jPanel7Layout.createSequentialGroup()
-                        .addComponent(jLabel5)
-                        .addGap(20, 20, 20)
-                        .addComponent(jLabel21)
-                        .addGap(18, 18, 18)
-                        .addComponent(jLabel22)
-                        .addGap(29, 29, 29)
-                        .addComponent(jLabel26)
-                        .addGap(29, 29, 29)
-                        .addComponent(jLabel27)
-                        .addGap(29, 29, 29)
-                        .addComponent(jLabel28)
-                        .addGap(29, 29, 29)
-                        .addComponent(jLabel29)
-                        .addGap(29, 29, 29)
-                        .addComponent(jLabel30)))
-                .addContainerGap(22, Short.MAX_VALUE))
-        );
-
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -349,29 +234,22 @@ public Return_Details() {
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addGap(10, 10, 10)
-                        .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
         jScrollPane6.setViewportView(jPanel1);
 
         jPanel3.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/raven/icon/png/logogroup.png"))); // NOI18N
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
         jLabel2.setText("ZEUSLED");
@@ -398,10 +276,10 @@ public Return_Details() {
         jLabel11.setText(" October 29, 2024");
 
         jLabel12.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        jLabel12.setText("Supplier Details ");
+        jLabel12.setText("Client Details ");
 
         jLabel13.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel13.setText("Supplier ID:");
+        jLabel13.setText("Client ID:");
 
         jLabel14.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
         jLabel14.setText("ID-123");
@@ -410,7 +288,7 @@ public Return_Details() {
         jLabel15.setText("Skye");
 
         jLabel16.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel16.setText("Supplier Name:");
+        jLabel16.setText("Client Name:");
 
         jLabel17.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
         jLabel17.setText("DFITS");
@@ -427,6 +305,9 @@ public Return_Details() {
         jLabel23.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel23.setText("Date:");
 
+        jLabel24.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
+        jLabel24.setIcon(new javax.swing.ImageIcon(getClass().getResource("/png/logogroup.png"))); // NOI18N
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
@@ -437,8 +318,8 @@ public Return_Details() {
                     .addComponent(jLabel9)
                     .addComponent(jLabel8)
                     .addComponent(jLabel3)
-                    .addComponent(jLabel1))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                    .addComponent(jLabel24))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel2)
                     .addComponent(jLabel7)
@@ -475,10 +356,8 @@ public Return_Details() {
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel3Layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(jLabel1))
-                            .addComponent(jLabel2))
+                            .addComponent(jLabel2)
+                            .addComponent(jLabel24))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel3)
@@ -541,7 +420,6 @@ public Return_Details() {
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
@@ -554,25 +432,10 @@ public Return_Details() {
     private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel20;
-    private javax.swing.JLabel jLabel21;
-    private javax.swing.JLabel jLabel22;
     private javax.swing.JLabel jLabel23;
-    private javax.swing.JLabel jLabel26;
-    private javax.swing.JLabel jLabel27;
-    private javax.swing.JLabel jLabel28;
-    private javax.swing.JLabel jLabel29;
+    private javax.swing.JLabel jLabel24;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel30;
-    private javax.swing.JLabel jLabel31;
-    private javax.swing.JLabel jLabel32;
-    private javax.swing.JLabel jLabel33;
-    private javax.swing.JLabel jLabel34;
-    private javax.swing.JLabel jLabel35;
-    private javax.swing.JLabel jLabel36;
-    private javax.swing.JLabel jLabel37;
-    private javax.swing.JLabel jLabel38;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
@@ -581,7 +444,6 @@ public Return_Details() {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
-    private javax.swing.JPanel jPanel7;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane6;

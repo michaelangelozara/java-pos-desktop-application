@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.POS.backend.person.Person;
 import org.POS.backend.purchased_item.PurchaseItem;
+import org.POS.backend.return_purchase.ReturnPurchase;
 import org.POS.backend.user.User;
 
 import java.math.BigDecimal;
@@ -98,7 +99,15 @@ public class Purchase {
     private Person person;
 
     @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ReturnPurchase> returnPurchases = new ArrayList<>();
+
+    @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PurchaseItem> purchaseItems = new ArrayList<>();
+
+    public void addReturnPurchase(ReturnPurchase returnPurchase){
+        returnPurchases.add(returnPurchase);
+        returnPurchase.setPurchase(this);
+    }
 
     public void addPurchaseItem(PurchaseItem purchaseItem) {
         purchaseItems.add(purchaseItem);

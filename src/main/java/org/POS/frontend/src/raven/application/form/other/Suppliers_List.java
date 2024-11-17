@@ -231,8 +231,7 @@ public class Suppliers_List extends javax.swing.JPanel {
 
                 PersonService personService = new PersonService();
                 var supplier = personService.getValidPersonById(supplierId);
-
-                Application.showForm(new Customer_Details(supplier));
+                Application.showForm(new Supplier_Details(supplier));
 
             }
 

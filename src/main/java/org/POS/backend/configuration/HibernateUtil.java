@@ -19,6 +19,7 @@ import org.POS.backend.purchased_item.PurchaseItem;
 import org.POS.backend.quotation.Quotation;
 import org.POS.backend.quoted_item.QuotedItem;
 import org.POS.backend.return_product.ReturnProduct;
+import org.POS.backend.return_purchase.ReturnPurchase;
 import org.POS.backend.sale.Sale;
 import org.POS.backend.sale_item.SaleItem;
 import org.POS.backend.stock.Stock;
@@ -63,6 +64,7 @@ public class HibernateUtil {
                 configuration.addAnnotatedClass(Invoice.class);
                 configuration.addAnnotatedClass(Quotation.class);
                 configuration.addAnnotatedClass(QuotedItem.class);
+                configuration.addAnnotatedClass(ReturnPurchase.class);
 
                 // Build the SessionFactory
                 sessionFactory = configuration.buildSessionFactory(

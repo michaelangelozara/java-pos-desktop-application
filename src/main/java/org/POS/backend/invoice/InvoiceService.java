@@ -1,5 +1,6 @@
 package org.POS.backend.invoice;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class InvoiceService {
@@ -16,5 +17,13 @@ public class InvoiceService {
 
     public Invoice getValidInvoiceById(int id){
         return this.invoiceDAO.getValidInvoiceById(id);
+    }
+
+    public List<Invoice> getAllValidInvoicesByPersonId(int id){
+        return this.invoiceDAO.getAllInvoicesByPersonId(id);
+    }
+
+    public List<Invoice> getALlValidInvoicesByRange(LocalDate start, LocalDate end, int id){
+        return this.invoiceDAO.getAllValidInvoiceByRange(start, end, id);
     }
 }

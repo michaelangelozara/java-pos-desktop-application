@@ -82,7 +82,6 @@ public class SaleService {
                         product.addSaleItem(saleItem);
                         sale.addSaleItem(saleItem);
 
-
                         product.setStock(product.getStock() - saleItem.getQuantity());
 
                         Stock stock = new Stock();
@@ -108,11 +107,13 @@ public class SaleService {
             order.setSale(sale);
             order.setOrderDate(LocalDate.now());
             order.setCode(GlobalVariable.ORDER_PREFIX + orderInvoiceCode);
+            customer.addOrder(order);
 
             Invoice invoice = new Invoice();
             invoice.setSale(sale);
             invoice.setCode(GlobalVariable.INVOICE_PREFIX + orderInvoiceCode);
             invoice.setDate(LocalDate.now());
+            customer.addInvoice(invoice);
 
             if (dto.paymentMethod().equals(TransactionPaymentMethod.CASH_PAYMENT)) {
                 // cash transaction

@@ -992,6 +992,7 @@ public class ProductList extends javax.swing.JPanel {
 
         gbc.gridx = 1;
         JTextField discountField = new JTextField(15);
+        discountField.setText("0");
         discountField.setFont(regularFont);
         panel.add(discountField, gbc);
 

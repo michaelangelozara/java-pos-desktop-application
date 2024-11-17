@@ -164,4 +164,16 @@ public class PurchaseService {
         return this.purchaseMapper.toPurchaseResponseDtoList(this.purchaseDAO.getAllValidPurchaseByRange(start, end));
     }
 
+    public List<Purchase> getAllValidPurchasesWithoutLimit(){
+        return this.purchaseDAO.getAllValidPurchasesWithoutLimit();
+    }
+
+    public Purchase getValidPurchaseWithoutDto(int id){
+        return this.purchaseDAO.getValidPurchaseById(id);
+    }
+
+    public List<PurchaseResponseDto> getAllValidPurchaseByRangeAndSupplierId(LocalDate start, LocalDate end, int id){
+        return this.purchaseMapper.toPurchaseResponseDtoList(this.purchaseDAO.getAllValidPurchaseByRangeAndSupplierId(start, end, id));
+    }
+
 }

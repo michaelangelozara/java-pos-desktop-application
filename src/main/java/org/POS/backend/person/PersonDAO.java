@@ -66,9 +66,13 @@ public class PersonDAO {
         try (Session session = sessionFactory.openSession()){
 
 
-            person = session.createQuery("SELECT p FROM Person p LEFT JOIN FETCH p.sales WHERE p.id = :personId AND p.isDeleted = FALSE", Person.class)
+            person = session.createQuery("SELECT p FROM Person p WHERE p.id = :personId AND p.isDeleted = FALSE", Person.class)
                     .setParameter("personId", personId)
                     .getSingleResult();
+
+            if(person.getType().equals(PersonType.CLIENT)){
+                Hibernate.initialize(person.getSales());
+            }
 
         }catch (Exception e){
             System.out.println(e.getMessage());
