@@ -1,10 +1,14 @@
 package org.POS.backend.return_purchase;
 
 import org.POS.backend.code_generator.CodeGeneratorService;
+import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.global_variable.GlobalVariable;
+import org.POS.backend.global_variable.UserActionPrefixes;
 import org.POS.backend.purchase.PurchaseDAO;
 import org.POS.backend.purchased_item.PurchaseItemDAO;
 import org.POS.backend.return_product.ReturnProduct;
+import org.POS.backend.user.UserDAO;
+import org.POS.backend.user_log.UserLog;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -22,15 +26,22 @@ public class ReturnPurchaseService {
 
     private CodeGeneratorService codeGeneratorService;
 
+    private UserDAO userDAO;
+
     public ReturnPurchaseService(){
         this.returnPurchaseDAO = new ReturnPurchaseDAO();
         this.purchaseDAO = new PurchaseDAO();
         this.purchaseItemDAO = new PurchaseItemDAO();
         this.codeGeneratorService = new CodeGeneratorService();
+        this.userDAO = new UserDAO();
     }
 
     public void add(AddReturnPurchaseRequestDto dto){
         var purchase = this.purchaseDAO.getValidPurchaseById(dto.purchaseId());
+
+        var user = this.userDAO.getUserById(CurrentUser.id);
+        if(user == null)
+            throw new RuntimeException(GlobalVariable.USER_NOT_FOUND);
 
         if(purchase != null){
             Set<Integer> purchaseItemIds = new HashSet<>();
@@ -43,6 +54,12 @@ public class ReturnPurchaseService {
             returnPurchase.setReason(dto.reason());
             returnPurchase.setStatus(dto.status());
             returnPurchase.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.RETURN_PURCHASE_PREFIX));
+
+            UserLog userLog = new UserLog();
+            userLog.setCode(returnPurchase.getCode());
+            userLog.setDate(LocalDate.now());
+            userLog.setAction(UserActionPrefixes.PURCHASE_RETURN_ADD_ACTION_LOG_PREFIX);
+            user.addUserLog(userLog);
 
             // update purchase item
             var purchaseItems = this.purchaseItemDAO.getAllValidPurchaseItemByPurchaseItemIds(purchaseItemIds);
@@ -69,7 +86,7 @@ public class ReturnPurchaseService {
 
             purchase.addReturnPurchase(returnPurchase);
 
-            this.returnPurchaseDAO.add(purchase, returnPurchase, purchaseItems);
+            this.returnPurchaseDAO.add(purchase, returnPurchase, purchaseItems, userLog);
         }else{
          throw new RuntimeException("Invalid Purchase");
         }

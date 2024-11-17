@@ -3,6 +3,7 @@ package org.POS.backend.expense;
 import org.POS.backend.configuration.HibernateUtil;
 import org.POS.backend.expense_category.ExpenseCategory;
 import org.POS.backend.global_variable.GlobalVariable;
+import org.POS.backend.user_log.UserLog;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -20,31 +21,35 @@ public class ExpenseDAO {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public void add(Expense expense){
+    public void add(Expense expense, UserLog userLog){
         try (Session session = this.sessionFactory.openSession()){
             session.beginTransaction();
 
             session.persist(expense);
 
+            session.persist(userLog);
+
             session.getTransaction().commit();
         }catch (Exception e){
             e.printStackTrace();
         }
     }
 
-    public void update(Expense expense){
+    public void update(Expense expense, UserLog userLog){
         try (Session session = this.sessionFactory.openSession()){
             session.beginTransaction();
 
             session.merge(expense);
 
+            session.persist(userLog);
+
             session.getTransaction().commit();
         }catch (Exception e){
             e.printStackTrace();
         }
     }
 
-    public String delete(int expenseId){
+    public String delete(int expenseId, UserLog userLog){
         try (Session session = this.sessionFactory.openSession()){
             session.beginTransaction();
 
@@ -55,6 +60,9 @@ public class ExpenseDAO {
             expenseToBeDeleted.setDeleted(true);
             expenseToBeDeleted.setDeletedAt(LocalDate.now());
             session.merge(expenseToBeDeleted);
+
+            userLog.setCode(expenseToBeDeleted.getCode());
+            session.persist(userLog);
 
             session.getTransaction().commit();
             return GlobalVariable.EXPENSE_DELETED;

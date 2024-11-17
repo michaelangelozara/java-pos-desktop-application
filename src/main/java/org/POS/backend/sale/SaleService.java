@@ -5,6 +5,7 @@ import org.POS.backend.cash_transaction.TransactionPaymentMethod;
 import org.POS.backend.code_generator.CodeGeneratorService;
 import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.global_variable.GlobalVariable;
+import org.POS.backend.global_variable.UserActionPrefixes;
 import org.POS.backend.invoice.Invoice;
 import org.POS.backend.invoice.InvoiceStatus;
 import org.POS.backend.order.Order;
@@ -18,6 +19,7 @@ import org.POS.backend.sale_item.SaleItemMapper;
 import org.POS.backend.stock.Stock;
 import org.POS.backend.stock.StockType;
 import org.POS.backend.user.UserDAO;
+import org.POS.backend.user_log.UserLog;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -56,7 +58,7 @@ public class SaleService {
 
     public int add(AddSaleRequestDto dto, Set<AddSaleItemRequestDto> saleItemDtos) {
         var customer = this.personDAO.getValidPersonById(dto.customerId());
-        var currentUser = this.userDAO.getUserById(CurrentUser.id);
+        var user = this.userDAO.getUserById(CurrentUser.id);
 
         // get all product ids
         Set<Integer> productIds = new HashSet<>();
@@ -64,12 +66,12 @@ public class SaleService {
             productIds.add(saleItemDto.productId());
         }
 
-        if (customer != null && currentUser != null) {
+        if (customer != null && user != null) {
             var sale = this.saleMapper.toSale(dto);
             sale.setReceiptNumber(this.codeGeneratorService.generateProductCode(GlobalVariable.SALE_PREFIX));
             sale.setVatSales(sale.getNetTotal().multiply(BigDecimal.valueOf(0.12)).setScale(2, RoundingMode.HALF_UP));
             customer.addSale(sale);
-            currentUser.addSale(sale);
+            user.addSale(sale);
 
             var products = this.productDAO.getAllValidProductsByProductIds(productIds);
             List<Product> updatedProducts = new ArrayList<>();
@@ -91,7 +93,7 @@ public class SaleService {
                         stock.setType(StockType.OUT);
                         stock.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.STOCK_IN_PREFIX));
 
-                        currentUser.addStock(stock);
+                        user.addStock(stock);
                         product.addStock(stock);
 
                         saleItems.add(saleItem);
@@ -115,6 +117,12 @@ public class SaleService {
             invoice.setDate(LocalDate.now());
             customer.addInvoice(invoice);
 
+            UserLog userLog = new UserLog();
+            userLog.setCode(sale.getCode());
+            userLog.setDate(LocalDate.now());
+            userLog.setAction(UserActionPrefixes.POS_TRANSACTION_ACTION_LOG_PREFIX);
+            user.addUserLog(userLog);
+
             if (dto.paymentMethod().equals(TransactionPaymentMethod.CASH_PAYMENT)) {
                 // cash transaction
                 CashTransaction cashTransaction = new CashTransaction();
@@ -128,14 +136,14 @@ public class SaleService {
                 order.setStatus(OrderStatus.COMPLETED);
                 invoice.setStatus(InvoiceStatus.COMPLETED);
 
-                currentUser.addCashTransaction(cashTransaction);
+                user.addCashTransaction(cashTransaction);
 
                 sale.setTransactionMethod(SaleTransactionMethod.CASH_PAYMENT);
                 sale.setAmountDue(BigDecimal.ZERO);
                 sale.setReference(this.codeGeneratorService.generateProductCode(GlobalVariable.REFERENCE_PREFIX));
 
 
-                var savedSale = this.saleDAO.add(sale, saleItems, updatedProducts, stocks, cashTransaction, order, invoice);
+                var savedSale = this.saleDAO.add(sale, saleItems, updatedProducts, stocks, cashTransaction, order, invoice, userLog);
                 return savedSale.getId();
             }else if(dto.paymentMethod().equals(TransactionPaymentMethod.PO_PAYMENT)){
                 // this is PO payment
@@ -145,7 +153,7 @@ public class SaleService {
                 sale.setAmountDue(dto.netTotal().subtract(dto.amount()));
                 sale.setReference(this.codeGeneratorService.generateProductCode(GlobalVariable.REFERENCE_PREFIX));
 
-                var savedSale = this.saleDAO.add(sale, saleItems, updatedProducts, stocks, order, invoice);
+                var savedSale = this.saleDAO.add(sale, saleItems, updatedProducts, stocks, order, invoice, userLog);
                 return savedSale.getId();
             }else{
                 // online payment
@@ -155,7 +163,7 @@ public class SaleService {
                 sale.setAmountDue(dto.netTotal().subtract(dto.amount()));
                 sale.setTransactionMethod(SaleTransactionMethod.ONLINE_PAYMENT);
                 sale.setReference(dto.poReference());
-                var savedSale = this.saleDAO.add(sale, saleItems, updatedProducts, stocks, order, invoice);
+                var savedSale = this.saleDAO.add(sale, saleItems, updatedProducts, stocks, order, invoice, userLog);
                 return savedSale.getId();
             }
         }

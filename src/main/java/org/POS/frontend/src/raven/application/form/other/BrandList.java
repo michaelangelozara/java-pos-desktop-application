@@ -184,12 +184,23 @@ public class BrandList extends javax.swing.JPanel {
 
                 if (confirmation == JOptionPane.YES_OPTION) {
                     DefaultTableModel model = (DefaultTableModel) table.getModel();
-                    int productId = (Integer) model.getValueAt(row, 1);
-                    ProductService productService = new ProductService();
-                    productService.delete(productId);
-                    JOptionPane.showMessageDialog(null, "Product Deleted Successfully",
-                            "Deleted", JOptionPane.INFORMATION_MESSAGE);
-                    loadBrands();
+                    int brandId = (Integer) model.getValueAt(row, 1);
+                    BrandService brandService = new BrandService();
+                    SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+                        @Override
+                        protected Void doInBackground() throws Exception {
+                            brandService.delete(brandId);
+                            return null;
+                        }
+
+                        @Override
+                        protected void done() {
+                            JOptionPane.showMessageDialog(null, "Brand Deleted Successfully",
+                                    "Deleted", JOptionPane.INFORMATION_MESSAGE);
+                            loadBrands();
+                        }
+                    };
+                    worker.execute();
                 }
             }
 

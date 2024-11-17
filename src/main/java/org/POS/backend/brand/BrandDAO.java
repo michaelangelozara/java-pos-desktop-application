@@ -1,6 +1,7 @@
 package org.POS.backend.brand;
 
 import org.POS.backend.configuration.HibernateUtil;
+import org.POS.backend.user_log.UserLog;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -18,31 +19,35 @@ public class BrandDAO {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public void add(Brand brand){
+    public void add(Brand brand, UserLog userLog){
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
             session.persist(brand);
 
+            session.persist(userLog);
+
             session.getTransaction().commit();
         }catch (Exception e){
             System.out.println(e.getMessage());
         }
     }
 
-    public void update(Brand brand){
+    public void update(Brand brand, UserLog userLog){
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
             session.merge(brand);
 
+            session.persist(userLog);
+
             session.getTransaction().commit();
         }catch (Exception e){
             System.out.println(e.getMessage());
         }
     }
 
-    public boolean delete(int brandId){
+    public boolean delete(int brandId, UserLog userLog){
         try (Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
@@ -53,10 +58,13 @@ public class BrandDAO {
             brand.setDeletedAt(LocalDate.now());
             session.merge(brand);
 
+            userLog.setCode(brand.getCode());
+            session.persist(userLog);
+
             session.getTransaction().commit();
             return true;
         }catch (Exception e){
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
         return false;
     }

@@ -5,6 +5,7 @@ import org.POS.backend.product.Product;
 import org.POS.backend.return_product.ReturnProduct;
 import org.POS.backend.sale.Sale;
 import org.POS.backend.sale_item.SaleItem;
+import org.POS.backend.user_log.UserLog;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -54,7 +55,14 @@ public class OrderDAO {
         return order;
     }
 
-    public void update(Order order, ReturnProduct returnProduct, Sale sale, List<Product> products, List<SaleItem> saleItems) {
+    public void update(
+            Order order,
+            ReturnProduct returnProduct,
+            Sale sale,
+            List<Product> products,
+            List<SaleItem> saleItems,
+            UserLog userLog
+    ) {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
@@ -72,6 +80,8 @@ public class OrderDAO {
             // Save returnProduct
             session.merge(returnProduct);
             // Commit transaction
+
+            session.persist(userLog);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null && transaction.isActive()) {

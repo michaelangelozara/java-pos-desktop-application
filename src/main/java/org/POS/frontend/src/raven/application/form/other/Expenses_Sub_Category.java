@@ -1,5 +1,6 @@
 package org.POS.frontend.src.raven.application.form.other;
 
+import org.POS.backend.expense_category.ExpenseCategoryResponseDto;
 import org.POS.backend.expense_category.ExpenseCategoryService;
 import org.POS.backend.expense_subcategory.*;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
@@ -14,6 +15,7 @@ import java.awt.*;
 import java.util.List;
 import java.util.Timer;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 public class Expenses_Sub_Category extends javax.swing.JPanel {
 
@@ -29,6 +31,8 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
                 int subcategoryId = (Integer) model.getValueAt(row, 1);
                 String currentCategory = (String) model.getValueAt(row, 3);         // Category
                 String currentStatus = (String) model.getValueAt(row, 5);           // Status
+
+                ExpenseSubcategoryService expenseSubcategoryService = new ExpenseSubcategoryService();
 
                 // Create a panel for displaying the data
                 JPanel panel = new JPanel(new GridBagLayout());
@@ -46,19 +50,64 @@ public class Expenses_Sub_Category extends javax.swing.JPanel {
                 categoryLabel.setFont(largerFont);
 
                 ExpenseCategoryService expenseCategoryService = new ExpenseCategoryService();
-                var validCategories = expenseCategoryService.getAllValidExpenseCategories();
+
 
                 Map<Integer, Integer> categoryMap = new HashMap<>();
 
-                Vector<String> categoryNames = new Vector<>();
-                categoryNames.add("Select a category");
-                for (int i = 0; i < validCategories.size(); i++) {
-                    categoryNames.add(validCategories.get(i).name());
-                    categoryMap.put(i + 1, validCategories.get(i).id());
-                }
-
-                JComboBox<String> categoryComboBox = new JComboBox<>(categoryNames);
+                JComboBox<String> categoryComboBox = new JComboBox<>();
                 categoryComboBox.setFont(detailsFont);
+
+                SwingWorker<ExpenseSubcategoryResponseDto, Void> worker = new SwingWorker<>() {
+                    @Override
+                    protected ExpenseSubcategoryResponseDto doInBackground() throws Exception {
+                        return expenseSubcategoryService.getValidExpenseSubcategoryById(subcategoryId);
+                    }
+
+                    @Override
+                    protected void done() {
+                        try {
+                            var expenseSubcategory = get();
+                            categoryComboBox.setSelectedItem(expenseSubcategory.expenseCategoryResponseDto().name());
+                            categoryComboBox.setEnabled(true);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        } catch (ExecutionException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                };
+
+                SwingWorker<List<ExpenseCategoryResponseDto>, Void> categoryWorker = new SwingWorker<List<ExpenseCategoryResponseDto>, Void>() {
+                    @Override
+                    protected List<ExpenseCategoryResponseDto> doInBackground() throws Exception {
+                        categoryComboBox.addItem("Loading...");
+                        categoryComboBox.setSelectedItem("Loading...");
+                        categoryComboBox.setEnabled(false);
+                        var validCategories = expenseCategoryService.getAllValidExpenseCategories();
+                        return validCategories;
+                    }
+
+                    @Override
+                    protected void done() {
+                        try {
+                            var validCategories = get();
+                            SwingUtilities.invokeLater(() -> {
+                                categoryComboBox.removeAllItems();
+                                categoryComboBox.addItem("Select Category");
+                                for (int i = 0; i < validCategories.size(); i++) {
+                                    categoryComboBox.addItem(validCategories.get(i).name());
+                                    categoryMap.put(i + 1, validCategories.get(i).id());
+                                }
+                            });
+                            worker.execute();
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        } catch (ExecutionException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                };
+                categoryWorker.execute();
 
                 // Subcategory Name
                 JLabel nameLabel = new JLabel("SubCategory Name:");

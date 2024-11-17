@@ -3,6 +3,7 @@ package org.POS.backend.purchase;
 import jakarta.persistence.NoResultException;
 import org.POS.backend.configuration.HibernateUtil;
 import org.POS.backend.purchased_item.PurchaseItem;
+import org.POS.backend.user_log.UserLog;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -20,7 +21,7 @@ public class PurchaseDAO {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public void add(Purchase purchase, List<PurchaseItem> purchaseItems) {
+    public void add(Purchase purchase, List<PurchaseItem> purchaseItems, UserLog userLog) {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
@@ -28,6 +29,8 @@ public class PurchaseDAO {
             for (var purchaseItem : purchaseItems) {
                 session.persist(purchaseItem);
             }
+
+            session.persist(userLog);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) {
@@ -37,7 +40,7 @@ public class PurchaseDAO {
         }
     }
 
-    public void update(Purchase purchase, List<PurchaseItem> purchaseItems) {
+    public void update(Purchase purchase, List<PurchaseItem> purchaseItems, UserLog userLog) {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
@@ -48,6 +51,8 @@ public class PurchaseDAO {
                 session.merge(purchaseItem);
             }
 
+            session.persist(userLog);
+
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) {
@@ -57,7 +62,7 @@ public class PurchaseDAO {
         }
     }
 
-    public void delete(int purchaseId) {
+    public void delete(int purchaseId, UserLog userLog) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
@@ -67,6 +72,9 @@ public class PurchaseDAO {
             purchase.setDeleted(true);
             purchase.setDeletedAt(LocalDate.now());
             session.merge(purchase);
+
+            userLog.setCode(purchase.getCode());
+            session.persist(userLog);
 
             session.getTransaction().commit();
         } catch (Exception e) {

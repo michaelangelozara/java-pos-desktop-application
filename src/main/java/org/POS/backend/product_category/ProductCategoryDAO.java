@@ -1,6 +1,7 @@
 package org.POS.backend.product_category;
 
 import org.POS.backend.configuration.HibernateUtil;
+import org.POS.backend.user_log.UserLog;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -17,31 +18,35 @@ public class ProductCategoryDAO {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public void add(ProductCategory productCategory) {
+    public void add(ProductCategory productCategory, UserLog userLog) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
             session.persist(productCategory);
 
+            session.persist(userLog);
+
             session.getTransaction().commit();
         } catch (Exception e) {
             System.out.println("Error saving category: " + e.getMessage());
         }
     }
 
-    public void update(ProductCategory productCategory) {
+    public void update(ProductCategory productCategory, UserLog userLog) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
             session.merge(productCategory);
 
+            session.persist(userLog);
+
             session.getTransaction().commit();
         } catch (Exception e) {
             System.out.println("Error saving category: " + e.getMessage());
         }
     }
 
-    public void delete(int categoryId) {
+    public void delete(int categoryId, UserLog userLog) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
@@ -51,6 +56,9 @@ public class ProductCategoryDAO {
             productCategory.setDeleted(true);
             productCategory.setDeletedAt(LocalDate.now());
             session.merge(productCategory);
+
+            userLog.setCode(productCategory.getCode());
+            session.persist(userLog);
 
             session.getTransaction().commit();
         } catch (Exception e) {

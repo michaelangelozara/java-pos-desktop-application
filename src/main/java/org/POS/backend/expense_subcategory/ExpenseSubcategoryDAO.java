@@ -2,6 +2,7 @@ package org.POS.backend.expense_subcategory;
 
 import org.POS.backend.configuration.HibernateUtil;
 import org.POS.backend.expense_category.ExpenseCategory;
+import org.POS.backend.user_log.UserLog;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
@@ -17,12 +18,14 @@ public class ExpenseSubcategoryDAO {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public void add(ExpenseSubcategory expenseSubcategory){
+    public void add(ExpenseSubcategory expenseSubcategory, UserLog userLog){
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
             session.persist(expenseSubcategory);
 
+            session.persist(userLog);
+
             session.getTransaction().commit();
         }catch (Exception e){
             e.printStackTrace();
@@ -30,19 +33,21 @@ public class ExpenseSubcategoryDAO {
     }
 
 
-    public void update(ExpenseSubcategory expenseSubcategory){
+    public void update(ExpenseSubcategory expenseSubcategory, UserLog userLog){
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
             session.merge(expenseSubcategory);
 
+            session.persist(userLog);
+
             session.getTransaction().commit();
         }catch (Exception e){
             e.printStackTrace();
         }
     }
 
-    public void delete(int expenseSubcategoryId){
+    public void delete(int expenseSubcategoryId, UserLog userLog){
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
@@ -52,6 +57,10 @@ public class ExpenseSubcategoryDAO {
             expenseCategory.setDeleted(true);
             expenseCategory.setDeletedAt(LocalDate.now());
             session.merge(expenseCategory);
+
+            userLog.setCode(expenseCategory.getCode());
+            session.persist(userLog);
+
             session.getTransaction().commit();
         }catch (Exception e){
             e.printStackTrace();

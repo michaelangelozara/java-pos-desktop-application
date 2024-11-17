@@ -1,6 +1,7 @@
 package org.POS.backend.product_subcategory;
 
 import org.POS.backend.configuration.HibernateUtil;
+import org.POS.backend.user_log.UserLog;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
@@ -16,11 +17,13 @@ public class ProductSubcategoryDAO {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public void add(ProductSubcategory productSubcategory) {
+    public void add(ProductSubcategory productSubcategory, UserLog userLog) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
             session.persist(productSubcategory);
+
+            session.persist(userLog);
 
             session.getTransaction().commit();
         } catch (Exception e) {
@@ -28,11 +31,13 @@ public class ProductSubcategoryDAO {
         }
     }
 
-    public void update(ProductSubcategory productSubcategory) {
+    public void update(ProductSubcategory productSubcategory, UserLog userLog) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
             session.merge(productSubcategory);
+
+            session.persist(userLog);
 
             session.getTransaction().commit();
         } catch (Exception e) {
@@ -40,7 +45,7 @@ public class ProductSubcategoryDAO {
         }
     }
 
-    public boolean delete(int subcategoryId) {
+    public boolean delete(int subcategoryId, UserLog userLog) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
@@ -50,6 +55,9 @@ public class ProductSubcategoryDAO {
             productSubcategory.setDeleted(true);
             productSubcategory.setDeletedAt(LocalDate.now());
             session.merge(productSubcategory);
+
+            userLog.setCode(productSubcategory.getCode());
+            session.persist(userLog);
 
             session.getTransaction().commit();
             return true;

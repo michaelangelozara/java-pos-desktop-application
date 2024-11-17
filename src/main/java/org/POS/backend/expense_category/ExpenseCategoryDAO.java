@@ -2,6 +2,7 @@ package org.POS.backend.expense_category;
 
 import org.POS.backend.configuration.HibernateUtil;
 import org.POS.backend.expense_subcategory.ExpenseSubcategory;
+import org.POS.backend.user_log.UserLog;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -19,12 +20,14 @@ public class ExpenseCategoryDAO {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public void add(ExpenseCategory expenseCategory){
+    public void add(ExpenseCategory expenseCategory, UserLog userLog){
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
             session.persist(expenseCategory);
 
+            session.persist(userLog);
+
             session.getTransaction().commit();
         }catch (Exception e){
             e.printStackTrace();
@@ -32,19 +35,21 @@ public class ExpenseCategoryDAO {
     }
 
 
-    public void update(ExpenseCategory expenseCategory){
+    public void update(ExpenseCategory expenseCategory, UserLog userLog){
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
             session.merge(expenseCategory);
 
+            session.persist(userLog);
+
             session.getTransaction().commit();
         }catch (Exception e){
             e.printStackTrace();
         }
     }
 
-    public void delete(int expenseCategoryId){
+    public void delete(int expenseCategoryId, UserLog userLog){
         Transaction transaction = null;
         try(Session session = sessionFactory.openSession()){
             transaction = session.beginTransaction();
@@ -69,6 +74,9 @@ public class ExpenseCategoryDAO {
             }
 
             session.merge(expenseCategory);
+
+            userLog.setCode(expenseCategory.getCode());
+            session.persist(userLog);
 
             session.getTransaction().commit();
         }catch (Exception e){

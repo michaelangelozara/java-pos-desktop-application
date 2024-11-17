@@ -4,10 +4,12 @@ import jakarta.persistence.NoResultException;
 import org.POS.backend.code_generator.CodeGeneratorService;
 import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.global_variable.GlobalVariable;
+import org.POS.backend.global_variable.UserActionPrefixes;
 import org.POS.backend.product.Product;
 import org.POS.backend.return_product.ReturnProduct;
 import org.POS.backend.sale_item.SaleItemDAO;
 import org.POS.backend.user.UserDAO;
+import org.POS.backend.user_log.UserLog;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -76,6 +78,12 @@ public class OrderService {
             returnProduct.setOrder(order);
             returnProduct.setUser(user);
 
+            UserLog userLog = new UserLog();
+            userLog.setCode(returnProduct.getCode());
+            userLog.setDate(LocalDate.now());
+            userLog.setAction(UserActionPrefixes.RETURNED_ORDER_ADD_ACTION_LOG_PREFIX);
+            user.addUserLog(userLog);
+
             var saleItems = this.saleItemDAO.getAllValidSaleItemsByIds(dto.returnedProductId());
             BigDecimal costOfReturnedProducts = BigDecimal.ZERO;
             // set these sale items as return
@@ -128,7 +136,7 @@ public class OrderService {
             sale.setDeliveryPlace(dto.deliveryAddress());
             sale.setNote(dto.note());
 
-            this.orderDAO.update(order, returnProduct, sale, updatedProducts, saleItems);
+            this.orderDAO.update(order, returnProduct, sale, updatedProducts, saleItems, userLog);
         }else{
             throw new NoResultException("Order not found");
         }

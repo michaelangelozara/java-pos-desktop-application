@@ -24,6 +24,7 @@ import org.POS.backend.sale.Sale;
 import org.POS.backend.sale_item.SaleItem;
 import org.POS.backend.stock.Stock;
 import org.POS.backend.user.*;
+import org.POS.backend.user_log.UserLog;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -65,6 +66,7 @@ public class HibernateUtil {
                 configuration.addAnnotatedClass(Quotation.class);
                 configuration.addAnnotatedClass(QuotedItem.class);
                 configuration.addAnnotatedClass(ReturnPurchase.class);
+                configuration.addAnnotatedClass(UserLog.class);
 
                 // Build the SessionFactory
                 sessionFactory = configuration.buildSessionFactory(

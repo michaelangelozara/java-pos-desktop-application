@@ -8,6 +8,7 @@ import org.POS.backend.order.Order;
 import org.POS.backend.product.Product;
 import org.POS.backend.sale_item.SaleItem;
 import org.POS.backend.stock.Stock;
+import org.POS.backend.user_log.UserLog;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -27,7 +28,8 @@ public class SaleDAO {
             List<Product> products,
             List<Stock> stocks,
             Order order,
-            Invoice invoice
+            Invoice invoice,
+            UserLog userLog
     ) {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
@@ -45,6 +47,7 @@ public class SaleDAO {
 
             session.persist(order);
             session.persist(invoice);
+            session.persist(userLog);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null && transaction.isActive()) {
@@ -62,7 +65,8 @@ public class SaleDAO {
             List<Stock> stocks,
             CashTransaction cashTransaction,
             Order order,
-            Invoice invoice
+            Invoice invoice,
+            UserLog userLog
     ) {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
@@ -84,6 +88,7 @@ public class SaleDAO {
 
             session.persist(order);
             session.persist(invoice);
+            session.persist(userLog);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null && transaction.isActive()) {

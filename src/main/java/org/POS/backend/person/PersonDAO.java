@@ -1,6 +1,8 @@
 package org.POS.backend.person;
 
 import org.POS.backend.configuration.HibernateUtil;
+import org.POS.backend.global_variable.UserActionPrefixes;
+import org.POS.backend.user_log.UserLog;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -17,31 +19,35 @@ public class PersonDAO {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public void add(Person person){
+    public void add(Person person, UserLog userLog){
         try(Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
             session.persist(person);
 
+            session.persist(userLog);
+
             session.getTransaction().commit();
         }catch (Exception e){
             System.out.println(e.getMessage());
         }
     }
 
-    public void update(Person person){
+    public void update(Person person, UserLog userLog){
         try(Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
             session.merge(person);
 
+            session.persist(userLog);
+
             session.getTransaction().commit();
         }catch (Exception e){
             System.out.println(e.getMessage());
         }
     }
 
-    public boolean delete(int personId){
+    public boolean delete(int personId, UserLog userLog){
         try(Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
@@ -51,6 +57,10 @@ public class PersonDAO {
             person.setDeleted(true);
             person.setDeletedAt(LocalDate.now());
             session.merge(person);
+
+            userLog.setCode(person.getCode());
+            userLog.setAction(person.getType().equals(PersonType.CLIENT) ? UserActionPrefixes.CLIENTS_REMOVE_ACTION_LOG_PREFIX : UserActionPrefixes.SUPPLIERS_REMOVE_ACTION_LOG_PREFIX);
+            session.persist(userLog);
 
             session.getTransaction().commit();
             return true;
@@ -73,6 +83,9 @@ public class PersonDAO {
             if(person.getType().equals(PersonType.CLIENT)){
                 Hibernate.initialize(person.getSales());
             }
+
+            Hibernate.initialize(person.getOrders());
+            Hibernate.initialize(person.getInvoices());
 
         }catch (Exception e){
             System.out.println(e.getMessage());

@@ -1,9 +1,12 @@
 package org.POS.backend.inventory_adjustment;
 
 import org.POS.backend.global_variable.CurrentUser;
+import org.POS.backend.global_variable.UserActionPrefixes;
 import org.POS.backend.product.ProductDAO;
 import org.POS.backend.user.UserDAO;
+import org.POS.backend.user_log.UserLog;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class InventoryAdjustmentService {
@@ -38,7 +41,13 @@ public class InventoryAdjustmentService {
                 product.setStock(product.getStock() - dto.quantity());
             }
 
-            this.inventoryAdjustmentDAO.add(inventoryAdjustment, product);
+            UserLog userLog = new UserLog();
+            userLog.setCode(inventoryAdjustment.getCode());
+            userLog.setDate(LocalDate.now());
+            userLog.setAction(UserActionPrefixes.INVENTORY_ADJUSTMENT_ADD_ACTION_LOG_PREFIX);
+            user.addUserLog(userLog);
+
+            this.inventoryAdjustmentDAO.add(inventoryAdjustment, product, userLog);
         }
     }
 
@@ -69,6 +78,12 @@ public class InventoryAdjustmentService {
             }else{
                 product.setStock(product.getStock() - dto.quantity());
             }
+
+            UserLog userLog = new UserLog();
+            userLog.setCode(inventoryAdjustment.getCode());
+            userLog.setDate(LocalDate.now());
+            userLog.setAction(UserActionPrefixes.INVENTORY_ADJUSTMENT_EDIT_ACTION_LOG_PREFIX);
+            user.addUserLog(userLog);
 
             this.inventoryAdjustmentDAO.update(inventoryAdjustment, user, product);
         }

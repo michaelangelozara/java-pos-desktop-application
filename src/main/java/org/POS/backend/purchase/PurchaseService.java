@@ -2,11 +2,13 @@ package org.POS.backend.purchase;
 
 import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.global_variable.GlobalVariable;
+import org.POS.backend.global_variable.UserActionPrefixes;
 import org.POS.backend.person.PersonDAO;
 import org.POS.backend.person.PersonType;
 import org.POS.backend.product.ProductDAO;
 import org.POS.backend.purchased_item.*;
 import org.POS.backend.user.UserDAO;
+import org.POS.backend.user_log.UserLog;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -65,7 +67,13 @@ public class PurchaseService {
                 }
             }
 
-            this.purchaseDAO.add(purchase, purchaseItemList);
+            UserLog userLog = new UserLog();
+            userLog.setCode(purchase.getCode());
+            userLog.setDate(LocalDate.now());
+            userLog.setAction(UserActionPrefixes.PURCHASES_ADD_ACTION_LOG_PREFIX);
+            user.addUserLog(userLog);
+
+            this.purchaseDAO.add(purchase, purchaseItemList, userLog);
         }
         return GlobalVariable.PURCHASE_ADDED;
     }
@@ -133,13 +141,27 @@ public class PurchaseService {
                 }
             }
 
+            UserLog userLog = new UserLog();
+            userLog.setCode(updatedPurchase.getCode());
+            userLog.setDate(LocalDate.now());
+            userLog.setAction(UserActionPrefixes.PURCHASES_EDIT_ACTION_LOG_PREFIX);
+            user.addUserLog(userLog);
+
             // save here
-            this.purchaseDAO.update(updatedPurchase, updatedPurchaseItems);
+            this.purchaseDAO.update(updatedPurchase, updatedPurchaseItems, userLog);
         }
     }
 
     public void delete(int purchaseId) {
-        this.purchaseDAO.delete(purchaseId);
+        var user = this.userDAO.getUserById(CurrentUser.id);
+        if(user == null)
+            throw new RuntimeException(GlobalVariable.USER_NOT_FOUND);
+
+        UserLog userLog = new UserLog();
+        userLog.setDate(LocalDate.now());
+        userLog.setAction(UserActionPrefixes.PURCHASES_REMOVE_ACTION_LOG_PREFIX);
+        user.addUserLog(userLog);
+        this.purchaseDAO.delete(purchaseId, userLog);
     }
 
     public PurchaseResponseDto getValidPurchaseByPurchaseId(int purchaseId) {

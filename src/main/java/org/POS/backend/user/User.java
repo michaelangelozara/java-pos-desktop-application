@@ -12,6 +12,7 @@ import org.POS.backend.quotation.Quotation;
 import org.POS.backend.return_product.ReturnProduct;
 import org.POS.backend.sale.Sale;
 import org.POS.backend.stock.Stock;
+import org.POS.backend.user_log.UserLog;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -82,6 +83,14 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReturnProduct> returnProducts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserLog> userLogs = new ArrayList<>();
+
+    public void addUserLog(UserLog userLog){
+        userLogs.add(userLog);
+        userLog.setUser(this);
+    }
 
     public void addReturnProduct(ReturnProduct returnProduct){
         returnProducts.add(returnProduct);

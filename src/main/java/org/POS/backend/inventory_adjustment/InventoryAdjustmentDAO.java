@@ -3,6 +3,7 @@ package org.POS.backend.inventory_adjustment;
 import org.POS.backend.configuration.HibernateUtil;
 import org.POS.backend.product.Product;
 import org.POS.backend.user.User;
+import org.POS.backend.user_log.UserLog;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -18,7 +19,7 @@ public class InventoryAdjustmentDAO {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public void add(InventoryAdjustment inventoryAdjustment, Product product){
+    public void add(InventoryAdjustment inventoryAdjustment, Product product, UserLog userLog){
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()){
             transaction = session.beginTransaction();
@@ -26,6 +27,8 @@ public class InventoryAdjustmentDAO {
             session.persist(inventoryAdjustment);
 
             session.merge(product);
+
+            session.persist(userLog);
 
             transaction.commit();
         }catch (Exception e){

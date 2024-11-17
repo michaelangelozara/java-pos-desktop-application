@@ -2,15 +2,19 @@ package org.POS.backend.quotation;
 
 import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.global_variable.GlobalVariable;
+import org.POS.backend.global_variable.UserActionPrefixes;
 import org.POS.backend.person.PersonDAO;
 import org.POS.backend.person.PersonType;
 import org.POS.backend.product.ProductDAO;
-import org.POS.backend.purchased_item.PurchaseItem;
-import org.POS.backend.purchased_item.UpdatePurchaseItemRequestDto;
 import org.POS.backend.quoted_item.*;
 import org.POS.backend.user.UserDAO;
+import org.POS.backend.user_log.UserLog;
 
-import java.util.*;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class QuotationService {
 
@@ -65,7 +69,14 @@ public class QuotationService {
                     }
                 }
             }
-            this.quotationDAO.add(quotation, quotedItems);
+
+            UserLog userLog = new UserLog();
+            userLog.setCode(quotation.getCode());
+            userLog.setDate(LocalDate.now());
+            userLog.setAction(UserActionPrefixes.QUOTATION_ADD_ACTION_LOG_PREFIX);
+            user.addUserLog(userLog);
+
+            this.quotationDAO.add(quotation, quotedItems, userLog);
         }
         return GlobalVariable.PURCHASE_ADDED;
     }
@@ -133,8 +144,14 @@ public class QuotationService {
                 }
             }
 
+            UserLog userLog = new UserLog();
+            userLog.setCode(updatedQuotation.getCode());
+            userLog.setDate(LocalDate.now());
+            userLog.setAction(UserActionPrefixes.QUOTATION_EDIT_ACTION_LOG_PREFIX);
+            user.addUserLog(userLog);
+
             // save here
-            this.quotationDAO.update(updatedQuotation, updatedQuotedItems);
+            this.quotationDAO.update(updatedQuotation, updatedQuotedItems, userLog);
         }
     }
 

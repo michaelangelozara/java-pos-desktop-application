@@ -25,6 +25,9 @@ public class OpenCash {
 
     private String note;
 
+    @Column(columnDefinition = "VARCHAR(50) NOT NULL")
+    private String code;
+
     @Enumerated(EnumType.STRING)
     private OpenCashType type;
 

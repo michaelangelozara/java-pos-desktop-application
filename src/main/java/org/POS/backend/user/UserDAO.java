@@ -2,6 +2,7 @@ package org.POS.backend.user;
 
 import org.POS.backend.configuration.HibernateUtil;
 import org.POS.backend.exception.ResourceNotFoundException;
+import org.POS.backend.user_log.UserLog;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -18,11 +19,13 @@ public class UserDAO {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public void add(User user){
+    public void add(User user, UserLog userLog){
        try(Session session = sessionFactory.openSession()){
            session.beginTransaction();
 
            session.persist(user);
+
+           session.persist(userLog);
 
            session.getTransaction().commit();
        } catch (Exception e){
@@ -30,11 +33,13 @@ public class UserDAO {
        }
     }
 
-    public void update(User user){
+    public void update(User user, UserLog userLog){
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
             session.merge(user);
+
+            session.persist(userLog);
 
             session.getTransaction().commit();
         } catch (Exception e){
@@ -42,7 +47,7 @@ public class UserDAO {
         }
     }
 
-    public void delete(int userId){
+    public void delete(int userId, UserLog userLog){
         try(Session session = sessionFactory.openSession()){
             session.beginTransaction();
 
@@ -53,6 +58,9 @@ public class UserDAO {
             userToBeDeleted.setDeletedAt(LocalDate.now());
             userToBeDeleted.setDeleted(true);
             session.merge(userToBeDeleted);
+
+            userLog.setCode(userToBeDeleted.getEmployeeId());
+            session.persist(userLog);
 
             session.getTransaction().commit();
         } catch (Exception e){
@@ -121,6 +129,10 @@ public class UserDAO {
 
             if(!user.getQuotations().isEmpty()){
                 Hibernate.initialize(user.getQuotations());
+            }
+
+            if(!user.getUserLogs().isEmpty()){
+                Hibernate.initialize(user.getUserLogs());
             }
             session.getTransaction().commit();
         } catch (Exception e){

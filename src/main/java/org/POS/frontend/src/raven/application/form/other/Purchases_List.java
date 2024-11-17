@@ -745,21 +745,6 @@ public class Purchases_List extends javax.swing.JPanel {
                         purchaseProductRequestDtoSet.add(dto);
                     }
 
-                    if (insertedRows.isEmpty()) {
-                        JOptionPane.showMessageDialog(null, "You didn't enter any product from the list");
-                        return;
-                    }
-
-                    if (receiptNoField.getText().isEmpty()) {
-                        JOptionPane.showMessageDialog(null, "You didn't enter receipt number");
-                        return;
-                    }
-
-                    if (chequeNoField.getText().isEmpty()) {
-                        JOptionPane.showMessageDialog(null, "You didn't enter cheque number");
-                        return;
-                    }
-
                     String poReference = poReferenceField.getText();
                     String paymentTerms = paymentTermsField.getText();
                     int purchaseTax = 12;

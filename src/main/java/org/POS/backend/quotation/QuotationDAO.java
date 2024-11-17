@@ -2,6 +2,7 @@ package org.POS.backend.quotation;
 
 import org.POS.backend.configuration.HibernateUtil;
 import org.POS.backend.quoted_item.QuotedItem;
+import org.POS.backend.user_log.UserLog;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -18,7 +19,7 @@ public class QuotationDAO {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public void add(Quotation quotation, List<QuotedItem> quotedItems) {
+    public void add(Quotation quotation, List<QuotedItem> quotedItems, UserLog userLog) {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
@@ -26,6 +27,7 @@ public class QuotationDAO {
             for (var quotedItem : quotedItems) {
                 session.persist(quotedItem);
             }
+            session.persist(userLog);
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null) {
@@ -49,7 +51,7 @@ public class QuotationDAO {
         return quotations;
     }
 
-    public void update(Quotation quotation, List<QuotedItem> quotedItems){
+    public void update(Quotation quotation, List<QuotedItem> quotedItems, UserLog userLog){
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()){
             transaction = session.beginTransaction();
@@ -59,6 +61,8 @@ public class QuotationDAO {
             for(var quotedItem : quotedItems){
                 session.merge(quotedItem);
             }
+
+            session.persist(userLog);
 
             transaction.commit();
         }catch (Exception e){

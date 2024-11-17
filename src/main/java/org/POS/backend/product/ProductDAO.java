@@ -1,6 +1,7 @@
 package org.POS.backend.product;
 
 import org.POS.backend.configuration.HibernateUtil;
+import org.POS.backend.user_log.UserLog;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -19,23 +20,26 @@ public class ProductDAO {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public void add(Product product) {
+    public void add(Product product, UserLog userLog) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
             session.persist(product);
 
+            session.persist(userLog);
+
             session.getTransaction().commit();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
 
-    public void update(Product product) {
+    public void update(Product product, UserLog userLog) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
             session.merge(product);
+            session.persist(userLog);
 
             session.getTransaction().commit();
         } catch (Exception e) {
@@ -43,7 +47,7 @@ public class ProductDAO {
         }
     }
 
-    public boolean delete(int productId) {
+    public boolean delete(int productId, UserLog userLog) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
@@ -53,6 +57,9 @@ public class ProductDAO {
             product.setDeletedAt(LocalDate.now());
             product.setDeleted(true);
             session.merge(product);
+
+            userLog.setCode(product.getCode());
+            session.persist(userLog);
 
             session.getTransaction().commit();
             return true;

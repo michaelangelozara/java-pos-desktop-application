@@ -2,8 +2,12 @@ package org.POS.backend.user;
 
 import org.POS.backend.exception.ResourceNotFoundException;
 import org.POS.backend.global_variable.CurrentUser;
+import org.POS.backend.global_variable.GlobalVariable;
+import org.POS.backend.global_variable.UserActionPrefixes;
+import org.POS.backend.user_log.UserLog;
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class UserService {
@@ -18,8 +22,19 @@ public class UserService {
     }
 
     public void add(AddUserRequestDto dto){
+        var fetchedUser = this.userDAO.getUserById(CurrentUser.id);
+        if(fetchedUser == null)
+            throw new RuntimeException(GlobalVariable.USER_NOT_FOUND);
+
         var user = this.userMapper.toUser(dto);
-        this.userDAO.add(user);
+
+        UserLog userLog = new UserLog();
+        userLog.setCode(user.getEmployeeId());
+        userLog.setDate(LocalDate.now());
+        userLog.setAction(UserActionPrefixes.USER_MANAGEMENT_ADD_ACTION_LOG_PREFIX);
+        user.addUserLog(userLog);
+
+        this.userDAO.add(user, userLog);
     }
 
     public void updateUser(UpdateUserRequestDto dto){
@@ -28,7 +43,16 @@ public class UserService {
     }
 
     public void delete(int userId){
-        this.userDAO.delete(userId);
+        var user = this.userDAO.getUserById(CurrentUser.id);
+        if(user == null)
+            throw new RuntimeException(GlobalVariable.USER_NOT_FOUND);
+
+        UserLog userLog = new UserLog();
+        userLog.setDate(LocalDate.now());
+        userLog.setAction(UserActionPrefixes.USER_MANAGEMENT_REMOVE_ACTION_LOG_PREFIX);
+        user.addUserLog(userLog);
+
+        this.userDAO.delete(userId, userLog);
     }
 
     public List<UserResponseDto> getAllValidUsers() {

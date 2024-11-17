@@ -2,24 +2,32 @@ package org.POS.frontend.src.raven.application.form.other;
 
 
 import net.miginfocom.swing.MigLayout;
+import org.POS.backend.code_generator.CodeGeneratorService;
 import org.POS.backend.global_variable.CurrentUser;
+import org.POS.backend.global_variable.GlobalVariable;
+import org.POS.backend.global_variable.UserActionPrefixes;
 import org.POS.backend.open_cash.OpenCash;
 import org.POS.backend.open_cash.OpenCashDAO;
 import org.POS.backend.open_cash.OpenCashType;
 import org.POS.backend.string_checker.StringChecker;
 import org.POS.backend.user.User;
 import org.POS.backend.user.UserDAO;
+import org.POS.backend.user_log.UserLog;
 import org.POS.frontend.src.raven.application.Application;
 
 import javax.swing.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 
 public class BeforePOS extends javax.swing.JPanel {
 
+    private CodeGeneratorService codeGeneratorService;
+
     public BeforePOS() {
+        codeGeneratorService = new CodeGeneratorService();
         initComponents();
         init();
     }
@@ -122,9 +130,17 @@ public class BeforePOS extends javax.swing.JPanel {
         OpenCash openCash = new OpenCash();
         openCash.setCash(balance);
         openCash.setNote(note);
+        openCash.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.OPEN_CASH_PREFIX));
         openCash.setType(OpenCashType.IN);
         openCash.setDateTime(LocalDateTime.now());
-        openCashDAO.add(openCash, user);
+
+        UserLog userLog = new UserLog();
+        userLog.setCode(openCash.getCode());
+        userLog.setDate(LocalDate.now());
+        userLog.setAction(UserActionPrefixes.OPEN_CASH_ACTION_LOG_PREFIX);
+        user.addUserLog(userLog);
+
+        openCashDAO.add(openCash, user, userLog);
         CurrentUser.isPosLoginSetup = true;
         Application.showForm(new POS());
     }//GEN-LAST:event_cmdLoginActionPerformed

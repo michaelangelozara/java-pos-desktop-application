@@ -4,6 +4,7 @@ import org.POS.backend.configuration.HibernateUtil;
 import org.POS.backend.purchase.Purchase;
 import org.POS.backend.purchased_item.PurchaseItem;
 import org.POS.backend.return_product.ReturnProduct;
+import org.POS.backend.user_log.UserLog;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -19,7 +20,7 @@ public class ReturnPurchaseDAO {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public void add(Purchase purchase, ReturnPurchase returnPurchase, List<PurchaseItem> purchaseItems){
+    public void add(Purchase purchase, ReturnPurchase returnPurchase, List<PurchaseItem> purchaseItems, UserLog userLog){
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()){
             transaction = session.beginTransaction();
@@ -31,6 +32,8 @@ public class ReturnPurchaseDAO {
             }
 
             session.merge(returnPurchase);
+
+            session.persist(userLog);
             transaction.commit();
         }catch (Exception e){
             if(transaction != null && transaction.isActive()){

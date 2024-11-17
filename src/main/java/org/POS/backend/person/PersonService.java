@@ -1,7 +1,12 @@
 package org.POS.backend.person;
 
+import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.global_variable.GlobalVariable;
+import org.POS.backend.global_variable.UserActionPrefixes;
+import org.POS.backend.user.UserDAO;
+import org.POS.backend.user_log.UserLog;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class PersonService {
@@ -10,30 +15,63 @@ public class PersonService {
 
     private PersonMapper personMapper;
 
+    private UserDAO userDAO;
+
     public PersonService(){
         this.personDAO = new PersonDAO();
         this.personMapper = new PersonMapper();
+        this.userDAO = new UserDAO();
     }
 
     public String add(AddPersonRequestDto dto){
+        var user = this.userDAO.getUserById(CurrentUser.id);
+        if(user == null)
+            throw new RuntimeException(GlobalVariable.USER_NOT_FOUND);
+
         var person = this.personMapper.toPerson(dto);
-        this.personDAO.add(person);;
+
+        UserLog userLog = new UserLog();
+        userLog.setCode(person.getCode());
+        userLog.setDate(LocalDate.now());
+        userLog.setAction(person.getType().equals(PersonType.CLIENT) ? UserActionPrefixes.CLIENTS_ADD_ACTION_LOG_PREFIX : UserActionPrefixes.SUPPLIERS_ADD_ACTION_LOG_PREFIX);
+        user.addUserLog(userLog);
+
+        this.personDAO.add(person, userLog);;
         return GlobalVariable.PERSON_ADDED;
     }
 
     public String update(UpdatePersonRequestDto dto){
+        var user = this.userDAO.getUserById(CurrentUser.id);
+        if(user == null)
+            throw new RuntimeException(GlobalVariable.USER_NOT_FOUND);
+
         var person = this.personDAO.getValidPersonById(dto.personId());
 
         if(person == null)
             return GlobalVariable.PERSON_NOT_FOUND;
 
         var updatedPerson = this.personMapper.toUpdatedPerson(person, dto);
-        this.personDAO.update(updatedPerson);
+
+        UserLog userLog = new UserLog();
+        userLog.setCode(updatedPerson.getCode());
+        userLog.setDate(LocalDate.now());
+        userLog.setAction(person.getType().equals(PersonType.CLIENT) ? UserActionPrefixes.CLIENTS_EDIT_ACTION_LOG_PREFIX : UserActionPrefixes.SUPPLIERS_EDIT_ACTION_LOG_PREFIX);
+        user.addUserLog(userLog);
+
+        this.personDAO.update(updatedPerson, userLog);
         return GlobalVariable.PERSON_UPDATED;
     }
 
     public String delete(int personId){
-        boolean result = this.personDAO.delete(personId);
+        var user = this.userDAO.getUserById(CurrentUser.id);
+        if(user == null)
+            throw new RuntimeException(GlobalVariable.USER_NOT_FOUND);
+
+        UserLog userLog = new UserLog();
+        userLog.setDate(LocalDate.now());
+        user.addUserLog(userLog);
+
+        boolean result = this.personDAO.delete(personId, userLog);
         if(result)
             return GlobalVariable.PERSON_DELETED;
 

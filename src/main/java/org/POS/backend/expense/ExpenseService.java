@@ -3,7 +3,9 @@ package org.POS.backend.expense;
 import org.POS.backend.expense_subcategory.ExpenseSubcategoryDAO;
 import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.global_variable.GlobalVariable;
+import org.POS.backend.global_variable.UserActionPrefixes;
 import org.POS.backend.user.UserDAO;
+import org.POS.backend.user_log.UserLog;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -33,8 +35,15 @@ public class ExpenseService {
 
         if(subcategory != null && user != null){
             var expense = this.expenseMapper.toExpense(dto, subcategory);
+
+            UserLog userLog = new UserLog();
+            userLog.setCode(expense.getCode());
+            userLog.setDate(LocalDate.now());
+            userLog.setAction(UserActionPrefixes.EXPENSES_ADD_ACTION_LOG_PREFIX);
+            user.addUserLog(userLog);
+
             user.addExpense(expense);
-            this.expenseDAO.add(expense);
+            this.expenseDAO.add(expense, userLog);
             return GlobalVariable.EXPENSE_ADDED;
         }
 
@@ -42,12 +51,20 @@ public class ExpenseService {
     }
 
     public String update(UpdateExpenseRequestDto dto){
+        var user = this.userDAO.getUserById(CurrentUser.id);
         var subcategory = this.expenseSubcategoryDAO.getValidExpenseSubcategoryById(dto.subcategoryId());
-        if(subcategory != null){
+        if(subcategory != null && user != null){
             var expense = this.expenseDAO.getValidExpenseById(dto.expenseId());
             if(expense != null){
                 var updatedExpense = this.expenseMapper.toUpdatedExpense(expense, dto, subcategory);
-                this.expenseDAO.update(updatedExpense);
+
+                UserLog userLog = new UserLog();
+                userLog.setCode(updatedExpense.getCode());
+                userLog.setDate(LocalDate.now());
+                userLog.setAction(UserActionPrefixes.EXPENSE_CATEGORIES_EDIT_ACTION_LOG_PREFIX);
+                user.addUserLog(userLog);
+
+                this.expenseDAO.update(updatedExpense, userLog);
                 return GlobalVariable.EXPENSE_UPDATED;
             }
             return GlobalVariable.EXPENSE_NOT_FOUND;
@@ -57,7 +74,14 @@ public class ExpenseService {
     }
 
     public String delete(int expenseId){
-        return this.expenseDAO.delete(expenseId);
+        var user = this.userDAO.getUserById(CurrentUser.id);
+        if(user == null)
+            throw new RuntimeException(GlobalVariable.USER_NOT_FOUND);
+        UserLog userLog = new UserLog();
+        userLog.setDate(LocalDate.now());
+        userLog.setAction(UserActionPrefixes.EXPENSES_REMOVE_ACTION_LOG_PREFIX);
+        user.addUserLog(userLog);
+        return this.expenseDAO.delete(expenseId, userLog);
     }
 
     public ExpenseResponseDto getValidExpenseById(int expenseId){

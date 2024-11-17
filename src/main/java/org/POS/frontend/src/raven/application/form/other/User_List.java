@@ -1,10 +1,13 @@
 
 package org.POS.frontend.src.raven.application.form.other;
 
+import org.POS.backend.person.PersonResponseDto;
+import org.POS.backend.person.PersonService;
 import org.POS.backend.user.AddUserRequestDto;
 import org.POS.backend.user.UserRole;
 import org.POS.backend.user.UserService;
 import org.POS.backend.user.UserStatus;
+import org.POS.frontend.src.raven.application.Application;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
 import org.POS.frontend.src.raven.cell.TableActionEvent;
@@ -19,6 +22,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
 
 
 public class User_List extends javax.swing.JPanel {
@@ -63,12 +67,30 @@ public class User_List extends javax.swing.JPanel {
             }
 
             @Override
-
             public void onView(int row) {
+                DefaultTableModel model = (DefaultTableModel) table.getModel();
+                int id = (Integer) model.getValueAt(row, 1);
+                PersonService personService = new PersonService();
+                SwingWorker<PersonResponseDto, Void> worker = new SwingWorker<PersonResponseDto, Void>() {
+                    @Override
+                    protected PersonResponseDto doInBackground() throws Exception {
+                        return personService.getValidPersonById(id);
+                    }
 
+                    @Override
+                    protected void done() {
+                        try {
+                            var person = get();
+                            Application.showForm(new User_Details(person));
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        } catch (ExecutionException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                };
+                worker.execute();
             }
-
-
         };
         table.getColumnModel().getColumn(8).setCellRenderer(new TableActionCellRender());
         table.getColumnModel().getColumn(8).setCellEditor(new TableActionCellEditor(event));
