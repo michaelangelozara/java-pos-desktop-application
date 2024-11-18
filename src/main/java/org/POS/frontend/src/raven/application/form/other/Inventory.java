@@ -1,6 +1,7 @@
 
 package org.POS.frontend.src.raven.application.form.other;
 
+import org.POS.backend.product.ProductResponseDto;
 import org.POS.backend.product.ProductService;
 import org.POS.backend.string_checker.StringChecker;
 import org.POS.frontend.src.raven.application.Application;
@@ -17,6 +18,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
 
 public class Inventory extends javax.swing.JPanel {
 
@@ -58,8 +60,26 @@ public class Inventory extends javax.swing.JPanel {
             public void onView(int row) {
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
                 int productId = (Integer) model.getValueAt(row, 1);
-                Application.showForm(new InventoryHistory(productId));
+                ProductService productService = new ProductService();
+                SwingWorker<ProductResponseDto, Void> worker = new SwingWorker<ProductResponseDto, Void>() {
+                    @Override
+                    protected ProductResponseDto doInBackground() throws Exception {
+                        return productService.getValidProductById(productId);
+                    }
 
+                    @Override
+                    protected void done() {
+                        try {
+                            var product = get();
+                            Application.showForm(new InventoryHistory(product));
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        } catch (ExecutionException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                };
+                worker.execute();
             }
         };
 

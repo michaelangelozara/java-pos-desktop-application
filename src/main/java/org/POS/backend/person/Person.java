@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.POS.backend.invoice.Invoice;
 import org.POS.backend.order.Order;
+import org.POS.backend.payment.Payment;
 import org.POS.backend.purchase.Purchase;
 import org.POS.backend.quotation.Quotation;
 import org.POS.backend.sale.Sale;
@@ -71,6 +72,22 @@ public class Person {
 
     @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Quotation> quotations = new ArrayList<>();
+
+    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Stock> stocks = new ArrayList<>();
+
+    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Payment> payments = new ArrayList<>();
+
+    public void addPayment(Payment payment){
+        payments.add(payment);
+        payment.setPerson(this);
+    }
+
+    public void addStock(Stock stock){
+        stocks.add(stock);
+        stock.setPerson(this);
+    }
 
     public void addInvoice(Invoice invoice){
         invoices.add(invoice);

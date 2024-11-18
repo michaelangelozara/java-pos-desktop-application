@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+Main-Class: org.POS.frontend.src.raven.application.Application
+

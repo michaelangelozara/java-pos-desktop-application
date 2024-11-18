@@ -33,11 +33,7 @@ public class StockService {
         return GlobalVariable.PERSON_NOT_FOUND;
     }
 
-    public List<StockResponseDto> getAllValidStockByType(StockType type){
-        return this.stockMapper.toStockResponseDtoList(this.stockDAO.getAllValidStockByType(type));
-    }
-
-    public List<Stock> getAllValidStockByProductId(int productId){
-        return this.stockDAO.getAllValidStockProductId(productId);
+    public List<Stock> getAllValidStockByTypeAndProductId(StockType type, int productId){
+        return this.stockDAO.getAllValidStockProductId(type, productId);
     }
 }

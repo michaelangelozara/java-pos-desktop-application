@@ -1,8 +1,6 @@
 
 package org.POS.frontend.src.raven.application.form.other;
 
-import org.POS.backend.person.PersonResponseDto;
-import org.POS.backend.person.PersonService;
 import org.POS.backend.user.*;
 import org.POS.frontend.src.raven.application.Application;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
@@ -35,7 +33,194 @@ public class User_List extends javax.swing.JPanel {
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
                 int userId = (Integer) model.getValueAt(row, 1);
                 UserService userService = new UserService();
-                var user = userService.getValidUserById(userId);
+
+                JPanel panel = new JPanel();
+                panel.setLayout(new GridBagLayout());
+                GridBagConstraints gbc = new GridBagConstraints();
+                gbc.insets = new Insets(10, 10, 10, 10);  // Padding around components
+                gbc.fill = GridBagConstraints.HORIZONTAL;
+                gbc.anchor = GridBagConstraints.WEST;
+
+                Font labelFont = new Font("Arial", Font.BOLD, 16);  // Larger font for labels
+                Dimension fieldSize = new Dimension(250, 30);  // Uniform field size
+
+                // Row 1: User ID (Uneditable)
+                gbc.gridx = 0;
+                gbc.gridy = 0;
+                JLabel userIdLabel = new JLabel("User ID:");
+                userIdLabel.setFont(labelFont);
+                panel.add(userIdLabel, gbc);
+
+                gbc.gridx = 1;
+                JTextField userIdField = new JTextField(20);
+                userIdField.setPreferredSize(fieldSize);
+                userIdField.setText("Loading...");
+                userIdField.setEditable(false);  // Make User ID uneditable
+                panel.add(userIdField, gbc);
+
+                // Row 2: Name
+                gbc.gridx = 0;
+                gbc.gridy = 1;
+                JLabel nameLabel = new JLabel("Name:");
+                nameLabel.setFont(labelFont);
+                panel.add(nameLabel, gbc);
+
+                gbc.gridx = 1;
+                JTextField nameField = new JTextField(20);
+                nameField.setText("Loading...");
+                nameField.setEnabled(false);
+                nameField.setPreferredSize(fieldSize);
+                panel.add(nameField, gbc);
+
+                // Row 3: Role (ComboBox)
+                gbc.gridx = 0;
+                gbc.gridy = 2;
+                JLabel roleLabel = new JLabel("Role:");
+                roleLabel.setFont(labelFont);
+                panel.add(roleLabel, gbc);
+
+                gbc.gridx = 1;
+                JComboBox<String> roleCombo = new JComboBox<>(new String[]{"Cashier", "Admin", "Manager"});
+                roleCombo.setPreferredSize(fieldSize);
+                panel.add(roleCombo, gbc);
+
+                // Row 4: Username
+                gbc.gridx = 0;
+                gbc.gridy = 3;
+                JLabel usernameLabel = new JLabel("Username:");
+                usernameLabel.setFont(labelFont);
+                panel.add(usernameLabel, gbc);
+
+                gbc.gridx = 1;
+                JTextField usernameField = new JTextField(20);
+                usernameField.setText("Loading...");
+                usernameField.setEnabled(false);
+                usernameField.setPreferredSize(fieldSize);
+                panel.add(usernameField, gbc);
+
+                // Row 5: Password (Password Field)
+                gbc.gridx = 0;
+                gbc.gridy = 4;
+                JLabel passwordLabel = new JLabel("Password:");
+                passwordLabel.setFont(labelFont);
+                panel.add(passwordLabel, gbc);
+
+                gbc.gridx = 1;
+                JPasswordField passwordField = new JPasswordField(20);
+                passwordField.setPreferredSize(fieldSize);
+                passwordField.setEnabled(false);
+                panel.add(passwordField, gbc);
+
+                // Row 6: Email
+                gbc.gridx = 0;
+                gbc.gridy = 5;
+                JLabel emailLabel = new JLabel("Email:");
+                emailLabel.setFont(labelFont);
+                panel.add(emailLabel, gbc);
+
+                gbc.gridx = 1;
+                JTextField emailField = new JTextField(20);
+                emailField.setText("Loading...");
+                emailField.setEnabled(false);
+                emailField.setPreferredSize(fieldSize);
+                panel.add(emailField, gbc);
+
+                // Row 7: Contact Number
+                gbc.gridx = 0;
+                gbc.gridy = 6;
+                JLabel contactLabel = new JLabel("Contact Number:");
+                contactLabel.setFont(labelFont);
+                panel.add(contactLabel, gbc);
+
+                gbc.gridx = 1;
+                JTextField contactNumberField = new JTextField(20);
+                contactNumberField.setText("Loading...");
+                contactNumberField.setPreferredSize(fieldSize);
+                contactNumberField.setEnabled(false);
+                panel.add(contactNumberField, gbc);
+
+                // Row 8: Status (ComboBox)
+                gbc.gridx = 0;
+                gbc.gridy = 7;
+                JLabel statusLabel = new JLabel("Status:");
+                statusLabel.setFont(labelFont);
+                panel.add(statusLabel, gbc);
+
+                gbc.gridx = 1;
+                JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Active", "Inactive"});
+                statusCombo.setPreferredSize(fieldSize);
+                panel.add(statusCombo, gbc);
+
+                SwingWorker<UserResponseDto, Void> worker = new SwingWorker<>() {
+                    @Override
+                    protected UserResponseDto doInBackground() throws Exception {
+                        var user = userService.getValidUserById(userId);
+                        return user;
+                    }
+
+                    @Override
+                    protected void done() {
+                        try {
+                            var user = get();
+
+                            SwingUtilities.invokeLater(() -> {
+                                nameField.setEnabled(true);
+                                nameField.setText(user.name());
+
+                                usernameField.setEnabled(true);
+                                usernameField.setText(user.username());
+
+                                emailField.setEnabled(true);
+                                emailField.setText(user.email());
+
+                                contactNumberField.setEnabled(true);
+                                contactNumberField.setText(user.contactNumber());
+
+                                passwordField.setEnabled(true);
+
+                                userIdField.setText(user.employeeId());
+                            });
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        } catch (ExecutionException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                };
+                worker.execute();
+
+                // Display the panel
+                int result = JOptionPane.showConfirmDialog(null, panel, "User Information", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+                if (result == JOptionPane.OK_OPTION) {
+                    // Retrieve values and perform action
+                    String name = nameField.getText();
+                    String role = (String) roleCombo.getSelectedItem();
+                    String password = new String(passwordField.getPassword());
+                    String email = emailField.getText();
+                    String contactNumber = contactNumberField.getText();
+                    String status = (String) statusCombo.getSelectedItem();
+
+                    assert role != null;
+                    assert status != null;
+                    UpdateUserRequestDto dto = new UpdateUserRequestDto(
+                            userId,
+                            name,
+                            role.equals("Cashier") ? UserRole.CASHIER : role.equals("Admin") ? UserRole.ADMIN : role.equals("Manager") ? UserRole.MANAGER : null,
+                            password,
+                            email,
+                            contactNumber,
+                            status.equals("Active") ? UserStatus.ACTIVE : UserStatus.INACTIVE
+                    );
+                    try {
+                        userService.updateUser(dto);
+                        JOptionPane.showMessageDialog(null, "User information saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        loadUsers();
+                    } catch (Exception e) {
+                        JOptionPane.showMessageDialog(null, e.getMessage(), "Failed", JOptionPane.WARNING_MESSAGE);
+                        e.printStackTrace();
+                    }
+                }
             }
 
 

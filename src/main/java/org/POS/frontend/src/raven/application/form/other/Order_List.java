@@ -6,6 +6,7 @@ import org.POS.backend.order.OrderService;
 import org.POS.backend.order.OrderStatus;
 import org.POS.backend.order.UpdateOrderRequestDto;
 import org.POS.backend.sale.SaleTransactionMethod;
+import org.POS.frontend.src.raven.application.Application;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
 import org.POS.frontend.src.raven.cell.TableActionEvent;
@@ -110,7 +111,7 @@ public class Order_List extends javax.swing.JPanel {
                 gbc.gridx = 0;
                 gbc.gridwidth = 6;
 
-                String[] columnNames = {"#", "ID", "Code", "Product Name", "Invoice Qty", "Price", "Unit Price", "Tax", "Subtotal", "Action"};
+                String[] columnNames = {"#", "ID", "Code", "Product Name", "Invoice Qty", "Price", "Tax", "Subtotal", "Action"};
                 Object[][] data = {
                         {1, "AP-000001", "Plywood 12mm", 10, 300, "$3000", 150, "$3150", "Remove"},
                         {2, "AP-000002", "PVC Pipes 3 inch", 20, 50, "$1000", 50, "$1050", "Remove"},
@@ -121,7 +122,7 @@ public class Order_List extends javax.swing.JPanel {
                 JTable table = new JTable(model) {
                     @Override
                     public boolean isCellEditable(int row, int column) {
-                        return column == 4 || column == 9;  // Make only quantity and action columns editable
+                        return column == 4 || column == 8;  // Make only quantity and action columns editable
                     }
                 };
 
@@ -139,7 +140,7 @@ public class Order_List extends javax.swing.JPanel {
                 quantityColumn.setCellEditor(new QuantityEditor(table, model));
 
                 // Custom Remove button in the action column
-                TableColumn actionColumn = table.getColumnModel().getColumn(9);
+                TableColumn actionColumn = table.getColumnModel().getColumn(8);
                 actionColumn.setCellRenderer(new ButtonRenderer());
                 actionColumn.setCellEditor(new ButtonEditor(new JCheckBox(), table, model));
 
@@ -344,7 +345,6 @@ public class Order_List extends javax.swing.JPanel {
                                         saleItem.getProduct().getName(),
                                         saleItem.getQuantity(),
                                         saleItem.getPrice(),
-                                        saleItem.getProduct().getSellingPrice(),
                                         saleItem.getPrice().multiply(BigDecimal.valueOf(0.12)).setScale(2, RoundingMode.HALF_UP),
                                         saleItem.getSubtotal()
                                 });
@@ -359,6 +359,7 @@ public class Order_List extends javax.swing.JPanel {
                 };
                 worker.execute();
 
+                JTextField amountField = new JTextField(20);
                 // Add an ActionListener to handle Pay button click
                 payButton.addActionListener(e -> {
                     // Logic to handle payment
@@ -369,7 +370,7 @@ public class Order_List extends javax.swing.JPanel {
                     gbc2.anchor = GridBagConstraints.WEST;
 
                     // Create input fields
-                    JTextField amountField = new JTextField(20); // Increased field width
+                     // Increased field width
                     amountField.setText("0");
 
                     JTextField dateField = new JTextField(15);
@@ -476,12 +477,14 @@ public class Order_List extends javax.swing.JPanel {
                     // Handle user inputs
                     String deliveryPlace = deliveryPlaceField.getText();
                     String note = noteArea.getText();
+                    BigDecimal amount = new BigDecimal(amountField.getText());
                     UpdateOrderRequestDto dto = new UpdateOrderRequestDto(
                             orderId,
                             returnedProductIds,
                             note,
                             deliveryPlace,
-                            reason
+                            reason,
+                            amount
                     );
 
                     try {
@@ -608,28 +611,15 @@ public class Order_List extends javax.swing.JPanel {
 
             @Override
             public void onDelete(int row) {
-                if (table.isEditing()) {
-                    table.getCellEditor().stopCellEditing();
-                }
-
-                // Confirm before deleting
-                int confirmation = JOptionPane.showConfirmDialog(null,
-                        "Are you sure you want to delete this Product?",
-                        "Confirm Delete", JOptionPane.YES_NO_OPTION);
-
-                if (confirmation == JOptionPane.YES_OPTION) {
-                    DefaultTableModel model = (DefaultTableModel) table.getModel();
-                    model.removeRow(row);
-                    JOptionPane.showMessageDialog(null, "Product Deleted Successfully",
-                            "Deleted", JOptionPane.INFORMATION_MESSAGE);
-                }
+                JOptionPane.showMessageDialog(null, "You can't perform this action");
             }
 
             @Override
 
             public void onView(int row) {
-
-//                Application.showForm(new Invoice_Details());
+                DefaultTableModel model = (DefaultTableModel) table.getModel();
+                int orderId = (Integer) model.getValueAt(row, 1);
+                Application.showForm(new Order_Details(orderId));
             }
 
 

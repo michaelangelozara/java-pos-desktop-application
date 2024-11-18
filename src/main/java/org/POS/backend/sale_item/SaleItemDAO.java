@@ -2,6 +2,7 @@ package org.POS.backend.sale_item;
 
 import jakarta.persistence.NoResultException;
 import org.POS.backend.configuration.HibernateUtil;
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
@@ -24,6 +25,7 @@ public class SaleItemDAO {
                     .setParameter("ids", ids)
                     .getResultList();
 
+            saleItems.forEach(s -> Hibernate.initialize(s.getProduct().getStocks()));
         }catch (Exception e){
             e.printStackTrace();
             throw new NoResultException("No sale item found");

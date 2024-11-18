@@ -36,7 +36,8 @@ public class InventoryAdjustmentMapper {
                 inventoryAdjustment.getCreatedDate(),
                 inventoryAdjustment.getStatus(),
                 inventoryAdjustment.getType(),
-                inventoryAdjustment.getNote()
+                inventoryAdjustment.getNote(),
+                inventoryAdjustment.getQuantity()
         );
     }
 

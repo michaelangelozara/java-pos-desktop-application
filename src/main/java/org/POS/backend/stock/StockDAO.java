@@ -25,23 +25,12 @@ public class StockDAO {
         }
     }
 
-    public List<Stock> getAllValidStockByType(StockType type){
+    public List<Stock> getAllValidStockProductId(StockType type, int productId){
         List<Stock> stocks = new ArrayList<>();
         try(Session session = sessionFactory.openSession()){
-            stocks = session.createQuery("SELECT s FROM Stock s LEFT JOIN FETCH s.person WHERE s.type = :type", Stock.class)
-                    .setParameter("type", type)
-                    .getResultList();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        return stocks;
-    }
-
-    public List<Stock> getAllValidStockProductId(int productId){
-        List<Stock> stocks = new ArrayList<>();
-        try(Session session = sessionFactory.openSession()){
-            stocks = session.createQuery("SELECT s FROM Stock s JOIN FETCH s.product sp WHERE sp.id = :productId AND sp.isDeleted = FALSE ", Stock.class)
+            stocks = session.createQuery("SELECT s FROM Stock s JOIN FETCH s.product sp WHERE s.type =: type AND (sp.id = :productId AND sp.isDeleted = FALSE) ", Stock.class)
                     .setParameter("productId", productId)
+                    .setParameter("type", type)
                     .getResultList();
         }catch (Exception e){
             e.printStackTrace();

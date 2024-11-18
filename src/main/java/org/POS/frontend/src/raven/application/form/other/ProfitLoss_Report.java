@@ -4,12 +4,22 @@
  */
 package org.POS.frontend.src.raven.application.form.other;
 
+import org.POS.backend.sale.Sale;
 import org.POS.backend.sale.SaleService;
+import org.jdatepicker.impl.JDatePanelImpl;
+import org.jdatepicker.impl.JDatePickerImpl;
+import org.jdatepicker.impl.UtilDateModel;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 
 /**
  *
@@ -26,6 +36,124 @@ public class ProfitLoss_Report extends javax.swing.JPanel {
         jLabel23.setText("0.00");
         jLabel24.setText("0.00");
         jLabel26.setText("0.00");
+        jButton3.addActionListener(e -> {
+            createDatePickerPanel();
+        });
+    }
+
+    private JDatePickerImpl createDatePicker() {
+        UtilDateModel model = new UtilDateModel();
+        // Set the current createdAt
+        LocalDate currentDate = LocalDate.now();
+        model.setDate(currentDate.getYear(), currentDate.getMonthValue() - 1, currentDate.getDayOfMonth());
+        model.setSelected(true);  // Automatically selects the current createdAt
+
+        Properties p = new Properties();
+        p.put("text.today", "Today");
+        p.put("text.month", "Month");
+        p.put("text.year", "Year");
+
+        JDatePanelImpl datePanel = new JDatePanelImpl(model, p);
+        return new JDatePickerImpl(datePanel, new DateLabelFormatter());
+    }
+
+    private void createDatePickerPanel() {
+// Create a panel to hold the createdAt pickers for "From" and "To" dates
+        JPanel datePanel = new JPanel(new GridLayout(2, 2, 10, 10));  // GridLayout with 2 rows, 2 columns
+
+        // Create bold and larger font for the labels
+        Font labelFont = new Font("Arial", Font.BOLD, 16);  // 16 size and bold
+
+        JLabel fromLabel = new JLabel("From Date:");
+        fromLabel.setFont(labelFont);  // Set to bold and larger size
+
+        JLabel toLabel = new JLabel("To Date:");
+        toLabel.setFont(labelFont);  // Set to bold and larger size
+
+        // Create the createdAt pickers
+        JDatePickerImpl fromDatePicker = createDatePicker();  // Date picker for "From" createdAt
+        JDatePickerImpl toDatePicker = createDatePicker();    // Date picker for "To" createdAt
+
+        // Add components to the panel
+        datePanel.add(fromLabel);
+        datePanel.add(fromDatePicker);
+        datePanel.add(toLabel);
+        datePanel.add(toDatePicker);
+
+        // Show a dialog with the createdAt pickers
+        int result = JOptionPane.showConfirmDialog(null, datePanel, "Select Date Range", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            // Retrieve the selected dates
+            String fromDateStr = fromDatePicker.getJFormattedTextField().getText();
+            String toDateStr = toDatePicker.getJFormattedTextField().getText();
+
+            // Parse the dates into a Date object or LocalDate for comparison
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");  // Adjust format if necessary
+            LocalDate fromDate = LocalDate.parse(fromDateStr, formatter);
+            LocalDate toDate = LocalDate.parse(toDateStr, formatter);
+
+            // Now, filter the table rows based on the selected createdAt range
+            filterTableByDateRange(fromDate, toDate);
+        }
+    }
+
+    private void filterTableByDateRange(LocalDate fromDate, LocalDate toDate) {
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        model.setRowCount(0);
+
+        SaleService saleService = new SaleService();
+
+        SwingWorker<List<Sale>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<Sale> doInBackground() throws Exception {
+                var sales = saleService.getAllValidSalesByRangeAndWithoutDto(fromDate, toDate);
+                return sales;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var sales = get();
+
+                    int rowNumber = 1;
+
+                    BigDecimal totalCostOfGoodsSummation = BigDecimal.ZERO;
+                    BigDecimal totalSalesSummation = BigDecimal.ZERO;
+
+
+                    for (int i = 0; i < sales.size(); i++) {
+                        for (var saleItem : sales.get(i).getSaleItems()) {
+                            BigDecimal totalCostOfGoods = BigDecimal.valueOf(saleItem.getQuantity()).multiply(saleItem.getProduct().getPurchasePrice()).setScale(2, RoundingMode.HALF_UP);
+                            BigDecimal totalSales = BigDecimal.valueOf(saleItem.getQuantity()).multiply(saleItem.getProduct().getSellingPrice()).setScale(2, RoundingMode.HALF_UP);
+
+                            model.addRow(new Object[]{
+                                    rowNumber,
+                                    sales.get(i).getCode(),
+                                    sales.get(i).getDate(),
+                                    saleItem.getProduct().getName(),
+                                    saleItem.getQuantity(),
+                                    saleItem.getProduct().getPurchasePrice(),
+                                    saleItem.getProduct().getSellingPrice(),
+                                    totalCostOfGoods,
+                                    totalSales
+                            });
+
+                            totalCostOfGoodsSummation = totalCostOfGoodsSummation.add(totalCostOfGoods);
+                            totalSalesSummation = totalSalesSummation.add(totalSales);
+
+                            rowNumber++;
+                        }
+                    }
+                    loadSummations(totalCostOfGoodsSummation, totalSalesSummation);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
     }
 
     /**
@@ -179,11 +307,11 @@ public class ProfitLoss_Report extends javax.swing.JPanel {
 
             },
             new String [] {
-                "#	", "Code", "Product", "Sold Qty	", "Cost of Goods", "Selling Price	", "Total Cost of Goods", "Total Sales"
+                "#	", "Code", "Date", "Product", "Sold Qty	", "Cost of Goods", "Selling Price	", "Total Cost of Goods", "Total Sales"
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, true, true
+                false, false, false, false, false, false, false, true, true
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -341,36 +469,56 @@ public class ProfitLoss_Report extends javax.swing.JPanel {
         model.setRowCount(0);
 
         SaleService saleService = new SaleService();
-        var sales = saleService.getAllValidSalesWithoutDto(50);
-        int rowNumber = 1;
 
-        BigDecimal totalCostOfGoodsSummation = BigDecimal.ZERO;
-        BigDecimal totalSalesSummation = BigDecimal.ZERO;
-
-
-        for(int i = 0; i < sales.size(); i++){
-            for(var saleItem : sales.get(i).getSaleItems()){
-                BigDecimal totalCostOfGoods = BigDecimal.valueOf(saleItem.getQuantity()).multiply(saleItem.getProduct().getPurchasePrice()).setScale(2, RoundingMode.HALF_UP);
-                BigDecimal totalSales = BigDecimal.valueOf(saleItem.getQuantity()).multiply(saleItem.getProduct().getSellingPrice()).setScale(2, RoundingMode.HALF_UP);
-
-                model.addRow(new Object[]{
-                        rowNumber,
-                        sales.get(i).getCode(),
-                        saleItem.getProduct().getName(),
-                        saleItem.getQuantity(),
-                        saleItem.getProduct().getPurchasePrice(),
-                        saleItem.getProduct().getSellingPrice(),
-                        totalCostOfGoods,
-                        totalSales
-                });
-
-                totalCostOfGoodsSummation = totalCostOfGoodsSummation.add(totalCostOfGoods);
-                totalSalesSummation = totalSalesSummation.add(totalSales);
-
-                rowNumber++;
+        SwingWorker<List<Sale>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<Sale> doInBackground() throws Exception {
+                return saleService.getAllValidSalesWithoutDto(50);
             }
-        }
-        loadSummations(totalCostOfGoodsSummation, totalSalesSummation);
+
+            @Override
+            protected void done() {
+                try {
+                    var sales = get();
+
+                    int rowNumber = 1;
+
+                    BigDecimal totalCostOfGoodsSummation = BigDecimal.ZERO;
+                    BigDecimal totalSalesSummation = BigDecimal.ZERO;
+
+
+                    for (int i = 0; i < sales.size(); i++) {
+                        for (var saleItem : sales.get(i).getSaleItems()) {
+                            BigDecimal totalCostOfGoods = BigDecimal.valueOf(saleItem.getQuantity()).multiply(saleItem.getProduct().getPurchasePrice()).setScale(2, RoundingMode.HALF_UP);
+                            BigDecimal totalSales = BigDecimal.valueOf(saleItem.getQuantity()).multiply(saleItem.getProduct().getSellingPrice()).setScale(2, RoundingMode.HALF_UP);
+
+                            model.addRow(new Object[]{
+                                    rowNumber,
+                                    sales.get(i).getCode(),
+                                    sales.get(i).getDate(),
+                                    saleItem.getProduct().getName(),
+                                    saleItem.getQuantity(),
+                                    saleItem.getProduct().getPurchasePrice(),
+                                    saleItem.getProduct().getSellingPrice(),
+                                    totalCostOfGoods,
+                                    totalSales
+                            });
+
+                            totalCostOfGoodsSummation = totalCostOfGoodsSummation.add(totalCostOfGoods);
+                            totalSalesSummation = totalSalesSummation.add(totalSales);
+
+                            rowNumber++;
+                        }
+                    }
+                    loadSummations(totalCostOfGoodsSummation, totalSalesSummation);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
     }
 
     private void loadSummations(BigDecimal totalCostOfGoodsSummation, BigDecimal totalSalesSummation){

@@ -6,7 +6,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.POS.backend.purchase.Purchase;
 import org.POS.backend.purchased_item.PurchaseItem;
+import org.POS.backend.user.User;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +33,9 @@ public class ReturnPurchase {
 
     private String note;
 
+    @Column(name = "returned_at")
+    private LocalDate returnedAt;
+
     @ManyToOne
     @JoinColumn(name = "purchase_id")
     private Purchase purchase;
@@ -42,6 +47,10 @@ public class ReturnPurchase {
             inverseJoinColumns = {@JoinColumn(name = "purchase_item_id")}
     )
     private List<PurchaseItem> purchaseItems = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     public void addPurchaseItem(PurchaseItem purchaseItem){
         purchaseItems.add(purchaseItem);

@@ -1,61 +1,27 @@
 
 package org.POS.frontend.src.raven.application.form.other;
 
-import javax.swing.*;
-
 import org.POS.backend.invoice.Invoice;
 import org.POS.backend.invoice.InvoiceService;
-import org.POS.frontend.src.raven.cell.TableActionCellRender;
 
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-
-import org.POS.frontend.src.raven.cell.TableActionCellEditor;
-import org.POS.frontend.src.raven.cell.TableActionEvent;
-
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.concurrent.ExecutionException;
 
 public class Invoice_Details extends javax.swing.JPanel {
     private Integer invoiceId;
 
+    private Invoice fetchedInvoice;
+
     public Invoice_Details(int invoiceId) {
         this.invoiceId = invoiceId;
         initComponents();
-
-        TableActionEvent event = new TableActionEvent() {
-            @Override
-            public void onEdit(int row) {
-
-            }
-            @Override
-            public void onDelete(int row) {
-                if (table4.isEditing()) {
-                    table4.getCellEditor().stopCellEditing();
-                }
-
-                // Confirm before deleting
-                int confirmation = JOptionPane.showConfirmDialog(null,
-                        "Are you sure you want to delete this SubCategory?",
-                        "Confirm Delete", JOptionPane.YES_NO_OPTION);
-
-                if (confirmation == JOptionPane.YES_OPTION) {
-                    DefaultTableModel model = (DefaultTableModel) table4.getModel();
-                    model.removeRow(row);
-                    JOptionPane.showMessageDialog(null, "SubCategory Deleted Successfully",
-                            "Deleted", JOptionPane.INFORMATION_MESSAGE);
-                }
-            }
-
-            @Override
-            public void onView(int row) {
-            }
-        };
-
-        table4.getColumnModel().getColumn(7).setCellRenderer(new TableActionCellRender());
-        table4.getColumnModel().getColumn(7).setCellEditor(new TableActionCellEditor(event));
         loadInvoice();
     }
 
-    private void loadInvoice(){
+    private void loadInvoice() {
         DefaultTableModel model = (DefaultTableModel) table4.getModel();
         model.setRowCount(0);
 
@@ -71,6 +37,7 @@ public class Invoice_Details extends javax.swing.JPanel {
             protected void done() {
                 try {
                     var invoice = get();
+                    fetchedInvoice = invoice;
                     model.addRow(new Object[]{
                             invoice.getCode(),
                             invoice.getDate(),
@@ -81,6 +48,8 @@ public class Invoice_Details extends javax.swing.JPanel {
                             invoice.getStatus().name(),
                             invoice.getSale().getUser().getName()
                     });
+                    loadPayments();
+                    loadProducts();
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 } catch (ExecutionException e) {
@@ -89,7 +58,64 @@ public class Invoice_Details extends javax.swing.JPanel {
             }
         };
         worker.execute();
+    }
 
+    private void loadPayments() {
+        DefaultTableModel model = (DefaultTableModel) table5.getModel();
+        model.setRowCount(0);
+
+        var payments = fetchedInvoice.getPayments();
+        for (int i = 0; i < payments.size(); i++) {
+            model.addRow(new Object[]{
+                    i + 1,
+                    payments.get(i).getDate(),
+                    payments.get(i).getPaidAmount(),
+                    payments.get(i).getAmountDue(),
+                    payments.get(i).getNetTotal()
+            });
+        }
+    }
+
+    private void loadProducts() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+
+        var saleItems = fetchedInvoice.getSale().getSaleItems();
+        int i = 1;
+
+        BigDecimal subtotal = BigDecimal.ZERO;
+        BigDecimal transportCost = fetchedInvoice.getSale().getTransportCost();
+        BigDecimal tax = BigDecimal.ZERO;
+        for (var saleItem : saleItems) {
+            model.addRow(new Object[]{
+                    i,
+                    saleItem.getProduct().getCode(),
+                    saleItem.getProduct().getName(),
+                    saleItem.getQuantity(),
+                    saleItem.getPrice(),
+                    saleItem.getPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP),
+                    fetchedInvoice.getSale().getTransportCost(),
+                    saleItem.getPrice().multiply(BigDecimal.valueOf(saleItem.getQuantity()))
+            });
+            subtotal = subtotal.add(saleItem.getPrice().multiply(BigDecimal.valueOf(saleItem.getQuantity())));
+            tax = tax.add(saleItem.getPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP));
+            i++;
+        }
+        BigDecimal total = subtotal.add(transportCost).add(tax);
+        loadSummaries(subtotal, transportCost, tax, total);
+    }
+
+    private void loadSummaries(
+            BigDecimal subtotal,
+            BigDecimal transportCost,
+            BigDecimal tax,
+            BigDecimal total
+    ) {
+        jLabel39.setText(String.valueOf(subtotal));
+        jLabel40.setText(String.valueOf(transportCost));
+        jLabel42.setText(String.valueOf(tax));
+        jLabel43.setText(String.valueOf(total));
+        jLabel41.setText(String.valueOf(fetchedInvoice.getSale().getDiscount()));
     }
 
     @SuppressWarnings("unchecked")
@@ -259,11 +285,11 @@ public class Invoice_Details extends javax.swing.JPanel {
                 new Object[][]{
                 },
                 new String[]{
-                        "#", "Payment Date	", "Paid Amount	", "Account	", "Cheque No	", "Receipt No	", "Status "
+                        "#", "Payment Date	", "Paid Amount	", "Amount Due	", "Net Total"
                 }
         ) {
             boolean[] canEdit = new boolean[]{
-                    false, false, false, false, false, false, false
+                    false, false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -278,8 +304,6 @@ public class Invoice_Details extends javax.swing.JPanel {
             table5.getColumnModel().getColumn(2).setResizable(false);
             table5.getColumnModel().getColumn(3).setResizable(false);
             table5.getColumnModel().getColumn(4).setResizable(false);
-            table5.getColumnModel().getColumn(5).setResizable(false);
-            table5.getColumnModel().getColumn(6).setResizable(false);
         }
 
         jLabel27.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N

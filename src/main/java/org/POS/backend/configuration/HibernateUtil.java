@@ -10,6 +10,7 @@ import org.POS.backend.inventory_adjustment.InventoryAdjustment;
 import org.POS.backend.invoice.Invoice;
 import org.POS.backend.open_cash.OpenCash;
 import org.POS.backend.order.Order;
+import org.POS.backend.payment.Payment;
 import org.POS.backend.person.Person;
 import org.POS.backend.product.Product;
 import org.POS.backend.product_category.ProductCategory;
@@ -69,6 +70,7 @@ public class HibernateUtil {
                 configuration.addAnnotatedClass(QuotedItem.class);
                 configuration.addAnnotatedClass(ReturnPurchase.class);
                 configuration.addAnnotatedClass(UserLog.class);
+                configuration.addAnnotatedClass(Payment.class);
 
                 // Build the SessionFactory
                 sessionFactory = configuration.buildSessionFactory(

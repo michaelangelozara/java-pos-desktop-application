@@ -3,6 +3,8 @@
         Possible solution is to re-fetch entire sale item after i update and
             check if they are all returned
 - supplier details
+- add product in POS
+
 
 SWING WORKER OPERATION
 - total sales in dashboard

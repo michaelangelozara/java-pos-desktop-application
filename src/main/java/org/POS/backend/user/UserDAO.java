@@ -143,6 +143,14 @@ public class UserDAO {
             if (!user.getUserLogs().isEmpty()) {
                 Hibernate.initialize(user.getUserLogs());
             }
+
+            if (!user.getReturnPurchases().isEmpty()) {
+                Hibernate.initialize(user.getReturnPurchases());
+            }
+
+            if (!user.getPayments().isEmpty()) {
+                Hibernate.initialize(user.getPayments());
+            }
             session.getTransaction().commit();
         } catch (Exception e) {
             e.printStackTrace();

@@ -38,5 +38,6 @@
         <mapping class="org.POS.backend.quoted_item.QuotedItem"/>
         <mapping class="org.POS.backend.return_purchase.ReturnPurchase"/>
         <mapping class="org.POS.backend.user_log.UserLog"/>
+        <mapping class="org.POS.backend.payment.Payment"/>
     </session-factory>
 </hibernate-configuration>

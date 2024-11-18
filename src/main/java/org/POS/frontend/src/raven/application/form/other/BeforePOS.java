@@ -142,6 +142,7 @@ public class BeforePOS extends javax.swing.JPanel {
 
         openCashDAO.add(openCash, user, userLog);
         CurrentUser.isPosLoginSetup = true;
+
         Application.showForm(new POS());
     }//GEN-LAST:event_cmdLoginActionPerformed
 

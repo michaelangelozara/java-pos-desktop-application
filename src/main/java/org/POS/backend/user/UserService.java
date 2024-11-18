@@ -15,14 +15,14 @@ public class UserService {
 
     private UserMapper userMapper;
 
-    public UserService(){
+    public UserService() {
         this.userDAO = new UserDAO();
         this.userMapper = new UserMapper();
     }
 
-    public void add(AddUserRequestDto dto){
+    public void add(AddUserRequestDto dto) {
         var fetchedUser = this.userDAO.getUserById(CurrentUser.id);
-        if(fetchedUser == null)
+        if (fetchedUser == null)
             throw new RuntimeException(GlobalVariable.USER_NOT_FOUND);
 
         var user = this.userMapper.toUser(dto);
@@ -36,14 +36,30 @@ public class UserService {
         this.userDAO.add(user, userLog);
     }
 
-    public void updateUser(UpdateUserRequestDto dto){
-//        var department = this.departmentDAO.getDepartmentById(dto.departmentId());
-//        this.userDAO.update(updatedUser);
+    public void updateUser(UpdateUserRequestDto dto) {
+        var admin = this.userDAO.getUserById(CurrentUser.id);
+        if (admin == null)
+            throw new RuntimeException(GlobalVariable.USER_NOT_FOUND);
+
+        var userToBeUpdated = this.userDAO.getUserById(dto.userId());
+
+        if (userToBeUpdated != null) {
+            var updatedUser = this.userMapper.toUpdatedUser(userToBeUpdated, dto);
+
+            UserLog userLog = new UserLog();
+            userLog.setCode(updatedUser.getEmployeeId());
+            userLog.setDate(LocalDate.now());
+            userLog.setAction(UserActionPrefixes.USER_MANAGEMENT_EDIT_ACTION_LOG_PREFIX);
+            admin.addUserLog(userLog);
+            this.userDAO.update(updatedUser, userLog);
+        } else {
+            throw new RuntimeException("User not found");
+        }
     }
 
-    public void delete(int userId){
+    public void delete(int userId) {
         var user = this.userDAO.getUserById(CurrentUser.id);
-        if(user == null)
+        if (user == null)
             throw new RuntimeException(GlobalVariable.USER_NOT_FOUND);
 
         UserLog userLog = new UserLog();
@@ -59,35 +75,35 @@ public class UserService {
         return this.userMapper.userResponseDtoList(users);
     }
 
-    public UserResponseDto getValidUserById(int userId){
+    public UserResponseDto getValidUserById(int userId) {
         var user = this.userDAO.getUserById(userId);
-        if(user != null)
+        if (user != null)
             return this.userMapper.toUserResponseDto(user);
 
         return null;
     }
 
-    public boolean authenticate(LoginRequestDto dto){
-        try{
+    public boolean authenticate(LoginRequestDto dto) {
+        try {
             var user = this.userDAO.authenticateUserByUsernameAndPassword(dto.username());
-            if(user == null)
+            if (user == null)
                 return false;
 
             String hashedPassword = user.getPassword();
-            if(!BCrypt.checkpw(dto.password(), hashedPassword))
+            if (!BCrypt.checkpw(dto.password(), hashedPassword))
                 return false;
 
             CurrentUser.id = user.getId();
             CurrentUser.employeeId = user.getEmployeeId();
             CurrentUser.username = user.getUsername();
             return true;
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
     }
 
-    public List<UserResponseDto> getAllValidUserByName(String name){
+    public List<UserResponseDto> getAllValidUserByName(String name) {
         return this.userMapper.userResponseDtoList(this.userDAO.getAllValidUserByName(name));
     }
 }

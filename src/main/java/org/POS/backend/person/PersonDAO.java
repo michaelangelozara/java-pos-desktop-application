@@ -86,6 +86,7 @@ public class PersonDAO {
 
             Hibernate.initialize(person.getOrders());
             Hibernate.initialize(person.getInvoices());
+            Hibernate.initialize(person.getStocks());
 
         }catch (Exception e){
             System.out.println(e.getMessage());
@@ -121,6 +122,7 @@ public class PersonDAO {
 
             Hibernate.initialize(person.getPurchases());
             Hibernate.initialize(person.getQuotations());
+            Hibernate.initialize(person.getStocks());
             session.getTransaction().commit();
         }catch (Exception e){
             e.printStackTrace();

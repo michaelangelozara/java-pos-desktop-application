@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.POS.backend.brand.BrandService;
 import org.POS.backend.purchase.Purchase;
 import org.POS.backend.purchase.PurchaseService;
 import org.POS.backend.return_purchase.AddReturnPurchaseRequestDto;
@@ -21,6 +22,8 @@ import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
@@ -32,10 +35,13 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.*;
+import java.util.Timer;
 import java.util.concurrent.ExecutionException;
 
 
 public class ReturnedPurchase_List extends javax.swing.JPanel {
+
+    private Timer timer;
 
     public ReturnedPurchase_List() {
         initComponents();
@@ -73,7 +79,26 @@ public class ReturnedPurchase_List extends javax.swing.JPanel {
             public void onView(int row) {
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
                 int returnPurchaseId = (Integer) model.getValueAt(row, 1);
-                Application.showForm(new Return_Purchase_Details());
+                ReturnPurchaseService returnPurchaseService = new ReturnPurchaseService();
+                SwingWorker<ReturnPurchase, Void> worker = new SwingWorker<>() {
+                    @Override
+                    protected ReturnPurchase doInBackground() throws Exception {
+                        return returnPurchaseService.getValidReturnPurchaseById(returnPurchaseId);
+                    }
+
+                    @Override
+                    protected void done() {
+                        try {
+                            var returnPurchase = get();
+                            Application.showForm(new Return_Purchase_Details(returnPurchase));
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        } catch (ExecutionException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                };
+                worker.execute();
             }
         };
         table.getColumnModel().getColumn(9).setCellRenderer(new TableActionCellRender());
@@ -113,7 +138,22 @@ public class ReturnedPurchase_List extends javax.swing.JPanel {
             }
         });
 
-        jTextField1.setText("Search");
+        jTextField1.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+        });
 
         table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
@@ -222,6 +262,70 @@ public class ReturnedPurchase_List extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void scheduleQuery() {
+        if (timer != null) {
+            timer.cancel(); // Cancel any existing scheduled query
+        }
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                filterList();
+            }
+        }, 400); // Delay of 300 ms
+    }
+
+    private void filterList() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+
+        String name = jTextField1.getText();
+
+        if (name.isEmpty()) {
+            loadReturnPurchases();
+            return;
+        }
+
+        ReturnPurchaseService returnPurchaseService = new ReturnPurchaseService();
+        SwingWorker<List<ReturnPurchase>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<ReturnPurchase> doInBackground() throws Exception {
+                var returnPurchases = returnPurchaseService.getAllValidReturnPurchaseByQuery(name);
+                return returnPurchases;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var returnPurchases = get();
+
+                    int n = 1;
+                    for (int i = 0; i < returnPurchases.size(); i++) {
+                        for(var returnedPurchaseItem : returnPurchases.get(i).getPurchaseItems()){
+                            model.addRow(new Object[]{
+                                    n,
+                                    returnPurchases.get(i).getId(),
+                                    returnPurchases.get(i).getCode(),
+                                    returnPurchases.get(i).getPurchase().getCode(),
+                                    returnPurchases.get(i).getPurchase().getPerson().getName(),
+                                    returnPurchases.get(i).getReason(),
+                                    returnedPurchaseItem.getReturnPrice(),
+                                    returnedPurchaseItem.getReturnedAt(),
+                                    returnPurchases.get(i).getStatus().name()
+                            });
+                            n++;
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
+    }
+
     private void loadReturnPurchases(){
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         model.setRowCount(0);
@@ -239,10 +343,11 @@ public class ReturnedPurchase_List extends javax.swing.JPanel {
                 try {
                     var returnPurchases = get();
 
+                    int n = 1;
                     for (int i = 0; i < returnPurchases.size(); i++) {
                         for(var returnedPurchaseItem : returnPurchases.get(i).getPurchaseItems()){
                             model.addRow(new Object[]{
-                                    i + 1,
+                                    n,
                                     returnPurchases.get(i).getId(),
                                     returnPurchases.get(i).getCode(),
                                     returnPurchases.get(i).getPurchase().getCode(),
@@ -252,6 +357,7 @@ public class ReturnedPurchase_List extends javax.swing.JPanel {
                                     returnedPurchaseItem.getReturnedAt(),
                                     returnPurchases.get(i).getStatus().name()
                             });
+                            n++;
                         }
                     }
                 } catch (InterruptedException e) {
@@ -762,25 +868,47 @@ public class ReturnedPurchase_List extends javax.swing.JPanel {
     // End of variables declaration//GEN-END:variables
 
     private void filterTableByDateRange(LocalDate fromDate, LocalDate toDate) {
-        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>((DefaultTableModel) table.getModel());
-        table.setRowSorter(sorter);
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
 
-        sorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
+        ReturnPurchaseService returnPurchaseService = new ReturnPurchaseService();
+        SwingWorker<List<ReturnPurchase>, Void> worker = new SwingWorker<>() {
             @Override
-            public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
-                // Assuming the date is in the 3rd column (index 2), change as per your table
-                String dateStr = (String) entry.getValue(2);
-                try {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                    LocalDate rowDate = LocalDate.parse(dateStr, formatter);
+            protected List<ReturnPurchase> doInBackground() throws Exception {
+                var returnPurchases = returnPurchaseService.getAllValidReturnPurchaseByRange(fromDate, toDate);
+                return returnPurchases;
+            }
 
-                    // Return true if the date is within the selected range
-                    return !rowDate.isBefore(fromDate) && !rowDate.isAfter(toDate);
-                } catch (Exception e) {
-                    // Skip rows with invalid dates
-                    return false;
+            @Override
+            protected void done() {
+                try {
+                    var returnPurchases = get();
+
+                    int n = 1;
+                    for (int i = 0; i < returnPurchases.size(); i++) {
+                        for(var returnedPurchaseItem : returnPurchases.get(i).getPurchaseItems()){
+                            model.addRow(new Object[]{
+                                    n,
+                                    returnPurchases.get(i).getId(),
+                                    returnPurchases.get(i).getCode(),
+                                    returnPurchases.get(i).getPurchase().getCode(),
+                                    returnPurchases.get(i).getPurchase().getPerson().getName(),
+                                    returnPurchases.get(i).getReason(),
+                                    returnedPurchaseItem.getReturnPrice(),
+                                    returnedPurchaseItem.getReturnedAt(),
+                                    returnPurchases.get(i).getStatus().name()
+                            });
+                            n++;
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
                 }
             }
-        });
+        };
+        worker.execute();
+
     }
 }

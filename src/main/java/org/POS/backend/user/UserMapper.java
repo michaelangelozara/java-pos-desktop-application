@@ -29,29 +29,17 @@ public class UserMapper {
         return user;
     }
 
-    public User toUpdatedUser(UpdateUserRequestDto dto){
-        User user = new User();
-        user.setId(dto.userId());
+    public User toUpdatedUser(User user, UpdateUserRequestDto dto){
         user.setName(dto.name());
-//        user.setDesignation(dto.designation());
-//        user.setEmployeeId(dto.employeeId());
-//        user.setContactNumber(dto.contactNumber());
-//        user.setSalary(dto.salary());
-//        user.setCommission(dto.commission());
-//        user.setBirthDate(dto.birthDate());
-//        user.setGender(dto.gender());
-//        user.setBloodGroup(dto.bloodGroup());
-//        user.setReligion(dto.religion());
-//        user.setAppointmentDate(dto.appointmentDate());
-//        user.setJoinDate(dto.joinDate());
-//        user.setAddress(dto.address());
-//        user.setStatus(dto.status());
-//        user.setProfilePicture(dto.profilePicture());
-//        user.setRole(dto.role());
-//        if(dto.isAccountAllowed()){
-//            user.setUsername(dto.username());
-//            user.setPassword(dto.password());
-//        }
+        user.setRole(dto.role());
+        if(!dto.password().isEmpty()){
+            String encryptedPassword = BCrypt.hashpw(dto.password(), BCrypt.gensalt(10));
+            user.setPassword(encryptedPassword);
+        }
+        user.setEmail(dto.email());
+        user.setContactNumber(dto.contactNumber());
+        user.setStatus(dto.status());
+
         return user;
     }
 

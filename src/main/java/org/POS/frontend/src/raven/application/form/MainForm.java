@@ -166,8 +166,14 @@ public class MainForm extends JLayeredPane {
 
                     break;
                 case 15:
-                    CurrentUser.isPosLoginSetup = false;
-                    Application.logout();
+                    if(CurrentUser.isPosLoginSetup){
+                        int result = JOptionPane.showConfirmDialog(null, "Close the Register for Final Cash", "Confirmation", JOptionPane.WARNING_MESSAGE);
+                        if(result == JOptionPane.OK_OPTION){
+                            Application.showForm(new POS());
+                        }
+                    }else{
+                        Application.logout();
+                    }
                     break;
                 default:
                     action.cancel();

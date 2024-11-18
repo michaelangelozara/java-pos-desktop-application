@@ -1,10 +1,12 @@
 package org.POS.backend.order;
 
 import org.POS.backend.configuration.HibernateUtil;
+import org.POS.backend.payment.Payment;
 import org.POS.backend.product.Product;
 import org.POS.backend.return_product.ReturnProduct;
 import org.POS.backend.sale.Sale;
 import org.POS.backend.sale_item.SaleItem;
+import org.POS.backend.user.User;
 import org.POS.backend.user_log.UserLog;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
@@ -48,6 +50,9 @@ public class OrderDAO {
 
             Hibernate.initialize(order.getSale());
             Hibernate.initialize(order.getSale().getSaleItems());
+            Hibernate.initialize(order.getPerson().getStocks());
+            Hibernate.initialize(order.getPerson().getPayments());
+            Hibernate.initialize(order.getSale().getInvoice().getPayments());
 
         }catch (Exception e){
             e.printStackTrace();
@@ -91,13 +96,14 @@ public class OrderDAO {
         }
     }
 
-    public void updateOrderAmountDue(Order order, Sale sale){
+    public void updateOrderAmountDue(Order order, Sale sale, Payment payment){
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()){
             transaction = session.beginTransaction();
 
             session.merge(order);
             session.merge(sale);
+            session.persist(payment);
 
             transaction.commit();
         }catch (Exception e){

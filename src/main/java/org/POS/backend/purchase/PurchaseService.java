@@ -1,5 +1,6 @@
 package org.POS.backend.purchase;
 
+import org.POS.backend.code_generator.CodeGeneratorService;
 import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.global_variable.GlobalVariable;
 import org.POS.backend.global_variable.UserActionPrefixes;
@@ -7,6 +8,8 @@ import org.POS.backend.person.PersonDAO;
 import org.POS.backend.person.PersonType;
 import org.POS.backend.product.ProductDAO;
 import org.POS.backend.purchased_item.*;
+import org.POS.backend.stock.Stock;
+import org.POS.backend.stock.StockType;
 import org.POS.backend.user.UserDAO;
 import org.POS.backend.user_log.UserLog;
 
@@ -29,6 +32,8 @@ public class PurchaseService {
 
     private PurchaseItemDAO purchaseItemDAO;
 
+    private CodeGeneratorService codeGeneratorService;
+
     public PurchaseService() {
         this.purchaseDAO = new PurchaseDAO();
         this.purchaseMapper = new PurchaseMapper();
@@ -37,6 +42,7 @@ public class PurchaseService {
         this.productDAO = new ProductDAO();
         this.userDAO = new UserDAO();
         this.purchaseItemDAO = new PurchaseItemDAO();
+        this.codeGeneratorService = new CodeGeneratorService();
     }
 
     public String add(AddPurchaseRequestDto dto, Set<AddPurchaseItemRequestDto> purchaseItemDtoList) {
@@ -55,6 +61,7 @@ public class PurchaseService {
 
             var products = this.productDAO.getAllValidProductsByProductIds(productIds);
             List<PurchaseItem> purchaseItemList = new ArrayList<>();
+            List<Stock> stocks = new ArrayList<>();
             for (var product : products) {
                 for (var purchaseItemDto : purchaseItemDtoList) {
                     if (product.getId() == purchaseItemDto.productId()) {
@@ -62,6 +69,19 @@ public class PurchaseService {
                         product.addPurchaseItem(purchaseItem);
                         purchase.addPurchaseItem(purchaseItem);
                         purchaseItemList.add(purchaseItem);
+
+                        Stock stock = new Stock();
+                        stock.setDate(LocalDate.now());
+                        stock.setStockInOrOut(purchaseItem.getQuantity());
+                        stock.setPrice(purchaseItem.getSubtotal());
+                        stock.setType(StockType.IN);
+                        stock.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.STOCK_IN_PREFIX));
+
+                        user.addStock(stock);
+                        supplier.addStock(stock);
+                        product.addStock(stock);
+
+                        product.setStock(product.getStock() + purchaseItem.getQuantity());
                         break;
                     }
                 }
@@ -73,7 +93,7 @@ public class PurchaseService {
             userLog.setAction(UserActionPrefixes.PURCHASES_ADD_ACTION_LOG_PREFIX);
             user.addUserLog(userLog);
 
-            this.purchaseDAO.add(purchase, purchaseItemList, userLog);
+            this.purchaseDAO.add(purchase, purchaseItemList, userLog, products);
         }
         return GlobalVariable.PURCHASE_ADDED;
     }

@@ -2,7 +2,10 @@ package org.POS.backend.purchase;
 
 import jakarta.persistence.NoResultException;
 import org.POS.backend.configuration.HibernateUtil;
+import org.POS.backend.person.Person;
+import org.POS.backend.product.Product;
 import org.POS.backend.purchased_item.PurchaseItem;
+import org.POS.backend.user.User;
 import org.POS.backend.user_log.UserLog;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
@@ -12,6 +15,7 @@ import org.hibernate.Transaction;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class PurchaseDAO {
 
@@ -21,13 +25,22 @@ public class PurchaseDAO {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public void add(Purchase purchase, List<PurchaseItem> purchaseItems, UserLog userLog) {
+    public void add(
+            Purchase purchase,
+            List<PurchaseItem> purchaseItems,
+            UserLog userLog,
+            Set<Product> products
+    ) {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
             session.persist(purchase);
             for (var purchaseItem : purchaseItems) {
                 session.persist(purchaseItem);
+            }
+
+            for (var product : products) {
+                session.merge(product);
             }
 
             session.persist(userLog);
@@ -47,7 +60,7 @@ public class PurchaseDAO {
 
             session.merge(purchase);
 
-            for(var purchaseItem : purchaseItems){
+            for (var purchaseItem : purchaseItems) {
                 session.merge(purchaseItem);
             }
 
@@ -111,6 +124,7 @@ public class PurchaseDAO {
         }
         return purchases;
     }
+
     public List<Purchase> getAllValidPurchasesWithoutLimit() {
         List<Purchase> purchases = new ArrayList<>();
         try (Session session = sessionFactory.openSession()) {
@@ -147,45 +161,45 @@ public class PurchaseDAO {
         return purchases;
     }
 
-    public List<Purchase> getAllValidPurchasesByCodeAndSupplier(String query){
+    public List<Purchase> getAllValidPurchasesByCodeAndSupplier(String query) {
         List<Purchase> purchases = new ArrayList<>();
-        try (Session session = sessionFactory.openSession()){
+        try (Session session = sessionFactory.openSession()) {
 
             purchases = session.createQuery("SELECT p FROM Purchase p WHERE (p.code LIKE :query OR p.person.name LIKE :query) AND p.isDeleted = FALSE", Purchase.class)
                     .setParameter("query", "%" + query + "%")
                     .getResultList();
 
-            for(var purchase : purchases){
+            for (var purchase : purchases) {
                 Hibernate.initialize(purchase.getPurchaseItems());
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return purchases;
     }
 
-    public List<Purchase> getAllValidPurchaseByRange(LocalDate start, LocalDate end){
+    public List<Purchase> getAllValidPurchaseByRange(LocalDate start, LocalDate end) {
         List<Purchase> purchases = new ArrayList<>();
-        try (Session session = sessionFactory.openSession()){
+        try (Session session = sessionFactory.openSession()) {
 
             purchases = session.createQuery("SELECT p FROM Purchase p WHERE p.createdDate >= :start AND p.createdDate <= :end AND p.isDeleted = FALSE", Purchase.class)
                     .setParameter("start", start)
                     .setParameter("end", end)
                     .getResultList();
 
-            for(var purchase : purchases){
+            for (var purchase : purchases) {
                 Hibernate.initialize(purchase.getPurchaseItems());
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return purchases;
     }
 
-    public List<Purchase> getAllValidPurchaseByRangeAndSupplierId(LocalDate start, LocalDate end, int id){
+    public List<Purchase> getAllValidPurchaseByRangeAndSupplierId(LocalDate start, LocalDate end, int id) {
         List<Purchase> purchases = new ArrayList<>();
-        try (Session session = sessionFactory.openSession()){
+        try (Session session = sessionFactory.openSession()) {
 
             purchases = session.createQuery("SELECT p FROM Purchase p WHERE p.person.id =: id AND (p.createdDate >= :start AND p.createdDate <= :end) AND p.isDeleted = FALSE", Purchase.class)
                     .setParameter("start", start)
@@ -193,11 +207,11 @@ public class PurchaseDAO {
                     .setParameter("id", id)
                     .getResultList();
 
-            for(var purchase : purchases){
+            for (var purchase : purchases) {
                 Hibernate.initialize(purchase.getPurchaseItems());
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return purchases;

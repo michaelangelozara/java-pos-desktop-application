@@ -1,71 +1,108 @@
 
 package org.POS.frontend.src.raven.application.form.other;
 
-import javax.swing.*;
-
-import org.POS.backend.product.Product;
 import org.POS.backend.product.ProductResponseDto;
-import org.POS.backend.product.ProductService;
-import org.POS.frontend.src.raven.cell.TableActionCellRender;
+import org.POS.backend.stock.Stock;
+import org.POS.backend.stock.StockService;
+import org.POS.backend.stock.StockType;
 
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-
-import org.POS.frontend.src.raven.cell.TableActionCellEditor;
-import org.POS.frontend.src.raven.cell.TableActionEvent;
-
 import java.time.LocalDate;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class InventoryHistory extends javax.swing.JPanel {
 
-    private int productId;
-
     private ProductResponseDto product;
 
-    public InventoryHistory(int productId) {
-        this.productId = productId;
+    private StockService stockService;
 
-        ProductService productService = new ProductService();
-        this.product = productService.getValidProductById(productId);
-
+    public InventoryHistory(ProductResponseDto product) {
+        this.product = product;
+        this.stockService = new StockService();
         initComponents();
-
-        TableActionEvent event = new TableActionEvent() {
-            @Override
-            public void onEdit(int row) {
-
-            }
-
-
-            @Override
-            public void onDelete(int row) {
-                if (table.isEditing()) {
-                    table.getCellEditor().stopCellEditing();
-                }
-
-                // Confirm before deleting
-                int confirmation = JOptionPane.showConfirmDialog(null,
-                        "Are you sure you want to delete this SubCategory?",
-                        "Confirm Delete", JOptionPane.YES_NO_OPTION);
-
-                if (confirmation == JOptionPane.YES_OPTION) {
-                    DefaultTableModel model = (DefaultTableModel) table.getModel();
-                    model.removeRow(row);
-                    JOptionPane.showMessageDialog(null, "SubCategory Deleted Successfully",
-                            "Deleted", JOptionPane.INFORMATION_MESSAGE);
-                }
-            }
-
-            @Override
-            public void onView(int row) {
-            }
-        };
-
-
-        table.getColumnModel().getColumn(5).setCellRenderer(new TableActionCellRender());
-        table.getColumnModel().getColumn(5).setCellEditor(new TableActionCellEditor(event));
-
+        loadProductInformation();
     }
 
+    private void loadProductInformation() {
+        jLabel14.setText(this.product.code());
+        jLabel15.setText(this.product.name());
+        jLabel17.setText(this.product.brand().categoryResponseDto().getName());
+        jLabel19.setText(this.product.brand().productSubcategory().getName());
+        loadStockIn();
+        loadStockOut();
+    }
+
+    private void loadStockIn(){
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+
+        SwingWorker<List<Stock>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<Stock> doInBackground() throws Exception {
+                return stockService.getAllValidStockByTypeAndProductId(StockType.IN, product.id());
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var stocks = get();
+
+                    for (int i = 0; i < stocks.size(); i++) {
+                        model.addRow(new Object[]{
+                                i + 1,
+                                stocks.get(i).getDate(),
+                                stocks.get(i).getStockInOrOut(),
+                                stocks.get(i).getPrice(),
+                                stocks.get(i).getCode(),
+                                stocks.get(i).getPerson().getName()
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
+    }
+
+    private void loadStockOut(){
+        DefaultTableModel model = (DefaultTableModel) table1.getModel();
+        model.setRowCount(0);
+
+        SwingWorker<List<Stock>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<Stock> doInBackground() throws Exception {
+                return stockService.getAllValidStockByTypeAndProductId(StockType.OUT, product.id());
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var stocks = get();
+
+                    for (int i = 0; i < stocks.size(); i++) {
+                        model.addRow(new Object[]{
+                                i + 1,
+                                stocks.get(i).getDate(),
+                                stocks.get(i).getStockInOrOut(),
+                                stocks.get(i).getPrice(),
+                                stocks.get(i).getCode(),
+                                stocks.get(i).getPerson().getName()
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
+    }
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -108,12 +145,9 @@ public class InventoryHistory extends javax.swing.JPanel {
 
         table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
-                        {null, null, null, null, null, null},
-                        {null, null, null, null, null, null},
-                        {null, null, null, null, null, null}
                 },
                 new String[]{
-                        "#", "Date", "Stock In", "Price", "Code", "Supplier/Client"
+                        "#", "Date", "Stock In", "Amount", "Code", "Supplier"
                 }
         ) {
             boolean[] canEdit = new boolean[]{
@@ -137,12 +171,9 @@ public class InventoryHistory extends javax.swing.JPanel {
 
         table1.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
-                        {null, null, null, null, null, null},
-                        {null, null, null, null, null, null},
-                        {null, null, null, null, null, null}
                 },
                 new String[]{
-                        "#", "Date", "Stock Out", "Price", "Code", "Supplier/Client"
+                        "#", "Date", "Stock Out", "Amount", "Code", "Client"
                 }
         ) {
             boolean[] canEdit = new boolean[]{

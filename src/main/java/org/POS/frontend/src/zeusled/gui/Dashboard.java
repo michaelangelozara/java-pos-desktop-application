@@ -3,6 +3,7 @@ package org.POS.frontend.src.zeusled.gui;
 import org.POS.backend.expense.ExpenseService;
 import org.POS.backend.product.ProductResponseDto;
 import org.POS.backend.product.ProductService;
+import org.POS.backend.sale.SaleService;
 import org.POS.frontend.src.javaswingdev.card.ModelCard;
 import org.POS.frontend.src.raven.application.Application;
 import org.POS.frontend.src.raven.application.form.other.BeforePOS;
@@ -121,9 +122,30 @@ public class Dashboard extends JPanel {
         };
         totalExpenseWorker.execute();
 
+        SaleService saleService = new SaleService();
+        SwingWorker<BigDecimal, Void> totalSalesWorker = new SwingWorker<BigDecimal, Void>() {
+            @Override
+            protected BigDecimal doInBackground() throws Exception {
+                return saleService.getTotalSales();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    BigDecimal totalSales = get();
+                    card1.setData(new ModelCard(null, null, null, "₱ " + totalSales, "Total Sales"));
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        totalSalesWorker.execute();
+
         //  init card data
-        card1.setData(new ModelCard(null, null, null, "₱ 500.00", "Total Sales"));
-        card2.setData(new ModelCard(null, null, null, "Loading...", "Items Out of Stock"));
+        card1.setData(new ModelCard(null, null, null, "₱ Loading", "Total Sales"));
+        card2.setData(new ModelCard(null, null, null, "₱ Loading...", "Items Out of Stock"));
         card3.setData(new ModelCard(null, null, null, "₱ Loading...", "Inventory Value"));
         card4.setData(new ModelCard(null, null, null, "₱ Loading...", "Expenses"));
     }

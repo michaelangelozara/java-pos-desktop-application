@@ -5,6 +5,7 @@ import org.POS.backend.inventory_adjustment.*;
 import org.POS.backend.product.Product;
 import org.POS.backend.product.ProductResponseDto;
 import org.POS.backend.product.ProductService;
+import org.POS.frontend.src.raven.application.Application;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
 import org.POS.frontend.src.raven.cell.TableActionEvent;
@@ -17,6 +18,7 @@ import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 
 public class InventoryAdjustment extends javax.swing.JPanel {
@@ -274,17 +276,34 @@ public class InventoryAdjustment extends javax.swing.JPanel {
 
             @Override
             public void onDelete(int row) {
-                if (table.isEditing()) {
-                    table.getCellEditor().stopCellEditing();
-                }
-
                 JOptionPane.showMessageDialog(null, "Deletion here is prohibited");
             }
 
             @Override
             public void onView(int row) {
-//        Application.showForm(new InventoryHistory());
+                DefaultTableModel model = (DefaultTableModel) table.getModel();
+                int id = (Integer) model.getValueAt(row, 1);
 
+                InventoryAdjustmentService inventoryAdjustmentService = new InventoryAdjustmentService();
+                SwingWorker<InventoryAdjustmentResponseDto, Void> worker = new SwingWorker<>() {
+                    @Override
+                    protected InventoryAdjustmentResponseDto doInBackground() throws Exception {
+                        return inventoryAdjustmentService.getValidInventoryAdjustmentById(id);
+                    }
+
+                    @Override
+                    protected void done() {
+                        try {
+                            var inventory = get();
+                            Application.showForm(new InventoryAdjustment_Details(inventory));
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        } catch (ExecutionException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                };
+                worker.execute();
             }
         };
 

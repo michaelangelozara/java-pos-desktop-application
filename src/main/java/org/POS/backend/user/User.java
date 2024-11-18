@@ -7,9 +7,11 @@ import org.POS.backend.cash_transaction.CashTransaction;
 import org.POS.backend.expense.Expense;
 import org.POS.backend.inventory_adjustment.InventoryAdjustment;
 import org.POS.backend.open_cash.OpenCash;
+import org.POS.backend.payment.Payment;
 import org.POS.backend.purchase.Purchase;
 import org.POS.backend.quotation.Quotation;
 import org.POS.backend.return_product.ReturnProduct;
+import org.POS.backend.return_purchase.ReturnPurchase;
 import org.POS.backend.sale.Sale;
 import org.POS.backend.stock.Stock;
 import org.POS.backend.user_log.UserLog;
@@ -87,6 +89,22 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserLog> userLogs = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ReturnPurchase> returnPurchases = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Payment> payments = new ArrayList<>();
+
+    public void addPayment(Payment payment){
+        payments.add(payment);
+        payment.setUser(this);
+    }
+
+    public void addReturnPurchase(ReturnPurchase returnPurchase){
+        returnPurchases.add(returnPurchase);
+        returnPurchase.setUser(this);
+    }
 
     public void addUserLog(UserLog userLog){
         userLogs.add(userLog);

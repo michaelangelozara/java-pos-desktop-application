@@ -41,6 +41,10 @@ public class Stock {
     private User user;
 
     @ManyToOne
+    @JoinColumn(name = "person_id")
+    private Person person;
+
+    @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
 }

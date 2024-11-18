@@ -14,6 +14,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -115,6 +116,23 @@ public class SaleDAO {
         return sales;
     }
 
+    public List<Sale> getAllValidSalesByRangeWithoutDto(LocalDate start, LocalDate end){
+        List<Sale> sales = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            sales = session.createQuery("SELECT s FROM Sale s WHERE s.date >= :start AND s.date <= :end", Sale.class)
+                    .setParameter("start", start)
+                    .setParameter("end", end)
+                    .getResultList();
+
+            sales.forEach(s -> Hibernate.initialize(s.getSaleItems()));
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return sales;
+    }
+
     public List<Sale> getAllValidSalesByRange(LocalDate start, LocalDate end){
         List<Sale> sales = new ArrayList<>();
         try (Session session = sessionFactory.openSession()){
@@ -161,5 +179,33 @@ public class SaleDAO {
             e.printStackTrace();
         }
         return sales;
+    }
+
+    public List<Sale> getAllValidPOSales(LocalDate start,LocalDate end, SaleTransactionMethod method){
+        List<Sale> sales = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            sales = session.createQuery("SELECT s FROM Sale s WHERE (s.date >= :start AND s.date <= : end) AND s.transactionMethod =: method", Sale.class)
+                    .setParameter("method", method)
+                    .setParameter("start", start)
+                    .setParameter("end", end)
+                    .getResultList();
+
+            sales.forEach(s -> Hibernate.initialize(s.getInvoice()));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return sales;
+    }
+
+    public BigDecimal getTotalSales(){
+        BigDecimal totalSales = BigDecimal.ZERO;
+        try (Session session = sessionFactory.openSession()){
+            totalSales = session.createQuery("SELECT SUM(s.amount) FROM Sale s", BigDecimal.class)
+                    .getSingleResult();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return totalSales;
     }
 }

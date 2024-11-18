@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.POS.backend.brand.BrandService;
 import org.POS.backend.cash_transaction.TransactionPaymentMethod;
 import org.POS.backend.cryptography.Base64Converter;
+import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.person.AddPersonRequestDto;
 import org.POS.backend.person.PersonService;
 import org.POS.backend.person.PersonStatus;
@@ -20,6 +21,7 @@ import org.POS.backend.sale.SaleService;
 import org.POS.backend.sale_item.AddSaleItemRequestDto;
 import org.POS.frontend.src.com.raven.component.Item;
 import org.POS.frontend.src.com.raven.model.ModelItem;
+import org.POS.frontend.src.raven.application.Application;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -60,6 +62,15 @@ public class POS extends JPanel {
     public POS() {
         selectedItems = new ArrayList<>();
         initComponents();
+        jButton4.addActionListener(e -> {
+            cashOut();
+        });
+    }
+
+    private void cashOut(){
+        if(CurrentUser.isPosLoginSetup){
+            Application.showForm(new AfterPOS());
+        }
     }
 
     private void reloadProductTable() {
@@ -170,6 +181,7 @@ public class POS extends JPanel {
         jLabel7 = new JLabel();
         jLabel6 = new JLabel();
         jButton1 = new JButton();
+        jButton4 = new JButton();
 
         jPanel1.setBorder(BorderFactory.createEtchedBorder());
 
@@ -620,6 +632,11 @@ public class POS extends JPanel {
             }
         });
 
+        jButton4.setBackground(new java.awt.Color(255, 153, 153));
+        jButton4.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        jButton4.setText("Close Register");
+
+
         GroupLayout jPanel1Layout = new GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -636,7 +653,8 @@ public class POS extends JPanel {
                                                 .addComponent(jButton1, GroupLayout.PREFERRED_SIZE, 190, GroupLayout.PREFERRED_SIZE))
                                         .addGroup(jPanel1Layout.createSequentialGroup()
                                                 .addComponent(jLabel5)
-                                                .addGap(0, 0, Short.MAX_VALUE))
+                                                .addGap(0, 0, Short.MAX_VALUE)
+                                                .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 194, javax.swing.GroupLayout.PREFERRED_SIZE))
                                         .addComponent(roundPanel2, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                 .addContainerGap())
         );
@@ -645,6 +663,7 @@ public class POS extends JPanel {
                         .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addContainerGap()
                                 .addComponent(jLabel5)
+                                .addComponent(jButton4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jSeparator1, GroupLayout.PREFERRED_SIZE, 10, GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
@@ -1606,6 +1625,7 @@ public class POS extends JPanel {
     private JButton jButton1;
     private JButton jButton2;
     private JButton jButton3;
+    private JButton jButton4;
     private JComboBox<String> jComboBox1;
     private JComboBox<String> jComboBox2;
     private JComboBox<String> jComboBox3;

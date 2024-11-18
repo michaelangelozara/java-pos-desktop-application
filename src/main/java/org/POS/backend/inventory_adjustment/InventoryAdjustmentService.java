@@ -19,25 +19,25 @@ public class InventoryAdjustmentService {
 
     private InventoryAdjustmentMapper inventoryAdjustmentMapper;
 
-    public InventoryAdjustmentService(){
+    public InventoryAdjustmentService() {
         this.inventoryAdjustmentDAO = new InventoryAdjustmentDAO();
         this.userDAO = new UserDAO();
         this.productDAO = new ProductDAO();
         this.inventoryAdjustmentMapper = new InventoryAdjustmentMapper();
     }
 
-    public void add(AddInventoryAdjustmentDto dto){
+    public void add(AddInventoryAdjustmentDto dto) {
         var user = this.userDAO.getUserById(CurrentUser.id);
         var product = this.productDAO.getValidProduct(dto.productId());
 
-        if(user != null && product != null){
+        if (user != null && product != null) {
             var inventoryAdjustment = this.inventoryAdjustmentMapper.toInventoryAdjustment(dto);
             user.addInventoryAdjustment(inventoryAdjustment);
             product.addInventoryAdjustment(inventoryAdjustment);
 
-            if(dto.type().equals(InventoryAdjustmentType.INCREMENT)){
+            if (dto.type().equals(InventoryAdjustmentType.INCREMENT)) {
                 product.setStock(product.getStock() + dto.quantity());
-            }else{
+            } else {
                 product.setStock(product.getStock() - dto.quantity());
             }
 
@@ -51,31 +51,31 @@ public class InventoryAdjustmentService {
         }
     }
 
-    public void update(UpdateInventoryAdjustmentRequestDto dto){
+    public void update(UpdateInventoryAdjustmentRequestDto dto) {
         var user = this.userDAO.getUserById(CurrentUser.id);
         var inventoryAdjustment = this.inventoryAdjustmentDAO.getValidInventoryAdjustmentById(dto.id());
 
-        if(user != null && inventoryAdjustment != null){
+        if (user != null && inventoryAdjustment != null) {
             boolean isInventoryAdjustmentInTheUserAlready = false;
-            for(var tempInventoryAdjustment : user.getInventoryAdjustments()){
+            for (var tempInventoryAdjustment : user.getInventoryAdjustments()) {
                 // check if the inventory adjustment is in the user already
-                if(inventoryAdjustment.getId().equals(tempInventoryAdjustment.getId())){
+                if (inventoryAdjustment.getId().equals(tempInventoryAdjustment.getId())) {
                     isInventoryAdjustmentInTheUserAlready = true;
                     break;
                 }
             }
 
             // if the inventoryAdjustment is not the user's inventory adjustment yet then add
-            if(!isInventoryAdjustmentInTheUserAlready){
+            if (!isInventoryAdjustmentInTheUserAlready) {
                 user.addInventoryAdjustment(inventoryAdjustment);
             }
 
             this.inventoryAdjustmentMapper.toUpdatedInventoryAdjustment(inventoryAdjustment, dto);
             var product = inventoryAdjustment.getProduct();
 
-            if(dto.type().equals(InventoryAdjustmentType.INCREMENT)){
+            if (dto.type().equals(InventoryAdjustmentType.INCREMENT)) {
                 product.setStock(product.getStock() + dto.quantity());
-            }else{
+            } else {
                 product.setStock(product.getStock() - dto.quantity());
             }
 
@@ -89,13 +89,21 @@ public class InventoryAdjustmentService {
         }
     }
 
-    public List<InventoryAdjustmentResponseDto> getAllValidInventoryAdjustment(int number){
+    public List<InventoryAdjustmentResponseDto> getAllValidInventoryAdjustment(int number) {
         return this.inventoryAdjustmentMapper.toInventoryAdjustmentResponseDtoList(
                 this.inventoryAdjustmentDAO.getAllValidInventoryAdjustment(number)
         );
     }
 
-    public InventoryAdjustmentResponseDto getValidInventoryAdjustmentById(int id){
+    public InventoryAdjustmentResponseDto getValidInventoryAdjustmentById(int id) {
         return this.inventoryAdjustmentMapper.toInventoryAdjustmentResponseDto(this.inventoryAdjustmentDAO.getValidInventoryAdjustmentById(id));
+    }
+
+    public List<InventoryAdjustmentResponseDto> getAllValidInventoryAdjustment(){
+        return this.inventoryAdjustmentMapper.toInventoryAdjustmentResponseDtoList(this.inventoryAdjustmentDAO.getAllValidInventoryAdjustment());
+    }
+
+    public List<InventoryAdjustmentResponseDto> getAllValidInventoryAdjustmentByQuery(String query){
+        return this.inventoryAdjustmentMapper.toInventoryAdjustmentResponseDtoList(this.inventoryAdjustmentDAO.getAllValidInventoryAdjustmentByQuery(query));
     }
 }

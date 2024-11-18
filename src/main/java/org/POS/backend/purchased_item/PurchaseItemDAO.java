@@ -32,6 +32,8 @@ public class PurchaseItemDAO {
                 Hibernate.initialize(purchaseItem.getReturnPurchases());
             }
 
+            purchaseItems.forEach(p -> Hibernate.initialize(p.getProduct().getStocks()));
+
             session.getTransaction().commit();
         }catch (Exception e){
             e.printStackTrace();

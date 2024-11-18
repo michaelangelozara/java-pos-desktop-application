@@ -85,4 +85,32 @@ public class InventoryAdjustmentDAO {
         }
         return inventoryAdjustment;
     }
+
+    public List<InventoryAdjustment> getAllValidInventoryAdjustment(){
+        List<InventoryAdjustment> inventoryAdjustments = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            inventoryAdjustments = session.createQuery("SELECT ia FROM InventoryAdjustment ia", InventoryAdjustment.class)
+                    .setMaxResults(50)
+                    .getResultList();
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return inventoryAdjustments;
+    }
+
+    public List<InventoryAdjustment> getAllValidInventoryAdjustmentByQuery(String query){
+        List<InventoryAdjustment> inventoryAdjustments = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            inventoryAdjustments = session.createQuery("SELECT ia FROM InventoryAdjustment ia WHERE ia.product.name LIKE :query OR ia.code LIKE : query OR STR(ia.type) LIKE : query", InventoryAdjustment.class)
+                    .setParameter("query", "%" + query + "%")
+                    .getResultList();
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return inventoryAdjustments;
+    }
 }

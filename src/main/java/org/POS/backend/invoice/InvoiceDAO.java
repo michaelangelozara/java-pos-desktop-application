@@ -45,6 +45,8 @@ public class InvoiceDAO {
                     .setParameter("id", id)
                     .getSingleResult();
 
+            Hibernate.initialize(invoice.getPayments());
+            Hibernate.initialize(invoice.getSale().getSaleItems());
         } catch (Exception e) {
             throw new NoResultException("No invoice found");
         }

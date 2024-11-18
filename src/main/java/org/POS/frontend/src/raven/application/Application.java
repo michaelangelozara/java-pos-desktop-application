@@ -5,18 +5,14 @@ import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
 import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import org.POS.frontend.src.raven.application.form.LoginForm;
 import org.POS.frontend.src.raven.application.form.MainForm;
 import raven.toast.Notifications;
 
+import javax.swing.*;
+import java.awt.*;
+
 /**
- *
  * @author Raven
  */
 public class Application extends javax.swing.JFrame {
@@ -25,16 +21,16 @@ public class Application extends javax.swing.JFrame {
     private final MainForm mainForm;
     private final LoginForm loginForm;
 
-   public Application() {
-    initComponents();
-    setLocationRelativeTo(null);
-    mainForm = new MainForm();
-    loginForm = new LoginForm();
-    setContentPane(loginForm);
-    getRootPane().putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true);
-    setExtendedState(JFrame.MAXIMIZED_BOTH); // Make the window full screen
-    Notifications.getInstance().setJFrame(this);
-}
+    public Application() {
+        initComponents();
+        setLocationRelativeTo(null);
+        mainForm = new MainForm();
+        loginForm = new LoginForm();
+        setContentPane(loginForm);
+        getRootPane().putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true);
+        setExtendedState(JFrame.MAXIMIZED_BOTH); // Make the window full screen
+        Notifications.getInstance().setJFrame(this);
+    }
 
 
     public static void showForm(Component component) {
@@ -73,12 +69,12 @@ public class Application extends javax.swing.JFrame {
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 719, Short.MAX_VALUE)
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 719, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 521, Short.MAX_VALUE)
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 521, Short.MAX_VALUE)
         );
 
         pack();

@@ -93,6 +93,7 @@ public class SaleService {
                         stock.setType(StockType.OUT);
                         stock.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.STOCK_IN_PREFIX));
 
+                        customer.addStock(stock);
                         user.addStock(stock);
                         product.addStock(stock);
 
@@ -186,7 +187,19 @@ public class SaleService {
         return this.saleDAO.getAllSalesByCashTransactionType(type);
     }
 
-    public List<Sale> getALlValidPOSales(int number){
+    public List<Sale> getAllValidPOSalesWithLimit(int number){
         return this.saleDAO.getAllValidPOSales(number, SaleTransactionMethod.PO_PAYMENT);
+    }
+
+    public List<Sale> getAllValidPOSalesWithoutLimit(LocalDate start, LocalDate end){
+        return this.saleDAO.getAllValidPOSales(start, end, SaleTransactionMethod.PO_PAYMENT);
+    }
+
+    public List<Sale> getAllValidSalesByRangeAndWithoutDto(LocalDate start, LocalDate end){
+       return this.saleDAO.getAllValidSalesByRangeWithoutDto(start, end);
+    }
+
+    public BigDecimal getTotalSales(){
+        return this.saleDAO.getTotalSales();
     }
 }

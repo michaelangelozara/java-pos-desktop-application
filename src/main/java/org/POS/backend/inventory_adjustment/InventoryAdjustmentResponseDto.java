@@ -14,6 +14,7 @@ public record InventoryAdjustmentResponseDto(
         LocalDate date,
         InventoryAdjustmentStatus status,
         InventoryAdjustmentType type,
-        String note
+        String note,
+        int quantity
 ) {
 }

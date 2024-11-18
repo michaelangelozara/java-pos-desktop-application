@@ -1,6 +1,7 @@
 
 package org.POS.frontend.src.raven.application.form.other;
 
+import org.POS.backend.cash_transaction.CashTransactionResponseDto;
 import org.POS.backend.cash_transaction.CashTransactionService;
 import org.POS.frontend.src.raven.application.Application;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
@@ -21,9 +22,11 @@ import java.awt.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
 
 
 public class Cash_Transaction extends javax.swing.JPanel {
@@ -684,19 +687,37 @@ public class Cash_Transaction extends javax.swing.JPanel {
         model.setRowCount(0);
 
         CashTransactionService cashTransactionService = new CashTransactionService();
-        var cashTransactions = cashTransactionService.getAllValidCashTransactionsByRange(fromDate, toDate);
+        SwingWorker<List<CashTransactionResponseDto>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<CashTransactionResponseDto> doInBackground() {
+                var cashTransactions = cashTransactionService.getAllValidCashTransactionsByRange(fromDate, toDate);
+                return cashTransactions;
+            }
 
-        for (int i = 0; i < cashTransactions.size(); i++) {
-            model.addRow(new Object[]{
-                    i + 1,
-                    cashTransactions.get(i).id(),
-                    cashTransactions.get(i).reference(),
-                    cashTransactions.get(i).cashIn(),
-                    cashTransactions.get(i).cashOut(),
-                    cashTransactions.get(i).paymentMethod(),
-                    cashTransactions.get(i).username(),
-                    cashTransactions.get(i).dateTime()
-            });
-        }
+            @Override
+            protected void done() {
+                try {
+                    var cashTransactions = get();
+
+                    for (int i = 0; i < cashTransactions.size(); i++) {
+                        model.addRow(new Object[]{
+                                i + 1,
+                                cashTransactions.get(i).id(),
+                                cashTransactions.get(i).reference(),
+                                cashTransactions.get(i).cashIn(),
+                                cashTransactions.get(i).cashOut(),
+                                cashTransactions.get(i).paymentMethod(),
+                                cashTransactions.get(i).username(),
+                                cashTransactions.get(i).dateTime()
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
     }
 }
