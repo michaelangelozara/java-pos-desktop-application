@@ -341,7 +341,7 @@ public class ProfitLoss_Report extends javax.swing.JPanel {
         model.setRowCount(0);
 
         SaleService saleService = new SaleService();
-        var sales = saleService.getAllValidSalesWithNoDto(50);
+        var sales = saleService.getAllValidSalesWithoutDto(50);
         int rowNumber = 1;
 
         BigDecimal totalCostOfGoodsSummation = BigDecimal.ZERO;

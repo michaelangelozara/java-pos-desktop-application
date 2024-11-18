@@ -178,11 +178,15 @@ public class SaleService {
         return this.saleMapper.toSaleResponseDtoList(this.saleDAO.getAllValidSalesByRange(start, end));
     }
 
-    public List<Sale> getAllValidSalesWithNoDto(int numberOfSales){
+    public List<Sale> getAllValidSalesWithoutDto(int numberOfSales){
         return this.saleDAO.getAllValidSales(numberOfSales);
     }
 
     public List<Sale> getAllValidSalesByCashTransactionType(TransactionPaymentMethod type){
         return this.saleDAO.getAllSalesByCashTransactionType(type);
+    }
+
+    public List<Sale> getALlValidPOSales(int number){
+        return this.saleDAO.getAllValidPOSales(number, SaleTransactionMethod.PO_PAYMENT);
     }
 }

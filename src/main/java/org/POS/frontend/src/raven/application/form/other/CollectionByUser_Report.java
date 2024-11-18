@@ -4,6 +4,14 @@
  */
 package org.POS.frontend.src.raven.application.form.other;
 
+import org.POS.backend.sale.Sale;
+import org.POS.backend.sale.SaleService;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+
 /**
  *
  * @author CJ
@@ -15,6 +23,43 @@ public class CollectionByUser_Report extends javax.swing.JPanel {
      */
     public CollectionByUser_Report() {
         initComponents();
+        loadTable();
+    }
+
+    private void loadTable(){
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        model.setRowCount(0);
+
+        SaleService saleService = new SaleService();
+        SwingWorker<List<Sale>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<Sale> doInBackground() {
+                return saleService.getALlValidPOSales(50);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var sales = get();
+                    for(int i = 0; i < sales.size(); i++){
+                        model.addRow(new Object[]{
+                                i+1,
+                                sales.get(i).getUser().getName(),
+                                sales.get(i).getInvoice().getCode(),
+                                sales.get(i).getPerson().getName(),
+                                sales.get(i).getNetTotal(),
+                                sales.get(i).getAmount(),
+                                sales.get(i).getDate()
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
     }
 
     /**

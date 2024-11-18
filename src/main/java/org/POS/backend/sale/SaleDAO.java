@@ -107,9 +107,7 @@ public class SaleDAO {
                     .setMaxResults(number)
                     .getResultList();
 
-            for(var sale : sales){
-                Hibernate.initialize(sale.getSaleItems());
-            }
+            sales.forEach(s -> Hibernate.initialize(s.getSaleItems()));
 
         }catch (Exception e){
             e.printStackTrace();
@@ -136,15 +134,29 @@ public class SaleDAO {
         List<Sale> sales = new ArrayList<>();
         try (Session session = sessionFactory.openSession()){
 
-            sales = session.createQuery("SELECT s FROM Sale s JOIN FETCH s.cashTransaction ct WHERE ct.cashTransactionPaymentMethod =: type", Sale.class)
+            sales = session.createQuery("SELECT s FROM Sale s JOIN FETCH s.cashTransaction ct WHERE ct.transactionPaymentMethod =: type", Sale.class)
                     .setParameter("type", type)
                     .setMaxResults(50)
                     .getResultList();
 
-            for(var sale : sales){
-                Hibernate.initialize(sale.getSaleItems());
-            }
+            sales.forEach(s -> Hibernate.initialize(s.getSaleItems()));
 
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return sales;
+    }
+
+    public List<Sale> getAllValidPOSales(int number, SaleTransactionMethod method){
+        List<Sale> sales = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            sales = session.createQuery("SELECT s FROM Sale s WHERE s.transactionMethod =: method", Sale.class)
+                    .setParameter("method", method)
+                    .setMaxResults(number)
+                    .getResultList();
+
+            sales.forEach(s -> Hibernate.initialize(s.getInvoice()));
         }catch (Exception e){
             e.printStackTrace();
         }

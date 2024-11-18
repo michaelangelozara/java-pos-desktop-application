@@ -1,6 +1,5 @@
 package org.POS.backend.user;
 
-import org.POS.backend.exception.ResourceNotFoundException;
 import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.global_variable.GlobalVariable;
 import org.POS.backend.global_variable.UserActionPrefixes;
@@ -32,7 +31,7 @@ public class UserService {
         userLog.setCode(user.getEmployeeId());
         userLog.setDate(LocalDate.now());
         userLog.setAction(UserActionPrefixes.USER_MANAGEMENT_ADD_ACTION_LOG_PREFIX);
-        user.addUserLog(userLog);
+        fetchedUser.addUserLog(userLog);
 
         this.userDAO.add(user, userLog);
     }
@@ -81,7 +80,6 @@ public class UserService {
             CurrentUser.id = user.getId();
             CurrentUser.employeeId = user.getEmployeeId();
             CurrentUser.username = user.getUsername();
-
             return true;
         }catch (Exception e){
             e.printStackTrace();

@@ -3,10 +3,7 @@ package org.POS.frontend.src.raven.application.form.other;
 
 import org.POS.backend.person.PersonResponseDto;
 import org.POS.backend.person.PersonService;
-import org.POS.backend.user.AddUserRequestDto;
-import org.POS.backend.user.UserRole;
-import org.POS.backend.user.UserService;
-import org.POS.backend.user.UserStatus;
+import org.POS.backend.user.*;
 import org.POS.frontend.src.raven.application.Application;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
@@ -70,18 +67,18 @@ public class User_List extends javax.swing.JPanel {
             public void onView(int row) {
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
                 int id = (Integer) model.getValueAt(row, 1);
-                PersonService personService = new PersonService();
-                SwingWorker<PersonResponseDto, Void> worker = new SwingWorker<PersonResponseDto, Void>() {
+                UserService userService = new UserService();
+                SwingWorker<UserResponseDto, Void> worker = new SwingWorker<>() {
                     @Override
-                    protected PersonResponseDto doInBackground() throws Exception {
-                        return personService.getValidPersonById(id);
+                    protected UserResponseDto doInBackground() throws Exception {
+                        return userService.getValidUserById(id);
                     }
 
                     @Override
                     protected void done() {
                         try {
-                            var person = get();
-                            Application.showForm(new User_Details(person));
+                            var user = get();
+                            Application.showForm(new User_Details(user));
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         } catch (ExecutionException e) {

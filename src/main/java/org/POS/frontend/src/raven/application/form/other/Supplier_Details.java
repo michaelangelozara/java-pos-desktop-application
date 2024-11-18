@@ -899,7 +899,6 @@ public class Supplier_Details extends javax.swing.JPanel {
                     jButton2.setText("Loading...");
                     jButton2.setEnabled(false);
                 });
-                Thread.sleep(5000);
                 var purchases = purchaseService.getAllValidPurchaseByRangeAndSupplierId(fromDate, toDate, id);
                 return purchases;
             }

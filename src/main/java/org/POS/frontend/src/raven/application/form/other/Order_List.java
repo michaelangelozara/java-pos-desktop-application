@@ -432,7 +432,6 @@ public class Order_List extends javax.swing.JPanel {
                                 protected Boolean doInBackground() throws Exception {
                                     payButton.setText("Loading...");
                                     payButton.setEnabled(false);
-                                    Thread.sleep(5000);
                                     orderService.updateSaleAmountDue(order, pay);
                                     return true;
                                 }

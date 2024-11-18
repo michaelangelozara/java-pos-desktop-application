@@ -47,9 +47,10 @@ public class User {
     @Column(name = "deleted_at")
     private LocalDate deletedAt;
 
-    @Column(columnDefinition = "VARCHAR(50)", unique = true)
+    @Column(columnDefinition = "VARCHAR(50)", unique = true, nullable = false)
     private String username;
 
+    @Column(columnDefinition = "VARCHAR(1000) NOT NULL")
     private String password;
 
     private String email;

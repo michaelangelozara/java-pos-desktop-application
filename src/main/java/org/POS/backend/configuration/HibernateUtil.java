@@ -31,6 +31,8 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.time.LocalDate;
+
 public class HibernateUtil {
     private static SessionFactory sessionFactory;
 
@@ -80,20 +82,21 @@ public class HibernateUtil {
                         .getSingleResult();
 
                 if (userCount == 0) {
-                    UserService userService = new UserService();
-                    String salt = BCrypt.gensalt(20);
+                    String salt = BCrypt.gensalt(10);
                     String plainText = "password";
                     String encryptedText = BCrypt.hashpw(plainText, salt);
-                    AddUserRequestDto dto = new AddUserRequestDto(
-                            "Administrator",
-                            UserRole.SUPER_ADMIN,
-                            "username",
-                            plainText,
-                            "michaelangelobuccatzara@gmail.com",
-                            "09090909090",
-                            UserStatus.ACTIVE
-                    );
-                    userService.add(dto);
+                    UserDAO userDAO = new UserDAO();
+
+                    User superAdmin = new User();
+                    superAdmin.setName("Administrator");
+                    superAdmin.setRole(UserRole.SUPER_ADMIN);
+                    superAdmin.setUsername("username");
+                    superAdmin.setPassword(encryptedText);
+                    superAdmin.setEmail("michaelangelobuccatzara@gmail.com");
+                    superAdmin.setContactNumber("09090909090");
+                    superAdmin.setStatus(UserStatus.ACTIVE);
+                    superAdmin.setCreatedAt(LocalDate.now());
+                    userDAO.add(superAdmin);
                 }
                 System.out.println("Database connected");
             } catch (Throwable ex) {

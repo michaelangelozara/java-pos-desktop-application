@@ -1,61 +1,143 @@
 
 package org.POS.frontend.src.raven.application.form.other;
 
-import org.POS.backend.person.PersonResponseDto;
+import org.POS.backend.cash_transaction.CashTransactionService;
+import org.POS.backend.user.UserResponseDto;
+import org.POS.backend.user_log.UserLog;
+import org.POS.backend.user_log.UserLogDAO;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Base64;
+import java.util.List;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
 
 public class User_Details extends javax.swing.JPanel {
 
-    private PersonResponseDto client;
+    private UserResponseDto user;
 
-    private ImageIcon clientImage;
+    private Timer timer;
 
-    private boolean hasProfile = false;
-
-    public User_Details(PersonResponseDto client) {
-        this.client = client;
+    public User_Details(UserResponseDto user) {
+        this.user = user;
         // initialize the client's image by passing base64 as argument
-        clientProfileInit(client.image());
         initComponents();
+        loadUserInformation();
+        loadActivityLogs();
     }
 
-    private void clientProfileInit(String imageBase64) {
-        if (imageBase64 != null) {
-            BufferedImage bufferedImage = null;
-            try {
-                byte[] imageBytes = Base64.getDecoder().decode(imageBase64);
-                bufferedImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
-            } catch (IOException e) {
-                e.printStackTrace();
+    private void loadActivityLogs() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+
+        UserLogDAO userLogDAO = new UserLogDAO();
+        int id = this.user.id();
+        SwingWorker<List<UserLog>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<UserLog> doInBackground() throws Exception {
+                var userLogs = userLogDAO.getAllValidUserLogsByUserId(id, 50);
+                return userLogs;
             }
 
-            if (bufferedImage != null) {
-                this.clientImage = new ImageIcon(bufferedImage);
-                this.hasProfile = true;
+            @Override
+            protected void done() {
+                try {
+                    var userLogs = get();
+                    for (int i = 0; i < userLogs.size(); i++) {
+                        model.addRow(new Object[]{
+                                i + 1,
+                                userLogs.get(i).getCode(),
+                                userLogs.get(i).getDate(),
+                                userLogs.get(i).getAction()
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
             }
+        };
+        worker.execute();
+    }
+
+    private void loadUserInformation() {
+        jLabel3.setText(this.user.name());
+        jLabel14.setText(this.user.role().name());
+        jLabel15.setText(this.user.status().name());
+        jLabel12.setText(this.user.contactNumber());
+        jLabel11.setText(this.user.email());
+        jLabel10.setText(this.user.employeeId());
+        jLabel13.setText(this.user.username());
+    }
+
+    private void scheduleQuery(){
+        if (timer != null) {
+            timer.cancel(); // Cancel any existing scheduled query
         }
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                filterList();
+            }
+        }, 400); // Delay of 300 ms
     }
 
-    private void setScaledImageIcon(JLabel label, ImageIcon icon) {
-        Image image = icon.getImage();
-        Image scaledImage = image.getScaledInstance(label.getWidth(), label.getHeight(), Image.SCALE_SMOOTH);
-        label.setIcon(new ImageIcon(scaledImage));
+    private void filterList() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+
+        String code = jTextField2.getText();
+
+        if (code.isEmpty()) {
+            loadActivityLogs();
+            return;
+        }
+
+        UserLogDAO userLogDAO = new UserLogDAO();
+        int id = this.user.id();
+        SwingWorker<List<UserLog>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<UserLog> doInBackground() {
+                var userLogs = userLogDAO.getAllValidUserLogsByTransactionCodeAndUserId(code, id);
+                return userLogs;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var userLogs = get();
+
+                    for (int i = 0; i < userLogs.size(); i++) {
+                        model.addRow(new Object[]{
+                                i + 1,
+                                userLogs.get(i).getCode(),
+                                userLogs.get(i).getDate(),
+                                userLogs.get(i).getAction()
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
     }
+
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -107,7 +189,7 @@ public class User_Details extends javax.swing.JPanel {
         jLabel2.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
 
         jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        jLabel3.setText("Christian James Torres");
+        jLabel3.setText("");
 
         jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel4.setText("Customer ID");
@@ -128,22 +210,22 @@ public class User_Details extends javax.swing.JPanel {
         jLabel9.setText("Status");
 
         jLabel10.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel10.setText("CLNT-0015");
+        jLabel10.setText("");
 
         jLabel11.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel11.setText("sample@gmail.com");
+        jLabel11.setText("");
 
         jLabel12.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel12.setText("09123456789");
+        jLabel12.setText("");
 
         jLabel13.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel13.setText("KiLlerR_B0y");
+        jLabel13.setText("");
 
         jLabel14.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel14.setText("Admin");
+        jLabel14.setText("");
 
         jLabel15.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel15.setText("Active");
+        jLabel15.setText("");
 
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
         jPanel7.setLayout(jPanel7Layout);
@@ -248,7 +330,22 @@ public class User_Details extends javax.swing.JPanel {
         jLabel20.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel20.setText("Activity Logs");
 
-        jTextField2.setText("Search");
+        jTextField2.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+        });
 
         jButton2.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
         jButton2.setText("From - To");
@@ -262,7 +359,7 @@ public class User_Details extends javax.swing.JPanel {
                 new Object[][]{
                 },
                 new String[]{
-                        "#", "Transaction Code","Date", "Actions"
+                        "#", "Transaction Code", "Date", "Actions"
                 }
         ) {
             boolean[] canEdit = new boolean[]{
@@ -472,25 +569,38 @@ public class User_Details extends javax.swing.JPanel {
     }
 
     private void filterTableByDateRange(LocalDate fromDate, LocalDate toDate) {
-        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>((DefaultTableModel) table.getModel());
-        table.setRowSorter(sorter);
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
 
-        sorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
+        UserLogDAO userLogDAO = new UserLogDAO();
+        int id = this.user.id();
+        SwingWorker<List<UserLog>, Void> worker = new SwingWorker<>() {
             @Override
-            public boolean include(RowFilter.Entry<? extends DefaultTableModel, ? extends Integer> entry) {
-                // Assuming the date is in the 3rd column (index 2), change as per your table
-                String dateStr = (String) entry.getValue(2);
-                try {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                    LocalDate rowDate = LocalDate.parse(dateStr, formatter);
+            protected List<UserLog> doInBackground() throws Exception {
+                var userLogs = userLogDAO.getAllValidUserLogsByRangeAndUserId(fromDate, toDate, id);
+                return userLogs;
+            }
 
-                    // Return true if the date is within the selected range
-                    return !rowDate.isBefore(fromDate) && !rowDate.isAfter(toDate);
-                } catch (Exception e) {
-                    // Skip rows with invalid dates
-                    return false;
+            @Override
+            protected void done() {
+                try {
+                    var userLogs = get();
+
+                    for (int i = 0; i < userLogs.size(); i++) {
+                        model.addRow(new Object[]{
+                                i + 1,
+                                userLogs.get(i).getCode(),
+                                userLogs.get(i).getDate(),
+                                userLogs.get(i).getAction()
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
                 }
             }
-        });
+        };
+        worker.execute();
     }
 }
