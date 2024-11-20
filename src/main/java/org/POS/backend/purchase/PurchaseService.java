@@ -218,4 +218,8 @@ public class PurchaseService {
         return this.purchaseMapper.toPurchaseResponseDtoList(this.purchaseDAO.getAllValidPurchaseByRangeAndSupplierId(start, end, id));
     }
 
+    public List<Purchase> getAllValidPurchaseByCodeAndSupplierId(String query, int id){
+        return this.purchaseDAO.getAllValidPurchasesByCodeAndSupplierId(query, id);
+    }
+
 }

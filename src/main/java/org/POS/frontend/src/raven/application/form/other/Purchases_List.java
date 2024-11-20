@@ -918,7 +918,28 @@ public class Purchases_List extends javax.swing.JPanel {
             public void onView(int row) {
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
                 int purchaseId = (Integer) model.getValueAt(row, 1);
-                Application.showForm(new Product_Details());
+
+                PurchaseService purchaseService = new PurchaseService();
+                SwingWorker<Purchase, Void> worker = new SwingWorker<>() {
+                    @Override
+                    protected Purchase doInBackground() throws Exception {
+                        var purchase = purchaseService.getValidPurchaseWithoutDto(purchaseId);
+                        return purchase;
+                    }
+
+                    @Override
+                    protected void done() {
+                        try {
+                            var purchase = get();
+                            Application.showForm(new Purchase_Details(purchase));
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        } catch (ExecutionException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                };
+                worker.execute();
             }
 
         };

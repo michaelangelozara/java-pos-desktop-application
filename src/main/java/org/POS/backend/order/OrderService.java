@@ -30,29 +30,29 @@ public class OrderService {
 
     private CodeGeneratorService codeGeneratorService;
 
-    public OrderService(){
+    public OrderService() {
         this.orderDAO = new OrderDAO();
         this.saleItemDAO = new SaleItemDAO();
         this.codeGeneratorService = new CodeGeneratorService();
         this.userDAO = new UserDAO();
     }
 
-    public List<Order> getAllValidOrder(int number){
+    public List<Order> getAllValidOrder(int number) {
         return this.orderDAO.getAllValidOrders(number);
     }
 
-    public Order getValidOrderById(int orderId){
+    public Order getValidOrderById(int orderId) {
         return this.orderDAO.getValidOrderById(orderId);
     }
 
-    private int getRangeOfDay(LocalDate date){
+    private int getRangeOfDay(LocalDate date) {
         return (int) ChronoUnit.DAYS.between(date, LocalDate.now());
     }
 
-    public void updateSaleAmountDue(Order order, BigDecimal pay){
+    public void updateSaleAmountDue(Order order, BigDecimal pay) {
         var sale = order.getSale();
         var user = this.userDAO.getUserById(CurrentUser.id);
-        if(sale != null && user != null){
+        if (sale != null && user != null) {
             sale.setAmountDue(sale.getAmountDue().subtract(pay));
 
             var invoice = order.getSale().getInvoice();
@@ -66,23 +66,23 @@ public class OrderService {
             user.addPayment(payment);
             invoice.addPayment(payment);
 
-            if(sale.getAmountDue().compareTo(BigDecimal.ZERO) <= 0){
+            if (sale.getAmountDue().compareTo(BigDecimal.ZERO) <= 0) {
                 order.setStatus(OrderStatus.COMPLETED);
             }
             // update order and sale
             this.orderDAO.updateOrderAmountDue(order, sale, payment);
-        }else{
+        } else {
             throw new RuntimeException("Invalid order.");
         }
     }
 
-    public void update(UpdateOrderRequestDto dto){
+    public void update(UpdateOrderRequestDto dto) {
         var order = this.orderDAO.getValidOrderById(dto.orderId());
         var user = this.userDAO.getUserById(CurrentUser.id);
-        if(order != null && user != null){
+        if (order != null && user != null) {
 
             // check if the order placed more than 7 days ago
-            if(getRangeOfDay(order.getSale().getDate()) > 1){
+            if (getRangeOfDay(order.getSale().getDate()) > 1) {
                 throw new RuntimeException("You can't perform this action anymore.");
             }
 
@@ -93,6 +93,7 @@ public class OrderService {
             returnProduct.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.RETURN_PRODUCT_PREFIX));
             returnProduct.setOrder(order);
             returnProduct.setUser(user);
+            returnProduct.setReturnedAt(LocalDate.now());
 
             UserLog userLog = new UserLog();
             userLog.setCode(returnProduct.getCode());
@@ -106,7 +107,7 @@ public class OrderService {
 
             List<Product> updatedProducts = new ArrayList<>();
 
-            for(var saleItem : saleItems){
+            for (var saleItem : saleItems) {
                 saleItem.setReturned(true);
                 saleItem.setReturnedAt(LocalDate.now());
                 costOfReturnedProducts = costOfReturnedProducts.add(saleItem.getSubtotal());
@@ -142,18 +143,18 @@ public class OrderService {
             );
 
             boolean areAllReturned = true;
-            for(var saleItem : order.getSale().getSaleItems()){
-                if(!saleItem.isReturned()){
+            for (var saleItem : order.getSale().getSaleItems()) {
+                if (!saleItem.isReturned()) {
                     areAllReturned = false;
                     break;
                 }
             }
 
-            if(areAllReturned){
+            if (areAllReturned) {
                 order.setStatus(OrderStatus.RETURNED);
             }
 
-            if(order.getSale().getAmountDue().compareTo(BigDecimal.ZERO) <= 0){
+            if (order.getSale().getAmountDue().compareTo(BigDecimal.ZERO) <= 0) {
                 order.setStatus(OrderStatus.COMPLETED);
             }
 
@@ -162,8 +163,16 @@ public class OrderService {
             sale.setNote(dto.note());
 
             this.orderDAO.update(order, returnProduct, sale, updatedProducts, saleItems, userLog);
-        }else{
+        } else {
             throw new NoResultException("Order not found");
         }
+    }
+
+    public List<Order> getAllValidOrderByClientNameOrOrderIdOrTransactionMethodOrStatus(String code) {
+        return this.orderDAO.getAllValidOrdersByCode(code);
+    }
+
+    public List<Order> getAllValidOrderByRange(LocalDate start, LocalDate end) {
+        return this.orderDAO.getAllValidOrdersByRange(start, end);
     }
 }

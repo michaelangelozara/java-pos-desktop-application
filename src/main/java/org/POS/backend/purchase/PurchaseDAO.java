@@ -217,4 +217,22 @@ public class PurchaseDAO {
         return purchases;
     }
 
+    public List<Purchase> getAllValidPurchasesByCodeAndSupplierId(String query, int id) {
+        List<Purchase> purchases = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()) {
+
+            purchases = session.createQuery("SELECT p FROM Purchase p WHERE (p.code LIKE : query AND p.person.id =: id) AND p.isDeleted = FALSE", Purchase.class)
+                    .setParameter("query", "%" + query + "%")
+                    .setParameter("id", id)
+                    .getResultList();
+
+            for (var purchase : purchases) {
+                Hibernate.initialize(purchase.getPurchaseItems());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return purchases;
+    }
+
 }

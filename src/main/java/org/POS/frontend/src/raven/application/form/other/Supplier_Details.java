@@ -2,6 +2,7 @@
 package org.POS.frontend.src.raven.application.form.other;
 
 import org.POS.backend.person.PersonResponseDto;
+import org.POS.backend.purchase.Purchase;
 import org.POS.backend.purchase.PurchaseResponseDto;
 import org.POS.backend.purchase.PurchaseService;
 import org.jdatepicker.impl.JDatePanelImpl;
@@ -10,6 +11,8 @@ import org.jdatepicker.impl.UtilDateModel;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -18,79 +21,119 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Base64;
+import java.util.*;
 import java.util.List;
-import java.util.Properties;
+import java.util.Timer;
 import java.util.concurrent.ExecutionException;
 
 public class Supplier_Details extends javax.swing.JPanel {
 
-    private PersonResponseDto client;
+    private PersonResponseDto supplier;
 
     private ImageIcon clientImage;
 
     private boolean hasProfile = false;
 
-    public Supplier_Details(PersonResponseDto client) {
-        this.client = client;
-        // initialize the client's image by passing base64 as argument
-        clientProfileInit(client.image());
-        initComponents();
+    private Timer timer;
 
-//        TableActionEvent event = new TableActionEvent() {
-//
-//            @Override
-//            public void onEdit(int row) {
-//
-//            }
-//
-//            @Override
-//            public void onDelete(int row) {
-//                if (table.isEditing()) {
-//                    table.getCellEditor().stopCellEditing();
-//                }
-//
-//                // Confirm before deleting
-//                int confirmation = JOptionPane.showConfirmDialog(null,
-//                        "Are you sure you want to delete this Product?",
-//                        "Confirm Delete", JOptionPane.YES_NO_OPTION);
-//
-//                if (confirmation == JOptionPane.YES_OPTION) {
-//                    DefaultTableModel model = (DefaultTableModel) table.getModel();
-//                    model.removeRow(row);
-//                    JOptionPane.showMessageDialog(null, "Product Deleted Successfully",
-//                            "Deleted", JOptionPane.INFORMATION_MESSAGE);
-//                }
-//            }
-//
-//            @Override
-//
-//            public void onView(int row) {
-//                Application.showForm(new Supplier_Details(null));
-//
-//            }
-//
-//
-//        };
-//        table.getColumnModel().getColumn(7).setCellRenderer(new TableActionCellRender());
-//        table.getColumnModel().getColumn(7).setCellEditor(new TableActionCellEditor(event));
+    public Supplier_Details(PersonResponseDto supplier) {
+        this.supplier = supplier;
+        // initialize the client's image by passing base64 as argument
+        clientProfileInit(supplier.image());
+        initComponents();
         loadSupplierInformation();
         loadInvoices();
+        jTextField2.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+        });
+
+    }
+
+    private void scheduleQuery() {
+        if (timer != null) {
+            timer.cancel(); // Cancel any existing scheduled query
+        }
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                filterList();
+            }
+        }, 400); // Delay of 300 ms
+    }
+
+    private void filterList() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+
+        String name = jTextField2.getText();
+
+        if (name.isEmpty()) {
+            loadInvoices();
+            return;
+        }
+        PurchaseService purchaseService = new PurchaseService();
+        SwingWorker<List<Purchase>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<Purchase> doInBackground() throws Exception {
+                return purchaseService.getAllValidPurchaseByCodeAndSupplierId(name, supplier.id());
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var purchases = get();
+
+                    for (int i = 0; i < purchases.size(); i++) {
+                        model.addRow(new Object[]{
+                                i + 1,
+                                purchases.get(i).getCode(),
+                                purchases.get(i).getCreatedDate(),
+                                purchases.get(i).getSubtotal(),
+                                purchases.get(i).getTransportCost(),
+                                purchases.get(i).getDiscount(),
+                                purchases.get(i).getNetTotal(),
+                                purchases.get(i).getTotalPaid(),
+                                purchases.get(i).getBalance(),
+                                purchases.get(i).getStatus().name()
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
     }
 
     private void loadSupplierInformation() {
-        jLabel3.setText(this.client.name());
-        jLabel11.setText(this.client.email());
-        jLabel13.setText(this.client.companyName());
-        jLabel14.setText(this.client.address());
-        jLabel15.setText(this.client.status().name());
-        jLabel12.setText(this.client.contactNumber());
-        jLabel10.setText(this.client.code());
+        jLabel3.setText(this.supplier.name());
+        jLabel11.setText(this.supplier.email());
+        jLabel13.setText(this.supplier.companyName());
+        jLabel14.setText(this.supplier.address());
+        jLabel15.setText(this.supplier.status().name());
+        jLabel12.setText(this.supplier.contactNumber());
+        jLabel10.setText(this.supplier.code());
     }
 
     private void loadInvoices() {
         PurchaseService purchaseService = new PurchaseService();
-        int id = this.client.id();
+        int id = this.supplier.id();
         SwingWorker<java.util.List<PurchaseResponseDto>, Void> worker = new SwingWorker<>() {
             @Override
             protected java.util.List<PurchaseResponseDto> doInBackground() {
@@ -453,7 +496,7 @@ public class Supplier_Details extends javax.swing.JPanel {
 
         materialTabbed2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
-        jTextField2.setText("Search");
+        jTextField2.setText("");
 
         jButton2.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
         jButton2.setText("From - To");
@@ -889,7 +932,7 @@ public class Supplier_Details extends javax.swing.JPanel {
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         model.setRowCount(0);
 
-        int id = this.client.id();
+        int id = this.supplier.id();
 
         PurchaseService purchaseService = new PurchaseService();
         SwingWorker<List<PurchaseResponseDto>, Void> worker = new SwingWorker<>() {

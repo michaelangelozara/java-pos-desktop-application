@@ -1,7 +1,6 @@
 
 package org.POS.frontend.src.raven.application.form.other;
 
-import org.POS.backend.brand.BrandService;
 import org.POS.backend.invoice.Invoice;
 import org.POS.backend.invoice.InvoiceService;
 import org.POS.backend.person.PersonResponseDto;
@@ -14,7 +13,6 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -22,9 +20,9 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
 import java.util.List;
 import java.util.Timer;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 public class Customer_Details extends javax.swing.JPanel {
@@ -46,6 +44,22 @@ public class Customer_Details extends javax.swing.JPanel {
         initComponents();
         loadClientInformation();
         loadInvoices();
+        jTextField2.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+        });
     }
 
     private void loadClientInformation() {
@@ -63,7 +77,7 @@ public class Customer_Details extends javax.swing.JPanel {
         int id = this.client.id();
         SwingWorker<List<Invoice>, Void> worker = new SwingWorker<>() {
             @Override
-            protected List<Invoice> doInBackground() throws Exception {
+            protected List<Invoice> doInBackground() {
                 try {
                     var invoices = invoiceService.getAllValidInvoicesByPersonId(id);
                     return invoices;
@@ -113,7 +127,7 @@ public class Customer_Details extends javax.swing.JPanel {
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         model.setRowCount(0);
 
-        String name = jTextField1.getText();
+        String name = jTextField2.getText();
 
         if (name.isEmpty()) {
             loadInvoiceTable(savedInvoices);
@@ -121,20 +135,36 @@ public class Customer_Details extends javax.swing.JPanel {
         }
 
         InvoiceService invoiceService = new InvoiceService();
+        SwingWorker<List<Invoice>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<Invoice> doInBackground() {
+                return invoiceService.getAllValidInvoiceByCodeAndPersonId(name, client.id());
+            }
 
-//        BrandService brandService = new BrandService();
-//        var brands = brandService.getAllValidBrandByName(name);
-//        for (int i = 0; i < brands.size(); i++) {
-//            model.addRow(new Object[]{
-//                    i + 1,
-//                    brands.get(i).id(),
-//                    brands.get(i).code(),
-//                    brands.get(i).categoryResponseDto().getName(),
-//                    brands.get(i).productSubcategory().getName(),
-//                    brands.get(i).name(),
-//                    brands.get(i).status().name()
-//            });
-//        }
+            @Override
+            protected void done() {
+                try {
+                    var invoices = get();
+
+                    for (int i = 0; i < invoices.size(); i++) {
+                        model.addRow(new Object[]{
+                                i + 1,
+                                invoices.get(i).getCode(),
+                                invoices.get(i).getDate(),
+                                invoices.get(i).getSale().getNetTotal(),
+                                invoices.get(i).getSale().getAmount(),
+                                invoices.get(i).getSale().getAmountDue(),
+                                invoices.get(i).getStatus().name()
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
     }
 
     private BigDecimal computeInvoiceTotal(List<Invoice> invoices) {
@@ -461,23 +491,6 @@ public class Customer_Details extends javax.swing.JPanel {
 
         materialTabbed2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
 
-        jTextField2.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-//                scheduleQuery();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-//                scheduleQuery();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-//                scheduleQuery();
-            }
-        });
-
         jButton2.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
         jButton2.setText("From - To");
         jButton2.addActionListener(new java.awt.event.ActionListener() {
@@ -541,8 +554,6 @@ public class Customer_Details extends javax.swing.JPanel {
         );
 
         materialTabbed2.addTab("Invoice", jPanel15);
-
-        jTextField3.setText("Search");
 
         jButton3.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
         jButton3.setText("From - To");
@@ -678,8 +689,6 @@ public class Customer_Details extends javax.swing.JPanel {
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
         jLabel1.setText("Activity Log");
-
-        jTextField1.setText("Search");
 
         jPanel5.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 

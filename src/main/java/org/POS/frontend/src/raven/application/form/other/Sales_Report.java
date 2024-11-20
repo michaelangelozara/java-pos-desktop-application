@@ -4,6 +4,7 @@
  */
 package org.POS.frontend.src.raven.application.form.other;
 
+import org.POS.backend.sale.SaleResponseDto;
 import org.POS.backend.sale.SaleService;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
@@ -14,7 +15,9 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author CJ
@@ -334,19 +337,37 @@ public class Sales_Report extends javax.swing.JPanel {
         model.setRowCount(0);
 
         SaleService saleService = new SaleService();
-        var sales = saleService.getAllValidSalesByRange(fromDate, toDate);
 
-        for (int i = 0; i < sales.size(); i++) {
-            model.addRow(new Object[]{
-                    i + 1,
-                    sales.get(i).saleId(),
-                    sales.get(i).username(),
-                    sales.get(i).code(),
-                    sales.get(i).client(),
-                    sales.get(i).netTotal(),
-                    sales.get(i).saleDate()
-            });
-        }
+        SwingWorker<List<SaleResponseDto>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<SaleResponseDto> doInBackground() throws Exception {
+                return saleService.getAllValidSalesByRange(fromDate, toDate);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var sales = get();
+
+                    for (int i = 0; i < sales.size(); i++) {
+                        model.addRow(new Object[]{
+                                i + 1,
+                                sales.get(i).saleId(),
+                                sales.get(i).username(),
+                                sales.get(i).code(),
+                                sales.get(i).client(),
+                                sales.get(i).netTotal(),
+                                sales.get(i).saleDate()
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
     }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed

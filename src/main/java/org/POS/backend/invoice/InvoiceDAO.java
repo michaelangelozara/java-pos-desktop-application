@@ -92,4 +92,44 @@ public class InvoiceDAO {
         }
         return invoices;
     }
+
+    public List<Invoice> getAllValidInvoiceByCodeAndPersonId(String code, int id) {
+        List<Invoice> invoices = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()) {
+
+            invoices = session.createQuery("SELECT i FROM Invoice i WHERE i.person.id = : id AND i.code LIKE : code", Invoice.class)
+                    .setParameter("code", "%" + code + "%")
+                    .setParameter("id", id)
+                    .getResultList();
+
+            invoices.forEach(i -> {
+                Hibernate.initialize(i.getSale());
+                Hibernate.initialize(i.getSale().getCashTransaction());
+            });
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return invoices;
+    }
+
+    public List<Invoice> getAllValidInvoicesByCode(String code) {
+        List<Invoice> invoices = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()) {
+
+            invoices = session.createQuery("SELECT i FROM Invoice i WHERE i.code LIKE : code OR i.person.name LIKE : code", Invoice.class)
+                    .setParameter("code", "%" + code + "%")
+                    .getResultList();
+
+            invoices.forEach(i -> {
+                Hibernate.initialize(i.getSale());
+                Hibernate.initialize(i.getSale().getCashTransaction());
+                Hibernate.initialize(i.getSale().getSaleItems());
+            });
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return invoices;
+    }
+
+    // invoice numebr/ client
 }

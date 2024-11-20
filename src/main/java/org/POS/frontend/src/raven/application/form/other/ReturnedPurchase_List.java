@@ -405,6 +405,7 @@ public class ReturnedPurchase_List extends javax.swing.JPanel {
         panel.add(label2, gbc);
 
         JTextField supplierField = new JTextField(20);
+        supplierField.setEnabled(false);
         gbc.gridx = 3;
         gbc.gridy = 0;
         panel.add(supplierField, gbc);

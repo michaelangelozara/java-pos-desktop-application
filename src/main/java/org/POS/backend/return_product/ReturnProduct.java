@@ -9,6 +9,7 @@ import org.POS.backend.sale_item.SaleItem;
 import org.POS.backend.user.User;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +32,9 @@ public class ReturnProduct {
 
     @Column(name = "cost_of_return_products", precision = 10, scale = 2)
     private BigDecimal costOfReturnProducts;
+
+    @Column(name = "returned_at")
+    private LocalDate returnedAt;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

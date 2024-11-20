@@ -26,4 +26,12 @@ public class InvoiceService {
     public List<Invoice> getALlValidInvoicesByRange(LocalDate start, LocalDate end, int id){
         return this.invoiceDAO.getAllValidInvoiceByRange(start, end, id);
     }
+
+    public List<Invoice> getAllValidInvoiceByCodeAndPersonId(String code, int personId){
+        return this.invoiceDAO.getAllValidInvoiceByCodeAndPersonId(code, personId);
+    }
+
+    public List<Invoice> getAllValidInvoicesByCode(String query){
+        return this.invoiceDAO.getAllValidInvoicesByCode(query);
+    }
 }

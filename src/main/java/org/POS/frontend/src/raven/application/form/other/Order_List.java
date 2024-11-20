@@ -15,6 +15,8 @@ import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
@@ -24,13 +26,15 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
+import java.util.Timer;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 
 public class Order_List extends javax.swing.JPanel {
+
+    private Timer timer;
 
     public Order_List() {
         initComponents();
@@ -328,11 +332,10 @@ public class Order_List extends javax.swing.JPanel {
 
                                 date.setText(String.valueOf(order.getSale().getDate()));
 
-                                if(order.getStatus().equals(OrderStatus.COMPLETED)){
+                                if (order.getStatus().equals(OrderStatus.COMPLETED)) {
                                     payButton.setEnabled(false);
                                 }
                             });
-
 
 
                             int i = 1;
@@ -370,7 +373,7 @@ public class Order_List extends javax.swing.JPanel {
                     gbc2.anchor = GridBagConstraints.WEST;
 
                     // Create input fields
-                     // Increased field width
+                    // Increased field width
                     amountField.setText("0");
 
                     JTextField dateField = new JTextField(15);
@@ -443,11 +446,11 @@ public class Order_List extends javax.swing.JPanel {
                                         payButton.setEnabled(true);
                                         payButton.setText("Pay");
                                         statusCombo.setSelectedItem(order.getStatus().equals(OrderStatus.COMPLETED) ? "Completed" : order.getStatus().equals(OrderStatus.PENDING) ? "Pending" : "Payment Refunded");
-                                        if(order.getStatus().equals(OrderStatus.COMPLETED)){
+                                        if (order.getStatus().equals(OrderStatus.COMPLETED)) {
                                             payButton.setEnabled(false);
                                         }
                                         boolean result = get();
-                                        if(result)
+                                        if (result)
                                             JOptionPane.showMessageDialog(null, "Transaction Successful");
                                     } catch (InterruptedException ex) {
                                         throw new RuntimeException(ex);
@@ -627,6 +630,82 @@ public class Order_List extends javax.swing.JPanel {
         table.getColumnModel().getColumn(9).setCellRenderer(new TableActionCellRender());
         table.getColumnModel().getColumn(9).setCellEditor(new TableActionCellEditor(event));
         loadOrders();
+        jTextField1.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+        });
+    }
+
+    private void scheduleQuery() {
+        if (timer != null) {
+            timer.cancel(); // Cancel any existing scheduled query
+        }
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                filterList();
+            }
+        }, 400); // Delay of 300 ms
+    }
+
+    private void filterList() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+
+        String name = jTextField1.getText();
+
+        if (name.isEmpty()) {
+            loadOrders();
+            return;
+        }
+
+        OrderService orderService = new OrderService();
+        SwingWorker<List<Order>, Void> worker = new SwingWorker<List<Order>, Void>() {
+            @Override
+            protected List<Order> doInBackground() throws Exception {
+                var orders = orderService.getAllValidOrderByClientNameOrOrderIdOrTransactionMethodOrStatus(name);
+                return orders;
+            }
+
+            @Override
+            protected void done() {
+                try {
+
+                    var orders = get();
+                    for (int i = 0; i < orders.size(); i++) {
+                        model.addRow(new Object[]{
+                                i + 1,
+                                orders.get(i).getId(),
+                                orders.get(i).getCode(),
+                                orders.get(i).getOrderDate(),
+                                orders.get(i).getSale().getPerson().getName(),
+                                orders.get(i).getSale().getTransactionMethod().name(),
+                                orders.get(i).getSale().getNetTotal(),
+                                orders.get(i).getSale().getAmountDue(),
+                                orders.get(i).getStatus().name()
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
     }
 
     private void loadOrders() {
@@ -700,7 +779,7 @@ public class Order_List extends javax.swing.JPanel {
             }
         });
 
-        jTextField1.setText("Search");
+        jTextField1.setText("");
 
         table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
@@ -894,25 +973,40 @@ public class Order_List extends javax.swing.JPanel {
     // End of variables declaration//GEN-END:variables
 
     private void filterTableByDateRange(LocalDate fromDate, LocalDate toDate) {
-        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>((DefaultTableModel) table.getModel());
-        table.setRowSorter(sorter);
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
 
-        sorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
+        OrderService orderService = new OrderService();
+        SwingWorker<List<Order>, Void> worker = new SwingWorker<>() {
             @Override
-            public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
-                // Assuming the createdAt is in the 3rd column (index 2), change as per your table
-                String dateStr = (String) entry.getValue(2);
-                try {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                    LocalDate rowDate = LocalDate.parse(dateStr, formatter);
+            protected List<Order> doInBackground() {
+                return orderService.getAllValidOrderByRange(fromDate, toDate);
+            }
 
-                    // Return true if the createdAt is within the selected range
-                    return !rowDate.isBefore(fromDate) && !rowDate.isAfter(toDate);
-                } catch (Exception e) {
-                    // Skip rows with invalid dates
-                    return false;
+            @Override
+            protected void done() {
+                try {
+                    var orders = get();
+                    for (int i = 0; i < orders.size(); i++) {
+                        model.addRow(new Object[]{
+                                i + 1,
+                                orders.get(i).getId(),
+                                orders.get(i).getCode(),
+                                orders.get(i).getOrderDate(),
+                                orders.get(i).getSale().getPerson().getName(),
+                                orders.get(i).getSale().getTransactionMethod().name(),
+                                orders.get(i).getSale().getNetTotal(),
+                                orders.get(i).getSale().getAmountDue(),
+                                orders.get(i).getStatus().name()
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
                 }
             }
-        });
+        };
+        worker.execute();
     }
 }

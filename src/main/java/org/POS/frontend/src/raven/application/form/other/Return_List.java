@@ -13,17 +13,24 @@ import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
 
 
 public class Return_List extends javax.swing.JPanel {
+
+    private Timer timer;
 
     public Return_List() {
         initComponents();
@@ -67,6 +74,82 @@ public class Return_List extends javax.swing.JPanel {
         table.getColumnModel().getColumn(8).setCellRenderer(new TableActionCellRender());
         table.getColumnModel().getColumn(8).setCellEditor(new TableActionCellEditor(event));
         loadReturnList();
+        jTextField1.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+        });
+    }
+
+    private void scheduleQuery() {
+        if (timer != null) {
+            timer.cancel(); // Cancel any existing scheduled query
+        }
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                filterList();
+            }
+        }, 400); // Delay of 300 ms
+    }
+
+    private void filterList() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+
+        String query = jTextField1.getText();
+
+        if (query.isEmpty()) {
+            loadReturnList();
+            return;
+        }
+
+        ReturnProductDAO returnProductDAO = new ReturnProductDAO();
+        SwingWorker<List<ReturnProduct>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<ReturnProduct> doInBackground() throws Exception {
+                return returnProductDAO.getAllValidReturnProductsByCode(query);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var returnedProducts = get();
+
+                    for (int i = 0; i < returnedProducts.size(); i++) {
+                        for (var saleItem : returnedProducts.get(i).getReturnedSaleItems()) {
+                            model.addRow(new Object[]{
+                                    i + 1,
+                                    returnedProducts.get(i).getId(),
+                                    returnedProducts.get(i).getCode(),
+                                    saleItem.getSale().getPerson().getName(),
+                                    returnedProducts.get(i).getReturnReason(),
+                                    returnedProducts.get(i).getCostOfReturnProducts(),
+                                    saleItem.getReturnedAt(),
+                                    saleItem.getProduct().getName()
+                            });
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
     }
 
     private void loadReturnList() {
@@ -142,7 +225,7 @@ public class Return_List extends javax.swing.JPanel {
             }
         });
 
-        jTextField1.setText("Search");
+        jTextField1.setText("");
 
         table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
@@ -326,25 +409,42 @@ public class Return_List extends javax.swing.JPanel {
     // End of variables declaration//GEN-END:variables
 
     private void filterTableByDateRange(LocalDate fromDate, LocalDate toDate) {
-        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>((DefaultTableModel) table.getModel());
-        table.setRowSorter(sorter);
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
 
-        sorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
+        ReturnProductDAO returnProductDAO = new ReturnProductDAO();
+        SwingWorker<List<ReturnProduct>, Void> worker = new SwingWorker<>() {
             @Override
-            public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
-                // Assuming the date is in the 3rd column (index 2), change as per your table
-                String dateStr = (String) entry.getValue(2);
-                try {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                    LocalDate rowDate = LocalDate.parse(dateStr, formatter);
+            protected List<ReturnProduct> doInBackground() throws Exception {
+                return returnProductDAO.getAllValidReturnProductsByRange(fromDate, toDate);
+            }
 
-                    // Return true if the date is within the selected range
-                    return !rowDate.isBefore(fromDate) && !rowDate.isAfter(toDate);
-                } catch (Exception e) {
-                    // Skip rows with invalid dates
-                    return false;
+            @Override
+            protected void done() {
+                try {
+                    var returnedProducts = get();
+
+                    for (int i = 0; i < returnedProducts.size(); i++) {
+                        for (var saleItem : returnedProducts.get(i).getReturnedSaleItems()) {
+                            model.addRow(new Object[]{
+                                    i + 1,
+                                    returnedProducts.get(i).getId(),
+                                    returnedProducts.get(i).getCode(),
+                                    saleItem.getSale().getPerson().getName(),
+                                    returnedProducts.get(i).getReturnReason(),
+                                    returnedProducts.get(i).getCostOfReturnProducts(),
+                                    saleItem.getReturnedAt(),
+                                    saleItem.getProduct().getName()
+                            });
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
                 }
             }
-        });
+        };
+        worker.execute();
     }
 }
