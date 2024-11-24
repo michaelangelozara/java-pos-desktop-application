@@ -18,15 +18,19 @@ import org.POS.frontend.src.raven.cell.TableActionCellRender;
 import org.POS.frontend.src.raven.cell.TableActionEvent;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
+import java.util.Timer;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 
 public class InventoryAdjustment extends javax.swing.JPanel {
 
+    private Timer timer;
 
     public InventoryAdjustment() {
         initComponents();
@@ -313,6 +317,76 @@ public class InventoryAdjustment extends javax.swing.JPanel {
         table.getColumnModel().getColumn(7).setCellRenderer(new TableActionCellRender());
         table.getColumnModel().getColumn(7).setCellEditor(new TableActionCellEditor(event));
         loadInventoryAdjustment();
+        jTextField1.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+        });
+    }
+
+    private void scheduleQuery() {
+        if (timer != null) {
+            timer.cancel(); // Cancel any existing scheduled query
+        }
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                filterList();
+            }
+        }, 400); // Delay of 300 ms
+    }
+
+    private void filterList() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+
+        String reason = jTextField1.getText();
+
+        if (reason.isEmpty()) {
+            loadInventoryAdjustment();
+            return;
+        }
+
+        InventoryAdjustmentService inventoryAdjustmentService = new InventoryAdjustmentService();
+        SwingWorker<List<InventoryAdjustmentResponseDto>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<InventoryAdjustmentResponseDto> doInBackground() throws Exception {
+                return inventoryAdjustmentService.getAllValidInventoryAdjustmentByQuery(reason);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var inventoryAdjustments = get();
+                    for (int i = 0; i < inventoryAdjustments.size(); i++) {
+                        model.addRow(new Object[]{
+                                i + 1,
+                                inventoryAdjustments.get(i).id(),
+                                inventoryAdjustments.get(i).product().getName(),
+                                inventoryAdjustments.get(i).code(),
+                                inventoryAdjustments.get(i).user().getName(),
+                                inventoryAdjustments.get(i).reason(),
+                                inventoryAdjustments.get(i).date()
+                        });
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        worker.execute();
     }
 
     private void loadInventoryAdjustment() {
@@ -385,7 +459,7 @@ public class InventoryAdjustment extends javax.swing.JPanel {
             }
         });
 
-        jTextField1.setText("Search");
+        jTextField1.setText("");
 
         table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
@@ -1031,10 +1105,10 @@ public class InventoryAdjustment extends javax.swing.JPanel {
                     SwingWorker<Boolean, Void> worker = new SwingWorker<>() {
                         @Override
                         protected Boolean doInBackground() {
-                            try{
+                            try {
                                 inventoryAdjustmentService.addVariableProduct(dto);
                                 return true;
-                            }catch (Exception e){
+                            } catch (Exception e) {
                                 return false;
                             }
                         }
@@ -1044,7 +1118,7 @@ public class InventoryAdjustment extends javax.swing.JPanel {
                             try {
                                 boolean result = get();
 
-                                if(result)
+                                if (result)
                                     JOptionPane.showMessageDialog(null, "Product Created Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                                 else
                                     JOptionPane.showMessageDialog(null, "Product Creation Error!", "Error", JOptionPane.ERROR_MESSAGE);

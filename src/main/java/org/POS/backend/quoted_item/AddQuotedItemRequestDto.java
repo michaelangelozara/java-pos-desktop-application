@@ -1,13 +1,9 @@
 package org.POS.backend.quoted_item;
 
-import java.math.BigDecimal;
-
 public record AddQuotedItemRequestDto(
-        int productId,
+        Integer productId,
+        Integer variationId,
         int quantity,
-        BigDecimal purchasePrice,
-        BigDecimal sellingPrice,
-        BigDecimal taxValue,
-        BigDecimal subtotal
+        QuotedItemType type
 ) {
 }

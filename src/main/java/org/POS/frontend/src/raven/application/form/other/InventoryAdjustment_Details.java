@@ -46,6 +46,7 @@ public class InventoryAdjustment_Details extends javax.swing.JPanel {
                 inventoryAdjustment.code(),
                 inventoryAdjustment.reason(),
                 inventoryAdjustment.date(),
+                inventoryAdjustment.type().name(),
                 inventoryAdjustment.user().getName()
         });
     }
@@ -59,7 +60,8 @@ public class InventoryAdjustment_Details extends javax.swing.JPanel {
                 product.getProductCode(),
                 product.getName(),
                 product.getPurchasePrice(),
-                inventoryAdjustment.quantity()
+                inventoryAdjustment.quantity(),
+                inventoryAdjustment.type().name()
         });
     }
 
@@ -85,6 +87,7 @@ public class InventoryAdjustment_Details extends javax.swing.JPanel {
                                 inventoryAdjustments.get(i).date(),
                                 inventoryAdjustments.get(i).product().getName(),
                                 inventoryAdjustments.get(i).quantity(),
+                                inventoryAdjustments.get(i).type(),
                                 inventoryAdjustments.get(i).user().getName()
                         });
                     }
@@ -338,7 +341,7 @@ public class InventoryAdjustment_Details extends javax.swing.JPanel {
                 new Object[][]{
                 },
                 new String[]{
-                        "Adjustment No", "Reason", "Date", "Note", "Created By"
+                        "Adjustment No", "Reason", "Date", "Adjustment Type", "Created By"
                 }
         ) {
             boolean[] canEdit = new boolean[]{
@@ -355,18 +358,17 @@ public class InventoryAdjustment_Details extends javax.swing.JPanel {
             jTable2.getColumnModel().getColumn(1).setResizable(false);
             jTable2.getColumnModel().getColumn(2).setResizable(false);
             jTable2.getColumnModel().getColumn(3).setResizable(false);
-            jTable2.getColumnModel().getColumn(4).setResizable(false);
         }
 
         jTable3.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
                 },
                 new String[]{
-                        "Code", "Name", "Purchase Price", "Quantity", "Adjustment Type"
+                        "Code", "Name", "Purchase Price", "Quantity"
                 }
         ) {
             boolean[] canEdit = new boolean[]{
-                    false, false, false, false, false
+                    false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -379,7 +381,6 @@ public class InventoryAdjustment_Details extends javax.swing.JPanel {
             jTable3.getColumnModel().getColumn(1).setResizable(false);
             jTable3.getColumnModel().getColumn(2).setResizable(false);
             jTable3.getColumnModel().getColumn(3).setResizable(false);
-            jTable3.getColumnModel().getColumn(4).setResizable(false);
         }
 
         jLabel15.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N

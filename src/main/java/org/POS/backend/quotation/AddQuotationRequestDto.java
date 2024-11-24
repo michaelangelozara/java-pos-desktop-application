@@ -1,15 +1,12 @@
 package org.POS.backend.quotation;
 
-import java.math.BigDecimal;
+import org.POS.backend.quoted_item.AddQuotedItemRequestDto;
+
+import java.util.List;
 
 public record AddQuotationRequestDto(
         int clientId,
-        BigDecimal totalTax,
-        BigDecimal subtotalTax,
-        BigDecimal netSubtotal,
-        BigDecimal discount,
-        BigDecimal transportCost,
         String note,
-        QuotationStatus status
+        List<AddQuotedItemRequestDto> quotedItemDtoList
 ) {
 }

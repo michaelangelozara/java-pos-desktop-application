@@ -6,12 +6,15 @@ import org.POS.backend.global_variable.UserActionPrefixes;
 import org.POS.backend.person.PersonDAO;
 import org.POS.backend.person.PersonType;
 import org.POS.backend.product.ProductDAO;
-import org.POS.backend.quoted_item.*;
+import org.POS.backend.product_attribute.ProductVariationDAO;
+import org.POS.backend.quoted_item.QuotedItem;
+import org.POS.backend.quoted_item.QuotedItemDAO;
+import org.POS.backend.quoted_item.QuotedItemType;
 import org.POS.backend.user.UserDAO;
 import org.POS.backend.user_log.UserLog;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,9 +31,9 @@ public class QuotationService {
 
     private QuotationMapper quotationMapper;
 
-    private QuotedItemMapper quotedItemMapper;
-
     private QuotedItemDAO quotedItemDAO;
+
+    private ProductVariationDAO productVariationDAO;
 
     public QuotationService() {
         this.quotationDAO = new QuotationDAO();
@@ -38,37 +41,93 @@ public class QuotationService {
         this.userDAO = new UserDAO();
         this.personDAO = new PersonDAO();
         this.quotationMapper = new QuotationMapper();
-        this.quotedItemMapper = new QuotedItemMapper();
         this.quotedItemDAO = new QuotedItemDAO();
+        this.productVariationDAO = new ProductVariationDAO();
     }
 
-    public String add(AddQuotationRequestDto dto, Set<AddQuotedItemRequestDto> quotedItemDtoList) {
+    public String add(AddQuotationRequestDto dto) {
         var client = this.personDAO.getValidPersonByTypeAndId(dto.clientId(), PersonType.CLIENT);
         var user = this.userDAO.getUserById(CurrentUser.id);
 
         if (client != null && user != null) {
-            Set<Integer> productIds = new HashSet<>();
-            for (var quotedItem : quotedItemDtoList) {
-                productIds.add(quotedItem.productId());
+            Set<Integer> simpleProductIds = new HashSet<>();
+            for (var quotedItem : dto.quotedItemDtoList()) {
+                if (quotedItem.type().equals(QuotedItemType.SIMPLE)) {
+                    simpleProductIds.add(quotedItem.productId());
+                }
+            }
+
+            Set<Integer> variationProductIds = new HashSet<>();
+            for (var quotedItem : dto.quotedItemDtoList()) {
+                if (quotedItem.type().equals(QuotedItemType.VARIABLE)) {
+                    variationProductIds.add(quotedItem.variationId());
+                }
+
             }
 
             Quotation quotation = this.quotationMapper.toQuotation(dto);
             client.addQuotation(quotation);
             user.addQuotation(quotation);
 
-            var products = this.productDAO.getAllValidProductsByProductIds(productIds);
-            List<QuotedItem> quotedItems = new ArrayList<>();
-            for (var product : products) {
-                for (var quotedItemDto : quotedItemDtoList) {
-                    if (product.getId() == quotedItemDto.productId()) {
-                        var quotedItem = this.quotedItemMapper.toQuotedItem(quotedItemDto);
-                        product.addQuotedItem(quotedItem);
-                        quotation.addQuotedItem(quotedItem);
-                        quotedItems.add(quotedItem);
-                        break;
+            var variations = this.productVariationDAO.getAllValidProductVariationByIds(variationProductIds);
+            var products = this.productDAO.getAllValidProductsByProductIds(simpleProductIds);
+
+            BigDecimal subtotal = BigDecimal.ZERO;
+
+            for (var quotedItemDto : dto.quotedItemDtoList()) {
+                if (quotedItemDto.type().equals(QuotedItemType.SIMPLE)) {
+                    boolean isEqualed = false;
+                    for (var product : products) {
+                        if (product.getId().equals(quotedItemDto.productId())) {
+                            QuotedItem quotedItem = new QuotedItem();
+                            quotedItem.setQuantity(quotedItemDto.quantity());
+                            quotedItem.setPurchasePrice(product.getPurchasePrice());
+                            quotedItem.setSellingPrice(product.getSellingPrice());
+                            quotedItem.setQuantity(quotedItemDto.quantity());
+                            quotedItem.setQuotedItemType(QuotedItemType.SIMPLE);
+                            quotedItem.setSubtotal(product.getSellingPrice().multiply(BigDecimal.valueOf(quotedItemDto.quantity())));
+
+                            quotedItem.setProduct(product);
+                            quotedItem.setVariation(null);
+
+                            quotation.addQuotedItem(quotedItem);
+                            isEqualed = true;
+
+                            subtotal = subtotal.add(product.getSellingPrice().multiply(BigDecimal.valueOf(quotedItemDto.quantity())));
+                            break;
+                        }
+                    }
+                    if (!isEqualed) {
+                        throw new RuntimeException("Invalid Simple Product");
+                    }
+                } else {
+                    boolean isEqualed = false;
+                    for (var variation : variations) {
+                        if (variation.getId().equals(quotedItemDto.variationId())) {
+                            QuotedItem quotedItem = new QuotedItem();
+                            quotedItem.setQuantity(quotedItemDto.quantity());
+                            quotedItem.setPurchasePrice(variation.getPurchasePrice());
+                            quotedItem.setSellingPrice(variation.getSrp());
+                            quotedItem.setQuantity(quotedItemDto.quantity());
+                            quotedItem.setQuotedItemType(QuotedItemType.VARIABLE);
+                            quotedItem.setSubtotal(variation.getSrp().multiply(BigDecimal.valueOf(quotedItemDto.quantity())));
+
+                            quotedItem.setProduct(null);
+                            quotedItem.setVariation(variation);
+
+                            quotation.addQuotedItem(quotedItem);
+                            isEqualed = true;
+                            subtotal = subtotal.add(variation.getSrp().multiply(BigDecimal.valueOf(quotedItemDto.quantity())));
+                            break;
+                        }
+                    }
+                    if (!isEqualed) {
+                        throw new RuntimeException("Invalid Variation");
                     }
                 }
             }
+
+            quotation.setSubtotal(subtotal);
 
             UserLog userLog = new UserLog();
             userLog.setCode(quotation.getCode());
@@ -76,83 +135,20 @@ public class QuotationService {
             userLog.setAction(UserActionPrefixes.QUOTATION_ADD_ACTION_LOG_PREFIX);
             user.addUserLog(userLog);
 
-            this.quotationDAO.add(quotation, quotedItems, userLog);
+            this.quotationDAO.add(quotation, userLog);
         }
         return GlobalVariable.PURCHASE_ADDED;
     }
 
-    public void update(UpdateQuotationRequestDto dto) {
-        var quotation = this.quotationDAO.getValidQuotationById(dto.quotationId());
-        var user = this.userDAO.getUserById(CurrentUser.id);
-
-        if (quotation != null && user != null) {
-            var updatedQuotation = this.quotationMapper.toUpdatedQuotation(quotation, dto);
-
-            Set<String> productCodes = new HashSet<>();
-            List<UpdateQuotedItemRequestDto> newUpdateQuotedItemList = new ArrayList<>();
-
-            for (var purchaseItemDto : dto.quotedItems()) {
-                if (purchaseItemDto.quotedItemId() == null) {
-                    productCodes.add(purchaseItemDto.productCode());
-                    newUpdateQuotedItemList.add(purchaseItemDto);
-                }
-            }
-
-            // get all the products that equaled to products' codes
-            var products = this.productDAO.getAllValidProductByProductCode(productCodes);
-            // iterate all the product and save the purchase item
-            for (var product : products) {
-                for (var quotedItemDto : newUpdateQuotedItemList) {
-                    if (product.getProductCode().equals(quotedItemDto.productCode())) {
-                        QuotedItem quotedItem = new QuotedItem();
-                        quotedItem.setQuantity(quotedItemDto.quantity());
-                        quotedItem.setPurchasePrice(quotedItemDto.purchasePrice());
-                        quotedItem.setSellingPrice(quotedItemDto.sellingPrice());
-                        quotedItem.setTax(quotedItemDto.taxValue());
-                        quotedItem.setSubtotal(quotedItemDto.subtotal());
-
-                        product.addQuotedItem(quotedItem);
-                        updatedQuotation.addQuotedItem(quotedItem);
-                        break;
-                    }
-                }
-            }
-
-            Set<Integer> quotedItemIds = new HashSet<>();
-            // filter all existing quoted item
-            for (var purchaseItemDto : dto.quotedItems()) {
-                if (purchaseItemDto.quotedItemId() != null) {
-                    quotedItemIds.add(purchaseItemDto.quotedItemId());
-                }
-            }
-
-            List<QuotedItem> updatedQuotedItems = new ArrayList<>();
-
-            // fetch all valid purchase items
-            var quotedItems = this.quotedItemDAO.getALlValidQuotedItemByIds(quotedItemIds);
-            for (var quotedItem : quotedItems) {
-                for (var quotedItemDto : dto.quotedItems()) {
-                    if (quotedItem.getId().equals(quotedItemDto.quotedItemId())) {
-                        quotedItem.setQuantity(quotedItemDto.quantity());
-                        quotedItem.setPurchasePrice(quotedItemDto.purchasePrice());
-                        quotedItem.setSellingPrice(quotedItemDto.sellingPrice());
-                        quotedItem.setTax(quotedItemDto.taxValue());
-                        quotedItem.setSubtotal(quotedItemDto.subtotal());
-                        updatedQuotedItems.add(quotedItem);
-                        break;
-                    }
-                }
-            }
-
-            UserLog userLog = new UserLog();
-            userLog.setCode(updatedQuotation.getCode());
-            userLog.setDate(LocalDate.now());
-            userLog.setAction(UserActionPrefixes.QUOTATION_EDIT_ACTION_LOG_PREFIX);
-            user.addUserLog(userLog);
-
-            // save here
-            this.quotationDAO.update(updatedQuotation, updatedQuotedItems, userLog);
+    public void delete(int id) {
+        try {
+            this.quotationDAO.delete(id);
+        } catch (Exception e) {
+            throw e;
         }
+    }
+
+    public void update(UpdateQuotationRequestDto dto) {
     }
 
     public List<Quotation> getAllValidQuotation(int number) {

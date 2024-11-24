@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.POS.backend.product.Product;
+import org.POS.backend.product.ProductType;
+import org.POS.backend.product_attribute.ProductVariation;
 import org.POS.backend.quotation.Quotation;
 
 import java.math.BigDecimal;
@@ -23,12 +25,6 @@ public class QuotedItem {
 
     private int quantity;
 
-    @Column(name = "is_deleted")
-    private boolean isDeleted;
-
-    @Column(name = "deleted_at")
-    private LocalDate deletedAt;
-
     @Column(name = "purchase_price", precision = 10, scale = 2)
     private BigDecimal purchasePrice;
 
@@ -36,16 +32,19 @@ public class QuotedItem {
     private BigDecimal sellingPrice;
 
     @Column(precision = 10, scale = 2)
-    private BigDecimal tax;
-
-    @Column(precision = 10, scale = 2)
     private BigDecimal subtotal;
 
-    private String productCode;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "quoted_item_type")
+    private QuotedItemType quotedItemType;
 
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
+
+    @ManyToOne
+    @JoinColumn(name = "variation_id")
+    private ProductVariation variation;
 
     @ManyToOne
     @JoinColumn(name = "quotation_id")

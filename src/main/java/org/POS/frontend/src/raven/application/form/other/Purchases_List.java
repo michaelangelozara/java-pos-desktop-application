@@ -726,7 +726,7 @@ public class Purchases_List extends javax.swing.JPanel {
         panel.add(quantityLabel, gbc);
 
         gbc.gridx = 3;
-        JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, 100, 1));  // Default to 1, max 100
+        JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));  // Default to 1, max 100
         quantitySpinner.setPreferredSize(new Dimension(120, quantitySpinner.getPreferredSize().height));  // Make the spinner wider
         panel.add(quantitySpinner, gbc);
 
