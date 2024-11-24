@@ -24,7 +24,7 @@ public class PersonMapper {
         person.setAddress(dto.address());
         person.setImage(dto.image());
         person.setStatus(dto.status());
-        person.setCode(dto.personType().equals(PersonType.CLIENT) ? this.codeGeneratorService.generateProductCode(GlobalVariable.CLIENT_PREFIX) : this.codeGeneratorService.generateProductCode(GlobalVariable.SUPPLIER_PREFIX));
+        person.setPersonCode(dto.personType().equals(PersonType.CLIENT) ? this.codeGeneratorService.generateProductCode(GlobalVariable.CLIENT_PREFIX) : this.codeGeneratorService.generateProductCode(GlobalVariable.SUPPLIER_PREFIX));
         return person;
     }
 
@@ -52,7 +52,7 @@ public class PersonMapper {
                 person.getAddress(),
                 person.getImage(),
                 person.getStatus(),
-                person.getCode()
+                person.getPersonCode()
         );
     }
 

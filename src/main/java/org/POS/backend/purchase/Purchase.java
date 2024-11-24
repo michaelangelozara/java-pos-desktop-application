@@ -6,10 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.POS.backend.person.Person;
 import org.POS.backend.purchased_item.PurchaseItem;
-import org.POS.backend.return_purchase.ReturnPurchase;
 import org.POS.backend.user.User;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +16,6 @@ import java.util.List;
 @Table
 @Getter
 @Setter
-
 @NoArgsConstructor
 public class Purchase {
 
@@ -26,69 +23,19 @@ public class Purchase {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "po_reference")
-    private String poReference;
-
-    @Column(name = "payment_term")
-    private String paymentTerm;
-
-    @Column(name = "purchase_tax")
-    private int purchaseTax;
-
-    private String note;
-
-    @Column(name = "purchase_date")
-    private LocalDate purchaseDate;
-
-    @Column(name = "purchase_order_date")
-    private LocalDate purchaseOrderDate;
-
-    @Enumerated(EnumType.STRING)
-    private PurchaseStatus status;
-
     @Column(columnDefinition = "VARCHAR(50) NOT NULL")
     private String code;
 
+    private String note;
+
     @Column(name = "created_date")
     private LocalDate createdDate;
-
-    @Column(precision = 10, scale = 2)
-    private BigDecimal balance;
-
-    @Column(name = "subtotal_tax", precision = 10, scale = 2)
-    private BigDecimal subtotalTax;
-
-    @Column(name = "total_tax", precision = 10, scale = 2)
-    private BigDecimal totalTax;
-
-    @Column(precision = 10, scale = 2)
-    private BigDecimal subtotal;
-
-    @Column(precision = 10, scale = 2)
-    private BigDecimal discount;
-
-    @Column(name = "transport_cost", precision = 10, scale = 2)
-    private BigDecimal transportCost;
-
-    @Column(name = "net_total", precision = 10, scale = 2)
-    private BigDecimal netTotal;
-
-    @Column(name = "total_paid", precision = 10, scale = 2)
-    private BigDecimal totalPaid;
 
     @Column(name = "is_deleted")
     private boolean isDeleted;
 
     @Column(name = "deleted_at")
     private LocalDate deletedAt;
-
-    @Column(name = "receipt_number")
-    private String receiptNumber;
-
-    private String account;
-
-    @Column(name = "cheque_number")
-    private String chequeNumber;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -98,18 +45,10 @@ public class Purchase {
     @JoinColumn(name = "person_id")
     private Person person;
 
-    @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ReturnPurchase> returnPurchases = new ArrayList<>();
-
-    @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "purchase", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<PurchaseItem> purchaseItems = new ArrayList<>();
 
-    public void addReturnPurchase(ReturnPurchase returnPurchase){
-        returnPurchases.add(returnPurchase);
-        returnPurchase.setPurchase(this);
-    }
-
-    public void addPurchaseItem(PurchaseItem purchaseItem) {
+    public void addPurchaseItem(PurchaseItem purchaseItem){
         purchaseItems.add(purchaseItem);
         purchaseItem.setPurchase(this);
     }

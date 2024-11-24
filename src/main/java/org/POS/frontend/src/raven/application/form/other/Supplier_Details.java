@@ -21,9 +21,9 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
 import java.util.List;
 import java.util.Timer;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 public class Supplier_Details extends javax.swing.JPanel {
@@ -97,20 +97,20 @@ public class Supplier_Details extends javax.swing.JPanel {
                 try {
                     var purchases = get();
 
-                    for (int i = 0; i < purchases.size(); i++) {
-                        model.addRow(new Object[]{
-                                i + 1,
-                                purchases.get(i).getCode(),
-                                purchases.get(i).getCreatedDate(),
-                                purchases.get(i).getSubtotal(),
-                                purchases.get(i).getTransportCost(),
-                                purchases.get(i).getDiscount(),
-                                purchases.get(i).getNetTotal(),
-                                purchases.get(i).getTotalPaid(),
-                                purchases.get(i).getBalance(),
-                                purchases.get(i).getStatus().name()
-                        });
-                    }
+//                    for (int i = 0; i < purchases.size(); i++) {
+//                        model.addRow(new Object[]{
+//                                i + 1,
+//                                purchases.get(i).getCode(),
+//                                purchases.get(i).getCreatedDate(),
+//                                purchases.get(i).getSubtotal(),
+//                                purchases.get(i).getTransportCost(),
+//                                purchases.get(i).getDiscount(),
+//                                purchases.get(i).getNetTotal(),
+//                                purchases.get(i).getTotalPaid(),
+//                                purchases.get(i).getBalance(),
+//                                purchases.get(i).getStatus().name()
+//                        });
+//                    }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 } catch (ExecutionException e) {
@@ -150,14 +150,14 @@ public class Supplier_Details extends javax.swing.JPanel {
             protected void done() {
                 try {
                     var purchase = get();
-
-                    SwingUtilities.invokeLater(() -> {
-                        String totalInvoice = String.valueOf(computeInvoiceTotal(purchase));
-                        jLabel17.setText("₱ " + totalInvoice);
-
-                        String totalDue = String.valueOf(computeInvoiceDue(purchase));
-                        jLabel18.setText("₱ " + totalDue);
-                    });
+//
+//                    SwingUtilities.invokeLater(() -> {
+//                        String totalInvoice = String.valueOf(computeInvoiceTotal(purchase));
+//                        jLabel17.setText("₱ " + totalInvoice);
+//
+//                        String totalDue = String.valueOf(computeInvoiceDue(purchase));
+//                        jLabel18.setText("₱ " + totalDue);
+//                    });
                     loadInvoiceTable(purchase);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
@@ -169,40 +169,24 @@ public class Supplier_Details extends javax.swing.JPanel {
         worker.execute();
     }
 
-    private BigDecimal computeInvoiceTotal(List<PurchaseResponseDto> purchases) {
-        BigDecimal totalInvoice = BigDecimal.ZERO;
-        for (var purchase : purchases) {
-            totalInvoice = totalInvoice.add(purchase.totalPaid());
-        }
-        return totalInvoice;
-    }
-
-    private BigDecimal computeInvoiceDue(List<PurchaseResponseDto> purchases) {
-        BigDecimal totalDue = BigDecimal.ZERO;
-        for (var purchase : purchases) {
-            totalDue = totalDue.add(purchase.balance());
-        }
-        return totalDue;
-    }
-
     private void loadInvoiceTable(List<PurchaseResponseDto> purchases) {
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         model.setRowCount(0);
 
-        for (int i = 0; i < purchases.size(); i++) {
-            model.addRow(new Object[]{
-                    i + 1,
-                    purchases.get(i).code(),
-                    purchases.get(i).date(),
-                    purchases.get(i).subtotal(),
-                    purchases.get(i).transport(),
-                    purchases.get(i).discount(),
-                    purchases.get(i).netTotal(),
-                    purchases.get(i).totalPaid(),
-                    purchases.get(i).totalDue(),
-                    purchases.get(i).status().name()
-            });
-        }
+//        for (int i = 0; i < purchases.size(); i++) {
+//            model.addRow(new Object[]{
+//                    i + 1,
+//                    purchases.get(i).code(),
+//                    purchases.get(i).date(),
+//                    purchases.get(i).subtotal(),
+//                    purchases.get(i).transport(),
+//                    purchases.get(i).discount(),
+//                    purchases.get(i).netTotal(),
+//                    purchases.get(i).totalPaid(),
+//                    purchases.get(i).totalDue(),
+//                    purchases.get(i).status().name()
+//            });
+//        }
     }
 
     private void clientProfileInit(String imageBase64) {
@@ -952,18 +936,18 @@ public class Supplier_Details extends javax.swing.JPanel {
                     var purchases = get();
 
                     for (int i = 0; i < purchases.size(); i++) {
-                        model.addRow(new Object[]{
-                                i + 1,
-                                purchases.get(i).code(),
-                                purchases.get(i).date(),
-                                purchases.get(i).subtotal(),
-                                purchases.get(i).transport(),
-                                purchases.get(i).discount(),
-                                purchases.get(i).netTotal(),
-                                purchases.get(i).totalPaid(),
-                                purchases.get(i).totalDue(),
-                                purchases.get(i).status().name()
-                        });
+//                        model.addRow(new Object[]{
+//                                i + 1,
+//                                purchases.get(i).code(),
+//                                purchases.get(i).date(),
+//                                purchases.get(i).subtotal(),
+//                                purchases.get(i).transport(),
+//                                purchases.get(i).discount(),
+//                                purchases.get(i).netTotal(),
+//                                purchases.get(i).totalPaid(),
+//                                purchases.get(i).totalDue(),
+//                                purchases.get(i).status().name()
+//                        });
                     }
 
                     SwingUtilities.invokeLater(() -> {

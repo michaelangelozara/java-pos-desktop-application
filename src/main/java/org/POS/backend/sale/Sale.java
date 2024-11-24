@@ -4,16 +4,20 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.POS.backend.cash_transaction.CashTransaction;
+import org.POS.backend.additional_fee.AdditionalFee;
 import org.POS.backend.invoice.Invoice;
 import org.POS.backend.order.Order;
+import org.POS.backend.payment.Payment;
 import org.POS.backend.person.Person;
-import org.POS.backend.sale_item.SaleItem;
+import org.POS.backend.sale_product.SaleProduct;
+import org.POS.backend.shipping.ShippingAddress;
 import org.POS.backend.user.User;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -27,73 +31,55 @@ public class Sale {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private String discountType;
-
-    @Column(precision = 10, scale = 2)
-    private BigDecimal discount;
-
-    @Column(name = "transport_cost", precision = 10, scale = 2)
-    private BigDecimal transportCost;
-
     @Column(name = "total_tax", precision = 10, scale = 2)
     private BigDecimal totalTax;
 
     @Column(name = "net_total", precision = 10, scale = 2)
     private BigDecimal netTotal;
 
-    @Column(name = "receipt_number", columnDefinition = "VARCHAR(50) NOT NULL")
-    private String receiptNumber;
-
-    @Column(precision = 10, scale = 2)
-    private BigDecimal amount;
-
-    @Column(name = "amount_due", precision = 10, scale = 2)
-    private BigDecimal amountDue;
-
-    @Column(name = "reference")
-    private String reference;
-
-    private String payment;
-
-    @Column(name = "delivery_place")
-    private String deliveryPlace;
-
-    private String note;
-
     private LocalDate date;
 
-    @Enumerated(EnumType.STRING)
-    private SaleTransactionMethod transactionMethod;
+    @Column(name = "sale_number", columnDefinition = "VARCHAR(50) NOT NULL")
+    private String saleNumber;
 
-    @Column(columnDefinition = "VARCHAR(50) NOT NULL")
-    private String code;
+    @Column(name = "vat_sale", precision = 10, scale = 2)
+    private BigDecimal vatSale;
 
-    @Column(name = "vat_sales", precision = 10, scale = 2)
-    private BigDecimal vatSales;
-
-    @OneToOne
-    @JoinColumn(name = "cash_transaction_id")
-    private CashTransaction cashTransaction;
-
-    @ManyToOne
+    @ManyToOne(cascade = {CascadeType.MERGE})
     @JoinColumn(name = "person_id")
     private Person person;
 
-    @ManyToOne
+    @ManyToOne(cascade = {CascadeType.MERGE})
     @JoinColumn(name = "user_id")
     private User user;
 
-    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<SaleItem> saleItems = new HashSet<>();
+    @OneToMany(mappedBy = "sale", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
+    private Set<SaleProduct> saleProducts = new HashSet<>();
 
-    @OneToOne(mappedBy = "sale")
+    @OneToOne(mappedBy = "sale", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     private Order order;
 
-    @OneToOne(mappedBy = "sale")
+    @OneToOne(mappedBy = "sale", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     private Invoice invoice;
 
-    public void addSaleItem(SaleItem saleItem){
-        saleItems.add(saleItem);
-        saleItem.setSale(this);
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
+    @JoinColumn(name = "payment_id")
+    private Payment payment;
+
+    @OneToMany(mappedBy = "sale", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
+    private List<AdditionalFee> additionalFees = new ArrayList<>();
+
+    @OneToOne(cascade = {CascadeType.PERSIST}, orphanRemoval = true)
+    @JoinColumn(name = "shipping_address_id")
+    private ShippingAddress shippingAddress;
+
+    public void addSaleProduct(SaleProduct saleProduct) {
+        saleProducts.add(saleProduct);
+        saleProduct.setSale(this);
+    }
+
+    public void addAdditionalFee(AdditionalFee additionalFee) {
+        additionalFees.add(additionalFee);
+        additionalFee.setSale(this);
     }
 }

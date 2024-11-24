@@ -1,14 +1,19 @@
 package org.POS.backend.product;
 
-import org.POS.backend.brand.BrandDAO;
 import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.global_variable.GlobalVariable;
 import org.POS.backend.global_variable.UserActionPrefixes;
+import org.POS.backend.product_attribute.ProductAttribute;
+import org.POS.backend.product_category.ProductCategoryDAO;
+import org.POS.backend.stock.Stock;
+import org.POS.backend.stock.StockType;
 import org.POS.backend.user.UserDAO;
 import org.POS.backend.user_log.UserLog;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 public class ProductService {
 
@@ -16,81 +21,129 @@ public class ProductService {
 
     private ProductMapper productMapper;
 
-    private BrandDAO brandDAO;
-
     private UserDAO userDAO;
+
+    private ProductCategoryDAO productCategoryDAO;
 
     public ProductService() {
         this.productDAO = new ProductDAO();
         this.productMapper = new ProductMapper();
-        this.brandDAO = new BrandDAO();
         this.userDAO = new UserDAO();
+        this.productCategoryDAO = new ProductCategoryDAO();
     }
 
-    public String add(AddProductRequestDto dto) {
+    public void add(AddProductRequestDto dto, Set<ProductAttribute> productAttributeSet) {
         var user = this.userDAO.getUserById(CurrentUser.id);
-        if(user == null)
+        if (user == null)
             throw new RuntimeException(GlobalVariable.USER_NOT_FOUND);
 
-        var brand = this.brandDAO.getValidBrandById(dto.brandId());
-        if (brand == null)
-            return GlobalVariable.BRAND_NOT_FOUND;
+        var category = this.productCategoryDAO.getValidCategory(dto.categoryId());
+        if (category == null)
+            throw new RuntimeException(GlobalVariable.CATEGORY_NOT_FOUND);
 
-        var product = this.productMapper.toProduct(dto, brand);
+        var product = this.productMapper.toProduct(dto);
+        product.setProductCategory(category);
+
+        Stock stock = new Stock();
+
+        // check the type of product
+        if (dto.type().equals(ProductType.SIMPLE)) {
+            product.setProductType(ProductType.SIMPLE);
+            product.setSellingPrice(dto.sellingPrice());
+            product.setPurchasePrice(dto.purchasePrice());
+
+            stock.setStockInOrOut(product.getStock());
+            stock.setRecentQuantity(product.getStock());
+            stock.setPrice(product.getSellingPrice());
+        } else {
+            product.setProductType(ProductType.VARIABLE);
+            product.setSellingPrice(BigDecimal.ZERO);
+            product.setPurchasePrice(BigDecimal.ZERO);
+            int totalVariationQuantity = 0;
+            for (var productAttribute : productAttributeSet) {
+                product.addProductAttribute(productAttribute);
+
+                for (var variation : productAttribute.getProductVariations()) {
+                    totalVariationQuantity += variation.getQuantity();
+                }
+            }
+            stock.setStockInOrOut(totalVariationQuantity);
+            stock.setRecentQuantity(totalVariationQuantity);
+        }
+
+        stock.setDate(LocalDate.now());
+        stock.setType(StockType.IN);
+        stock.setCode(product.getProductCode());
+        user.addStock(stock);
+        product.addStock(stock);
 
         UserLog userLog = new UserLog();
-        userLog.setCode(product.getCode());
+        userLog.setCode(product.getProductCode());
         userLog.setDate(LocalDate.now());
         userLog.setAction(UserActionPrefixes.PRODUCTS_ADD_ACTION_LOG_PREFIX);
-        user.addUserLog(userLog);
+        userLog.setUser(user);
 
         this.productDAO.add(product, userLog);
-        return GlobalVariable.PRODUCT_ADDED;
     }
 
-    public String update(UpdateProductRequestDto dto) {
+    public void update(UpdateProductRequestDto dto, Set<ProductAttribute> productAttributeSet) {
         var user = this.userDAO.getUserById(CurrentUser.id);
-        if(user == null)
+        if (user == null)
             throw new RuntimeException(GlobalVariable.USER_NOT_FOUND);
 
-        var brand = this.brandDAO.getValidBrandById(dto.brandId());
 
-        var product = this.productDAO.getValidProduct(dto.productId());
-        if (brand == null)
-            return GlobalVariable.BRAND_NOT_FOUND;
+        var product = this.productDAO.getValidProductById(dto.productId());
+        if (product == null)
+            throw new RuntimeException("Invalid Product");
 
+        var category = this.productCategoryDAO.getValidCategory(dto.categoryId());
+        if (category == null)
+            throw new RuntimeException("Invalid Category");
 
-        var updatedProduct = this.productMapper.toUpdatedProduct(product, dto, brand);
+        var updatedProduct = this.productMapper.toUpdatedProduct(product, dto);
+        updatedProduct.setProductCategory(category);
+        if (updatedProduct.getProductType().equals(ProductType.SIMPLE)) {
+            updatedProduct.setSellingPrice(dto.sellingPrice());
+            updatedProduct.setPurchasePrice(dto.purchasePrice());
+        } else {
+            updatedProduct.getProductAttributes().clear();
+            for (var newProductAttribute : productAttributeSet) {
+                updatedProduct.addProductAttribute(newProductAttribute);
+            }
+        }
 
         UserLog userLog = new UserLog();
-        userLog.setCode(updatedProduct.getCode());
+        userLog.setCode(updatedProduct.getProductCode());
         userLog.setDate(LocalDate.now());
         userLog.setAction(UserActionPrefixes.PRODUCTS_EDIT_ACTION_LOG_PREFIX);
-        user.addUserLog(userLog);
+        userLog.setUser(user);
 
         this.productDAO.update(updatedProduct, userLog);
-        return GlobalVariable.PRODUCT_UPDATED;
     }
 
-    public String delete(int productId) {
+    public void delete(int productId) {
         var user = this.userDAO.getUserById(CurrentUser.id);
-        if(user == null)
+        if (user == null)
             throw new RuntimeException(GlobalVariable.USER_NOT_FOUND);
+
+        var product = this.productDAO.getValidProductById(productId);
+        if (product == null)
+            throw new RuntimeException(GlobalVariable.PRODUCT_NOT_FOUND);
+
+        product.setDeletedAt(LocalDate.now());
+        product.setDeleted(true);
 
         UserLog userLog = new UserLog();
         userLog.setDate(LocalDate.now());
         userLog.setAction(UserActionPrefixes.PRODUCTS_REMOVE_ACTION_LOG_PREFIX);
+        userLog.setCode(product.getProductCode());
         user.addUserLog(userLog);
 
-        boolean result = this.productDAO.delete(productId, userLog);
-        if (result)
-            return GlobalVariable.PRODUCT_DELETED;
-
-        return GlobalVariable.PRODUCT_NOT_FOUND;
+        this.productDAO.delete(product, userLog);
     }
 
     public ProductResponseDto getValidProductById(int productId) {
-        var product = this.productDAO.getValidProduct(productId);
+        var product = this.productDAO.getValidProductById(productId);
         if (product == null)
             return null;
 
@@ -106,39 +159,39 @@ public class ProductService {
         return this.productMapper.productResponseDtoList(this.productDAO.getAllValidProductsBelowAlertQuantity());
     }
 
-    public List<ProductResponseDto> getAllValidProductByProductSubcategoryId(int productSubcategoryId, boolean isGreaterThanZero) {
-        return this.productMapper.productResponseDtoList(this.productDAO.getAllValidProductsByProductSubcategoryId(productSubcategoryId, isGreaterThanZero));
-    }
-
-    public List<Product> getAllProductWithStockBySubcategoryId(int subcategoryId) {
-        return this.productDAO.getAllValidProductsWithStocksByProductSubcategoryId(subcategoryId);
+    public List<Product> getAllProductsWithStockByCategoryId(int categoryId) {
+        return this.productDAO.getAllValidProductsWithStocksByProductSubcategoryId(categoryId);
     }
 
     public List<ProductResponseDto> getAllValidProductByName(String name) {
         return this.productMapper.productResponseDtoList(this.productDAO.getAllValidProductByName(name));
     }
 
-    public List<ProductResponseDto> getAllValidProductByNameAndQuantityGreaterThanZero(String name) {
-        return this.productMapper.productResponseDtoList(this.productDAO.getAllValidProductByNameQuantityGreaterThanZero(name));
+    public List<Product> getAllValidProductsByRangeAndCategoryId(LocalDate start, LocalDate end, int categoryId) {
+        return this.productDAO.getALlValidProductsByRangeAndCategoryId(start, end, categoryId);
     }
 
-    public List<Product> getAllValidProductByRangeAndSubcategoryId(LocalDate start, LocalDate end, int subcategoryId) {
-        return this.productDAO.getALlValidProductByRangeAndSubcategoryId(start, end, subcategoryId);
-    }
-
-    public List<Product> getAllValidProductsByRange(LocalDate start, LocalDate end){
-        return this.productDAO.getALlValidProductByRange(start, end);
-    }
-
-    public List<Product> getAllValidProductsWithoutLimit(){
+    public List<Product> getAllValidProductsWithoutLimit() {
         return this.productDAO.getAllValidProductWithoutLimit();
     }
 
-    public List<ProductResponseDto> getALlValidProductsWithoutLimitDtoResponse(){
+    public List<ProductResponseDto> getALlValidProductsWithoutLimitDtoResponse() {
         return this.productMapper.productResponseDtoList(this.productDAO.getAllValidProductWithoutLimit());
     }
 
-    public List<ProductResponseDto> getAllValidProducts(){
+    public List<ProductResponseDto> getAllValidProducts() {
         return this.productMapper.productResponseDtoList(this.productDAO.getAllValidProducts());
+    }
+
+    public List<ProductResponseDto> getAllValidProductByCategoryId(int id) {
+        return this.productMapper.productResponseDtoList(this.productDAO.getAllValidProductByCategoryId(id));
+    }
+
+    public List<Product> getAllValidProductByCategoryIdWithoutDto(int id, ProductType type) {
+        return this.productDAO.getAllValidProductByCategoryId(id, type);
+    }
+
+    public Product getValidProductByIdWithoutDto(int id){
+        return this.productDAO.getValidProductById(id);
     }
 }

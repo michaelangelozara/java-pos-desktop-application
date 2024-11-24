@@ -123,13 +123,13 @@ public class ProfitLoss_Report extends javax.swing.JPanel {
 
 
                     for (int i = 0; i < sales.size(); i++) {
-                        for (var saleItem : sales.get(i).getSaleItems()) {
+                        for (var saleItem : sales.get(i).getSaleProducts()) {
                             BigDecimal totalCostOfGoods = BigDecimal.valueOf(saleItem.getQuantity()).multiply(saleItem.getProduct().getPurchasePrice()).setScale(2, RoundingMode.HALF_UP);
                             BigDecimal totalSales = BigDecimal.valueOf(saleItem.getQuantity()).multiply(saleItem.getProduct().getSellingPrice()).setScale(2, RoundingMode.HALF_UP);
 
                             model.addRow(new Object[]{
                                     rowNumber,
-                                    sales.get(i).getCode(),
+                                    sales.get(i).getSaleNumber(),
                                     sales.get(i).getDate(),
                                     saleItem.getProduct().getName(),
                                     saleItem.getQuantity(),
@@ -488,13 +488,13 @@ public class ProfitLoss_Report extends javax.swing.JPanel {
 
 
                     for (int i = 0; i < sales.size(); i++) {
-                        for (var saleItem : sales.get(i).getSaleItems()) {
+                        for (var saleItem : sales.get(i).getSaleProducts()) {
                             BigDecimal totalCostOfGoods = BigDecimal.valueOf(saleItem.getQuantity()).multiply(saleItem.getProduct().getPurchasePrice()).setScale(2, RoundingMode.HALF_UP);
                             BigDecimal totalSales = BigDecimal.valueOf(saleItem.getQuantity()).multiply(saleItem.getProduct().getSellingPrice()).setScale(2, RoundingMode.HALF_UP);
 
                             model.addRow(new Object[]{
                                     rowNumber,
-                                    sales.get(i).getCode(),
+                                    sales.get(i).getSaleNumber(),
                                     sales.get(i).getDate(),
                                     saleItem.getProduct().getName(),
                                     saleItem.getQuantity(),

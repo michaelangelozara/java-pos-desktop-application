@@ -1,7 +1,5 @@
 package org.POS.backend.product;
 
-import org.POS.backend.brand.Brand;
-import org.POS.backend.brand.BrandMapper;
 import org.POS.backend.code_generator.CodeGeneratorService;
 import org.POS.backend.global_variable.GlobalVariable;
 
@@ -12,34 +10,18 @@ import java.util.List;
 
 public class ProductMapper {
 
-    private BrandMapper brandMapper;
-
     private CodeGeneratorService codeGeneratorService;
 
     public ProductMapper() {
-        this.brandMapper = new BrandMapper();
         this.codeGeneratorService = new CodeGeneratorService();
     }
 
-    public Product toProduct(AddProductRequestDto dto, Brand brand) {
+    public Product toProduct(AddProductRequestDto dto) {
         Product product = new Product();
         product.setName(dto.name());
-        product.setModel(dto.model());
-        product.setCode(codeGeneratorService.generateProductCode(GlobalVariable.PRODUCT_PREFIX));
-        product.setBrand(brand);
+        product.setProductCode(codeGeneratorService.generateProductCode(GlobalVariable.PRODUCT_PREFIX));
         product.setUnit(dto.unit());
-        product.setProductTax(12);
-        product.setTaxType(dto.taxType());
         product.setDate(LocalDate.now());
-
-        if(dto.taxType().equals(ProductTaxType.EXCLUSIVE)){
-            product.setSellingPrice(getSellingPrice(dto.purchasePrice()));
-            product.setPurchasePrice(dto.purchasePrice());
-        }else{
-            product.setSellingPrice(dto.sellingPrice());
-            product.setPurchasePrice(getPurchasePrice(dto.sellingPrice()));
-        }
-        product.setPercentageDiscount(dto.percentageDiscount());
         product.setNote(dto.note());
         product.setAlertQuantity(dto.alertQuantity());
         product.setStatus(dto.status());
@@ -60,20 +42,14 @@ public class ProductMapper {
         return sellingPrice.multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP);
     }
 
-    public Product toUpdatedProduct(Product product, UpdateProductRequestDto dto, Brand brand) {
+    public Product toUpdatedProduct(Product product, UpdateProductRequestDto dto) {
         product.setName(dto.name());
-        product.setModel(dto.model());
-        product.setBrand(brand);
         product.setUnit(dto.unit());
-        product.setProductTax(12);
-        product.setTaxType(dto.taxType());
-//        product.setSellingPrice(getSellingPrice(dto.purchasePrice(), dto.taxType()));
-        product.setPercentageDiscount(dto.discount());
+        product.setDate(LocalDate.now());
         product.setNote(dto.note());
         product.setAlertQuantity(dto.alertQuantity());
         product.setStatus(dto.status());
-        product.setImage(dto.image());
-        product.setPurchasePrice(dto.purchasePrice());
+        product.setImage(dto.image().isEmpty() ? product.getImage() : dto.image());
         product.setStock(dto.stock());
         return product;
     }
@@ -82,13 +58,8 @@ public class ProductMapper {
         return new ProductResponseDto(
                 product.getId(),
                 product.getName(),
-                product.getModel(),
-                product.getCode(),
-                this.brandMapper.brandResponseDto(product.getBrand()),
+                product.getProductCode(),
                 product.getUnit(),
-                product.getProductTax(),
-                product.getTaxType(),
-                product.getPercentageDiscount(),
                 product.getNote(),
                 product.getAlertQuantity(),
                 product.getStatus(),
@@ -96,7 +67,10 @@ public class ProductMapper {
                 product.getSellingPrice(),
                 product.getPurchasePrice(),
                 product.getStock(),
-                product.getDate()
+                product.getDate(),
+                product.getProductCategory(),
+                product.getProductAttributes(),
+                product.getProductType()
         );
     }
 

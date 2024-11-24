@@ -15,11 +15,10 @@ public class OpenCashDAO {
         this.sessionFactory = HibernateUtil.getSessionFactory();
     }
 
-    public void add(OpenCash openCash, User user, UserLog userLog){
+    public void add(OpenCash openCash, UserLog userLog){
         Transaction transaction = null;
         try(Session session = sessionFactory.openSession()){
             transaction = session.beginTransaction();
-            user.addOpenCash(openCash);
             session.persist(openCash);
             session.persist(userLog);
             transaction.commit();

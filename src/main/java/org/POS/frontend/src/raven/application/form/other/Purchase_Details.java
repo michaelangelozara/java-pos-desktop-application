@@ -26,13 +26,13 @@ public class Purchase_Details extends JPanel {
         DefaultTableModel model = (DefaultTableModel) table4.getModel();
         model.setRowCount(0);
 
-        model.addRow(new Object[]{
-                purchase.getCode(),
-                purchase.getCreatedDate(),
-                purchase.getNote(),
-                purchase.getStatus().name(),
-                purchase.getUser().getName()
-        });
+//        model.addRow(new Object[]{
+//                purchase.getCode(),
+//                purchase.getCreatedDate(),
+//                purchase.getNote(),
+//                purchase.getStatus().name(),
+//                purchase.getUser().getName()
+//        });
     }
 
     private void loadProducts() {
@@ -41,15 +41,15 @@ public class Purchase_Details extends JPanel {
 
         var purchaseItem = purchase.getPurchaseItems();
         for (int i = 0; i < purchaseItem.size(); i++) {
-            model.addRow(new Object[]{
-                    i + 1,
-                    purchaseItem.get(i).getProduct().getCode(),
-                    purchaseItem.get(i).getProduct().getName(),
-                    purchaseItem.get(i).getQuantity(),
-                    purchaseItem.get(i).getProduct().getSellingPrice(),
-                    purchaseItem.get(i).getProduct().getSellingPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP),
-                    purchaseItem.get(i).getProduct().getSellingPrice().multiply(BigDecimal.valueOf(purchaseItem.get(i).getQuantity()))
-            });
+//            model.addRow(new Object[]{
+//                    i + 1,
+//                    purchaseItem.get(i).getProduct().getProductCode(),
+//                    purchaseItem.get(i).getProduct().getName(),
+//                    purchaseItem.get(i).getQuantity(),
+//                    purchaseItem.get(i).getProduct().getSellingPrice(),
+//                    purchaseItem.get(i).getProduct().getSellingPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP),
+//                    purchaseItem.get(i).getProduct().getSellingPrice().multiply(BigDecimal.valueOf(purchaseItem.get(i).getQuantity()))
+//            });
         }
     }
 

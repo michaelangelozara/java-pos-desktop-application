@@ -15,7 +15,6 @@ import org.jdatepicker.impl.UtilDateModel;
 
 import java.awt.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Properties;
@@ -93,18 +92,18 @@ public class CollectionByUser_Report extends javax.swing.JPanel {
                 try {
                     var sales = get();
 
-                    for (int i = 0; i < sales.size(); i++) {
-                        model.addRow(new Object[]{
-                                i + 1,
-                                sales.get(i).getUser().getName(),
-                                sales.get(i).getInvoice().getCode(),
-                                sales.get(i).getPerson().getName(),
-                                sales.get(i).getNetTotal(),
-                                sales.get(i).getAmount(),
-                                sales.get(i).getDate(),
-                                sales.get(i).getTransactionMethod().name()
-                        });
-                    }
+//                    for (int i = 0; i < sales.size(); i++) {
+//                        model.addRow(new Object[]{
+//                                i + 1,
+//                                sales.get(i).getUser().getName(),
+//                                sales.get(i).getInvoice().getInvoiceNumber(),
+//                                sales.get(i).getPerson().getName(),
+//                                sales.get(i).getNetTotal(),
+//                                sales.get(i).getAmount(),
+//                                sales.get(i).getDate(),
+//                                sales.get(i).getTransactionMethod().name()
+//                        });
+//                    }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 } catch (ExecutionException e) {
@@ -144,18 +143,18 @@ public class CollectionByUser_Report extends javax.swing.JPanel {
             protected void done() {
                 try {
                     var sales = get();
-                    for (int i = 0; i < sales.size(); i++) {
-                        model.addRow(new Object[]{
-                                i + 1,
-                                sales.get(i).getUser().getName(),
-                                sales.get(i).getInvoice().getCode(),
-                                sales.get(i).getPerson().getName(),
-                                sales.get(i).getNetTotal(),
-                                sales.get(i).getAmount(),
-                                sales.get(i).getDate(),
-                                sales.get(i).getTransactionMethod().name()
-                        });
-                    }
+//                    for (int i = 0; i < sales.size(); i++) {
+//                        model.addRow(new Object[]{
+//                                i + 1,
+//                                sales.get(i).getUser().getName(),
+//                                sales.get(i).getInvoice().getInvoiceNumber(),
+//                                sales.get(i).getPerson().getName(),
+//                                sales.get(i).getNetTotal(),
+//                                sales.get(i).getAmount(),
+//                                sales.get(i).getDate(),
+//                                sales.get(i).getTransactionMethod().name()
+//                        });
+//                    }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 } catch (ExecutionException e) {

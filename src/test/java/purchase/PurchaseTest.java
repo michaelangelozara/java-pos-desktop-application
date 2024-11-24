@@ -1,12 +1,8 @@
 package purchase;
 
-import org.POS.backend.purchase.AddPurchaseRequestDto;
 import org.POS.backend.purchase.PurchaseService;
-import org.POS.backend.purchase.PurchaseStatus;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 

@@ -3,15 +3,12 @@ package org.POS.backend.user;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.POS.backend.cash_transaction.CashTransaction;
 import org.POS.backend.expense.Expense;
 import org.POS.backend.inventory_adjustment.InventoryAdjustment;
 import org.POS.backend.open_cash.OpenCash;
-import org.POS.backend.payment.Payment;
 import org.POS.backend.purchase.Purchase;
 import org.POS.backend.quotation.Quotation;
-import org.POS.backend.return_product.ReturnProduct;
-import org.POS.backend.return_purchase.ReturnPurchase;
+import org.POS.backend.return_product.ReturnOrder;
 import org.POS.backend.sale.Sale;
 import org.POS.backend.stock.Stock;
 import org.POS.backend.user_log.UserLog;
@@ -70,9 +67,6 @@ public class User {
     private List<Stock> stocks = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CashTransaction> cashTransactions = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OpenCash> openCashes = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -85,35 +79,19 @@ public class User {
     private List<Quotation> quotations = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ReturnProduct> returnProducts = new ArrayList<>();
+    private List<ReturnOrder> returnOrders = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user")
     private List<UserLog> userLogs = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ReturnPurchase> returnPurchases = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Payment> payments = new ArrayList<>();
-
-    public void addPayment(Payment payment){
-        payments.add(payment);
-        payment.setUser(this);
-    }
-
-    public void addReturnPurchase(ReturnPurchase returnPurchase){
-        returnPurchases.add(returnPurchase);
-        returnPurchase.setUser(this);
-    }
 
     public void addUserLog(UserLog userLog){
         userLogs.add(userLog);
         userLog.setUser(this);
     }
 
-    public void addReturnProduct(ReturnProduct returnProduct){
-        returnProducts.add(returnProduct);
-        returnProduct.setUser(this);
+    public void addReturnProduct(ReturnOrder returnOrder){
+        returnOrders.add(returnOrder);
+        returnOrder.setUser(this);
     }
 
     public void addQuotation(Quotation quotation){
@@ -134,11 +112,6 @@ public class User {
     public void addOpenCash(OpenCash openCash){
         openCashes.add(openCash);
         openCash.setUser(this);
-    }
-
-    public void addCashTransaction(CashTransaction cashTransaction){
-        cashTransactions.add(cashTransaction);
-        cashTransaction.setUser(this);
     }
 
     public void addStock(Stock stock){

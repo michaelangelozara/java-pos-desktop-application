@@ -77,7 +77,6 @@ public class UserDAO {
         }
     }
 
-
     public List<User> getAllValidUsers() {
         List<User> users = new ArrayList<>();
         try (Session session = sessionFactory.openSession()) {
@@ -108,6 +107,10 @@ public class UserDAO {
                 Hibernate.initialize(user.getSales());
             }
 
+            if (!user.getUserLogs().isEmpty()) {
+                Hibernate.initialize(user.getUserLogs());
+            }
+
             if (!user.getSales().isEmpty()) {
                 Hibernate.initialize(user.getSales());
             }
@@ -124,10 +127,6 @@ public class UserDAO {
                 Hibernate.initialize(user.getOpenCashes());
             }
 
-            if (!user.getCashTransactions().isEmpty()) {
-                Hibernate.initialize(user.getCashTransactions());
-            }
-
             if (!user.getPurchases().isEmpty()) {
                 Hibernate.initialize(user.getPurchases());
             }
@@ -140,17 +139,6 @@ public class UserDAO {
                 Hibernate.initialize(user.getQuotations());
             }
 
-            if (!user.getUserLogs().isEmpty()) {
-                Hibernate.initialize(user.getUserLogs());
-            }
-
-            if (!user.getReturnPurchases().isEmpty()) {
-                Hibernate.initialize(user.getReturnPurchases());
-            }
-
-            if (!user.getPayments().isEmpty()) {
-                Hibernate.initialize(user.getPayments());
-            }
             session.getTransaction().commit();
         } catch (Exception e) {
             e.printStackTrace();

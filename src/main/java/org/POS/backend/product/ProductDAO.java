@@ -43,41 +43,34 @@ public class ProductDAO {
 
             session.getTransaction().commit();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    public boolean delete(int productId, UserLog userLog) {
+    public void delete(Product product, UserLog userLog) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
-            Product product = session.createQuery("SELECT p FROM Product p WHERE p.id = :productId AND p.isDeleted = FALSE", Product.class)
-                    .setParameter("productId", productId)
-                    .getSingleResult();
-            product.setDeletedAt(LocalDate.now());
-            product.setDeleted(true);
             session.merge(product);
-
-            userLog.setCode(product.getCode());
             session.persist(userLog);
 
             session.getTransaction().commit();
-            return true;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
-        return false;
     }
 
-    public Product getValidProduct(int productId) {
+    public Product getValidProductById(int productId) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
             Product product = session.createQuery("SELECT p FROM Product p WHERE p.id = :productId AND p.isDeleted = FALSE", Product.class)
                     .setParameter("productId", productId)
                     .getSingleResult();
-            Hibernate.initialize(product.getInventoryAdjustments());
 
+            Hibernate.initialize(product.getInventoryAdjustments());
+            Hibernate.initialize(product.getProductAttributes());
+            product.getProductAttributes().forEach(p -> Hibernate.initialize(p.getProductVariations()));
             session.getTransaction().commit();
             return product;
         } catch (Exception e) {
@@ -97,9 +90,8 @@ public class ProductDAO {
                     .getResultList();
 
             for(var product : products){
-                if(!product.getStocks().isEmpty()){
-                    Hibernate.initialize(product.getStocks());
-                }
+                Hibernate.initialize(product.getStocks());
+                Hibernate.initialize(product.getProductAttributes());
             }
             session.getTransaction().commit();
             return products;
@@ -118,11 +110,11 @@ public class ProductDAO {
             products = session.createQuery("SELECT p FROM Product p WHERE p.isDeleted = FALSE", Product.class)
                     .getResultList();
 
-            for(var product : products){
-                if(!product.getStocks().isEmpty()){
-                    Hibernate.initialize(product.getStocks());
-                }
-            }
+            products.forEach(p -> {
+                Hibernate.initialize(p.getStocks());
+                Hibernate.initialize(p.getProductAttributes());
+                p.getProductAttributes().forEach(pa -> Hibernate.initialize(pa.getProductVariations()));
+            });
             session.getTransaction().commit();
             return products;
         } catch (Exception e) {
@@ -144,11 +136,14 @@ public class ProductDAO {
 
             // Initialize the associations separately
             for (Product product : products) {
-                Hibernate.initialize(product.getSaleItems());
-                Hibernate.initialize(product.getPurchaseItems());
+                Hibernate.initialize(product.getSaleProducts());
                 Hibernate.initialize(product.getStocks());
                 Hibernate.initialize(product.getQuotedItems());
                 productsSet.add(product);
+                product.getProductAttributes().forEach(p -> {
+                    Hibernate.initialize(p.getProductVariations());
+                    p.getProductVariations().forEach(v -> Hibernate.initialize(v.getSaleProducts()));
+                });
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -171,39 +166,20 @@ public class ProductDAO {
         return products;
     }
 
-    public List<Product> getAllValidProductsByProductSubcategoryId(int productSubcategoryId, boolean isGreaterThanZero) {
-        List<Product> products = new ArrayList<>();
-        try (Session session = sessionFactory.openSession()) {
 
-            String query = "";
-            if(isGreaterThanZero){
-                query = "SELECT p FROM Product p WHERE p.brand.productSubcategory.id = :productSubcategoryId AND p.isDeleted = FALSE AND p.stock > 0";
-            }else {
-                query = "SELECT p FROM Product p WHERE p.brand.productSubcategory.id = :productSubcategoryId AND p.isDeleted = FALSE";
-            }
-            products = session.createQuery(
-                            query,
-                            Product.class
-                    ).setParameter("productSubcategoryId", productSubcategoryId)
-                    .getResultList();
-        } catch (Exception e) {
-            // Consider logging the exception
-            e.printStackTrace();
-        }
-        return products;
-    }
-
-    public List<Product> getAllValidProductsWithStocksByProductSubcategoryId(int productSubcategoryId) {
+    public List<Product> getAllValidProductsWithStocksByProductSubcategoryId(int productCategoryId) {
         List<Product> products = new ArrayList<>();
         try (Session session = sessionFactory.openSession()) {
             products = session.createQuery(
-                            "SELECT p FROM Product p WHERE p.brand.productSubcategory.id = :productSubcategoryId AND p.isDeleted = FALSE",
+                            "SELECT p FROM Product p WHERE p.productCategory.id = :productCategoryId AND p.isDeleted = FALSE",
                             Product.class
-                    ).setParameter("productSubcategoryId", productSubcategoryId)
+                    ).setParameter("productCategoryId", productCategoryId)
                     .getResultList();
             for(var product : products){
                 if(!product.getStocks().isEmpty()){
                     Hibernate.initialize(product.getStocks());
+                    Hibernate.initialize(product.getProductAttributes());
+                    product.getProductAttributes().forEach(p -> Hibernate.initialize(p.getProductVariations()));
                 }
             }
         } catch (Exception e) {
@@ -215,21 +191,21 @@ public class ProductDAO {
 
     public List<Product> getAllValidProductByProductCode(Set<String> codes) {
         List<Product> products = new ArrayList<>();
-        try (Session session = sessionFactory.openSession()) {
-            products = session.createQuery(
-                            "SELECT p FROM Product p WHERE p.code IN: codes  AND p.isDeleted = FALSE",
-                            Product.class
-                    )
-                    .setParameter("codes", codes).getResultList();
-
-            for(var product : products){
-                Hibernate.initialize(product.getPurchaseItems());
-                Hibernate.initialize(product.getQuotedItems());
-            }
-        } catch (Exception e) {
-            // Consider logging the exception
-            e.printStackTrace();
-        }
+//        try (Session session = sessionFactory.openSession()) {
+//            products = session.createQuery(
+//                            "SELECT p FROM Product p WHERE p.code IN: codes  AND p.isDeleted = FALSE",
+//                            Product.class
+//                    )
+//                    .setParameter("codes", codes).getResultList();
+//
+//            for(var product : products){
+//                Hibernate.initialize(product.getPurchaseItems());
+//                Hibernate.initialize(product.getQuotedItems());
+//            }
+//        } catch (Exception e) {
+//            // Consider logging the exception
+//            e.printStackTrace();
+//        }
         return products;
     }
 
@@ -261,18 +237,20 @@ public class ProductDAO {
         return products;
     }
 
-    public List<Product> getALlValidProductByRangeAndSubcategoryId(LocalDate start, LocalDate end, int subcategoryId){
+    public List<Product> getALlValidProductsByRangeAndCategoryId(LocalDate start, LocalDate end, int categoryId){
         List<Product> products = new ArrayList<>();
         try (Session session = sessionFactory.openSession()){
 
-            products = session.createQuery("SELECT p FROM Product p JOIN FETCH p.brand b JOIN FETCH b.productSubcategory ps WHERE ps.id =:subcategoryId AND (p.date >= :start AND p.date <= :end) AND p.isDeleted = FALSE", Product.class)
+            products = session.createQuery("SELECT p FROM Product p WHERE p.productCategory.id =: categoryId AND (p.date >= :start AND p.date <= :end) AND p.isDeleted = FALSE", Product.class)
                     .setParameter("start", start)
                     .setParameter("end", end)
-                    .setParameter("subcategoryId", subcategoryId)
+                    .setParameter("categoryId", categoryId)
                     .getResultList();
 
             for(var product : products){
                 Hibernate.initialize(product.getStocks());
+                Hibernate.initialize(product.getProductAttributes());
+                product.getProductAttributes().forEach(p -> Hibernate.initialize(p.getProductVariations()));
             }
 
         }catch (Exception e){
@@ -307,6 +285,45 @@ public class ProductDAO {
             products = session.createQuery("SELECT p FROM Product p WHERE p.isDeleted = FALSE", Product.class)
                     .getResultList();
 
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return products;
+    }
+
+    public List<Product> getAllValidProductByCategoryId(int id, ProductType type){
+        List<Product> products = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            products = session.createQuery("SELECT p FROM Product p WHERE (p.productCategory.id =: id AND p.isDeleted = FALSE) AND p.productType =: type", Product.class)
+                    .setParameter("id", id)
+                    .setParameter("type", type)
+                    .getResultList();
+
+            products.forEach(p -> {
+                Hibernate.initialize(p.getStocks());
+                Hibernate.initialize(p.getProductAttributes());
+                p.getProductAttributes().forEach(pa -> Hibernate.initialize(pa.getProductVariations()));
+            });
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return products;
+    }
+
+    public List<Product> getAllValidProductByCategoryId(int id){
+        List<Product> products = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            products = session.createQuery("SELECT p FROM Product p WHERE p.productCategory.id =: id AND p.isDeleted = FALSE", Product.class)
+                    .setParameter("id", id)
+                    .getResultList();
+
+            products.forEach(p -> {
+                Hibernate.initialize(p.getStocks());
+                Hibernate.initialize(p.getProductAttributes());
+                p.getProductAttributes().forEach(pa -> Hibernate.initialize(pa.getProductVariations()));
+            });
         }catch (Exception e){
             e.printStackTrace();
         }

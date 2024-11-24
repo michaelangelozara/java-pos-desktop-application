@@ -34,6 +34,10 @@ public class StockService {
     }
 
     public List<Stock> getAllValidStockByTypeAndProductId(StockType type, int productId){
-        return this.stockDAO.getAllValidStockProductId(type, productId);
+        return this.stockDAO.getAllValidStocksByProductId(type, productId);
+    }
+
+    public List<Stock> getAllValidStocks(){
+        return this.stockDAO.getAllValidStocks();
     }
 }

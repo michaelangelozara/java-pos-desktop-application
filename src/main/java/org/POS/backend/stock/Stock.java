@@ -27,6 +27,9 @@ public class Stock {
     @Column(name = "stock_in_or_out")
     private int stockInOrOut;
 
+    @Column(name = "recent_quantity")
+    private int recentQuantity;
+
     @Column(precision = 10, scale = 2)
     private BigDecimal price;
 
@@ -39,10 +42,6 @@ public class Stock {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
-
-    @ManyToOne
-    @JoinColumn(name = "person_id")
-    private Person person;
 
     @ManyToOne
     @JoinColumn(name = "product_id")

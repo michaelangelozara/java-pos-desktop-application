@@ -14,6 +14,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
 
 /**
  * @author Raven
@@ -79,10 +80,6 @@ public class MainForm extends JLayeredPane {
                 case 2:
                     if (subIndex == 1) {
                         Application.showForm(new Purchases_List());
-                    } else if (subIndex == 2) {
-                        Application.showForm(new BrandList());
-                    } else if (subIndex == 3) {
-                        Application.showForm(new ReturnedPurchase_List());
                     } else {
                         action.cancel();
                     }
@@ -121,8 +118,6 @@ public class MainForm extends JLayeredPane {
                     if (subIndex == 1) {
                         Application.showForm(new Products_Category());
                     } else if (subIndex == 2) {
-                        Application.showForm(new Products_Sub_Category());
-                    } else if (subIndex == 3) {
                         Application.showForm(new ProductList());
                     } else {
                         action.cancel();
@@ -139,39 +134,32 @@ public class MainForm extends JLayeredPane {
                     break;
                 case 9:
                     Application.showForm(new Sales_Report());
-
                     break;
                 case 10:
                     Application.showForm(new ProfitLoss_Report());
-
                     break;
                 case 11:
-
                     Application.showForm(new Expense_Report());
-
                     break;
                 case 12:
-
                     Application.showForm(new CollectionByUser_Report());
-
                     break;
                 case 13:
-
                     Application.showForm(new Inventory_Report());
-
                     break;
                 case 14:
-
                     Application.showForm(new CurrentValueandStock_Report());
-
                     break;
                 case 15:
-                    if(CurrentUser.isPosLoginSetup){
+                    Application.showForm(new Settings());
+                    break;
+                case 16:
+                    if (CurrentUser.isPosLoginSetup) {
                         int result = JOptionPane.showConfirmDialog(null, "Close the Register for Final Cash", "Confirmation", JOptionPane.WARNING_MESSAGE);
-                        if(result == JOptionPane.OK_OPTION){
+                        if (result == JOptionPane.OK_OPTION) {
                             Application.showForm(new POS());
                         }
-                    }else{
+                    } else {
                         Application.logout();
                     }
                     break;
@@ -206,7 +194,7 @@ public class MainForm extends JLayeredPane {
         panelBody.revalidate();
     }
 
-    public void setSelectedMenu(int index, int subIndex) {
+    public void setSelectedMenu(int index, int subIndex) throws IOException {
         menu.setSelectedMenu(index, subIndex);
     }
 

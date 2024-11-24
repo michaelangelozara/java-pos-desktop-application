@@ -3,19 +3,16 @@ package org.POS.backend.product;
 import java.math.BigDecimal;
 
 public record AddProductRequestDto(
+        int categoryId,
         String name,
-        String model,
-        int brandId,
+        int stock,
         ProductUnit unit,
-        int productTax,
-        ProductTaxType taxType,
-        BigDecimal purchasePrice,
-        BigDecimal sellingPrice,
-        int percentageDiscount,
         String note,
         int alertQuantity,
         ProductStatus status,
         String image,
-        int stock
+        ProductType type,
+        BigDecimal purchasePrice,
+        BigDecimal sellingPrice
 ) {
 }

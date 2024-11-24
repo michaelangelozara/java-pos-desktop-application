@@ -13,31 +13,33 @@
         <property name="hibernate.format_sql">true</property>
         <property name="hibernate.show_sql">true</property>
 
+        <mapping class="org.POS.backend.payment.Payment"/>
         <mapping class="org.POS.backend.user.User"/>
-        <mapping class="org.POS.backend.brand.Brand"/>
         <mapping class="org.POS.backend.product_category.ProductCategory"/>
         <mapping class="org.POS.backend.person.Person"/>
         <mapping class="org.POS.backend.product.Product"/>
-        <mapping class="org.POS.backend.product_subcategory.ProductSubcategory"/>
         <mapping class="org.POS.backend.expense.Expense"/>
         <mapping class="org.POS.backend.code_generator.CodeGenerator"/>
         <mapping class="org.POS.backend.expense_category.ExpenseCategory"/>
         <mapping class="org.POS.backend.expense_subcategory.ExpenseSubcategory"/>
         <mapping class="org.POS.backend.purchase.Purchase"/>
         <mapping class="org.POS.backend.purchased_item.PurchaseItem"/>
-        <mapping class="org.POS.backend.return_product.ReturnProduct"/>
+        <mapping class="org.POS.backend.return_product.ReturnOrder"/>
         <mapping class="org.POS.backend.stock.Stock"/>
         <mapping class="org.POS.backend.sale.Sale"/>
-        <mapping class="org.POS.backend.sale_item.SaleItem"/>
-        <mapping class="org.POS.backend.cash_transaction.CashTransaction"/>
+        <mapping class="org.POS.backend.sale_product.SaleProduct"/>
         <mapping class="org.POS.backend.open_cash.OpenCash"/>
         <mapping class="org.POS.backend.inventory_adjustment.InventoryAdjustment"/>
         <mapping class="org.POS.backend.order.Order"/>
         <mapping class="org.POS.backend.invoice.Invoice"/>
         <mapping class="org.POS.backend.quotation.Quotation"/>
         <mapping class="org.POS.backend.quoted_item.QuotedItem"/>
-        <mapping class="org.POS.backend.return_purchase.ReturnPurchase"/>
         <mapping class="org.POS.backend.user_log.UserLog"/>
-        <mapping class="org.POS.backend.payment.Payment"/>
+        <mapping class="org.POS.backend.shipping.ShippingAddress"/>
+        <mapping class="org.POS.backend.additional_fee.AdditionalFee"/>
+        <mapping class="org.POS.backend.product_attribute.ProductAttribute"/>
+        <mapping class="org.POS.backend.product_attribute.ProductVariation"/>
+        <mapping class="org.POS.backend.return_product.ReturnItem"/>
+        <mapping class="org.POS.backend.payment.POLog"/>
     </session-factory>
 </hibernate-configuration>

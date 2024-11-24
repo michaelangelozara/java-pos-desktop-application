@@ -11,8 +11,6 @@ import org.POS.backend.person.PersonType;
 import org.POS.backend.product.ProductResponseDto;
 import org.POS.backend.product.ProductService;
 import org.POS.backend.product.ProductTaxType;
-import org.POS.backend.purchased_item.PurchaseItemService;
-import org.POS.backend.purchased_item.UpdatePurchaseItemRequestDto;
 import org.POS.backend.quotation.*;
 import org.POS.backend.quoted_item.AddQuotedItemRequestDto;
 import org.POS.backend.quoted_item.QuotedItemDAO;
@@ -296,26 +294,26 @@ public class Quotation_List extends javax.swing.JPanel {
                             try {
                                 for (ProductResponseDto product : productWorker.get()) {
 
-                                    if (product.id() == productId) {
-                                        BigDecimal updatedSubtotal = BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice().multiply(BigDecimal.valueOf(1.12)));
-
-                                        BigDecimal taxValueForInclusive = (product.sellingPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP));
-
-                                        tableModel.addRow(new Object[]{
-                                                tableModel.getRowCount() + 1, // Row number
-                                                null,
-                                                product.code(),
-                                                product.name(),
-                                                String.valueOf(product.stock()), // Ensuring stock is a String
-                                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().subtract(taxValueForInclusive).setScale(2, RoundingMode.HALF_UP),
-                                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().multiply(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().setScale(2, RoundingMode.HALF_UP),
-                                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.subtract((BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice()))).setScale(2, RoundingMode.HALF_UP) : taxValueForInclusive.setScale(2, RoundingMode.HALF_UP),
-                                                product.taxType().name(), // Assuming taxType() returns an enum, use name() to get String
-                                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.setScale(2, RoundingMode.HALF_UP) : BigDecimal.valueOf(product.stock()).multiply(product.sellingPrice()).setScale(2, RoundingMode.HALF_UP), // Subtotal calculation
-                                                "Remove"
-                                        });
-                                        break;
-                                    }
+//                                    if (product.id() == productId) {
+//                                        BigDecimal updatedSubtotal = BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice().multiply(BigDecimal.valueOf(1.12)));
+//
+//                                        BigDecimal taxValueForInclusive = (product.sellingPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP));
+//
+//                                        tableModel.addRow(new Object[]{
+//                                                tableModel.getRowCount() + 1, // Row number
+//                                                null,
+//                                                product.code(),
+//                                                product.name(),
+//                                                String.valueOf(product.stock()), // Ensuring stock is a String
+//                                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().subtract(taxValueForInclusive).setScale(2, RoundingMode.HALF_UP),
+//                                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().multiply(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().setScale(2, RoundingMode.HALF_UP),
+//                                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.subtract((BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice()))).setScale(2, RoundingMode.HALF_UP) : taxValueForInclusive.setScale(2, RoundingMode.HALF_UP),
+//                                                product.taxType().name(), // Assuming taxType() returns an enum, use name() to get String
+//                                                product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.setScale(2, RoundingMode.HALF_UP) : BigDecimal.valueOf(product.stock()).multiply(product.sellingPrice()).setScale(2, RoundingMode.HALF_UP), // Subtotal calculation
+//                                                "Remove"
+//                                        });
+//                                        break;
+//                                    }
                                 }
                             } catch (InterruptedException ex) {
                                 throw new RuntimeException(ex);
@@ -747,24 +745,24 @@ public class Quotation_List extends javax.swing.JPanel {
                                 statusCombo.setSelectedItem(quotation.getStatus().equals(QuotationStatus.ACTIVE) ? "Active" : "Inactive");
                             });
 
-                            for (int i = 0; i < quotation.getQuotedItems().size(); i++) {
-                                // if the quoted item is deleted skip it from listing
-                                if(quotation.getQuotedItems().get(i).isDeleted()) continue;
-
-                                tableModel.addRow(new Object[]{
-                                        i + 1,
-                                        quotation.getQuotedItems().get(i).getId(),
-                                        quotation.getQuotedItems().get(i).getProduct().getCode(),
-                                        quotation.getQuotedItems().get(i).getProduct().getName(),
-                                        quotation.getQuotedItems().get(i).getQuantity(),
-                                        quotation.getQuotedItems().get(i).getPurchasePrice(),
-                                        quotation.getQuotedItems().get(i).getSellingPrice(),
-                                        quotation.getQuotedItems().get(i).getTax(),
-                                        quotation.getQuotedItems().get(i).getProduct().getTaxType().name(),
-                                        quotation.getQuotedItems().get(i).getSubtotal(),
-                                        "Remove"
-                                });
-                            }
+//                            for (int i = 0; i < quotation.getQuotedItems().size(); i++) {
+//                                // if the quoted item is deleted skip it from listing
+//                                if(quotation.getQuotedItems().get(i).isDeleted()) continue;
+//
+//                                tableModel.addRow(new Object[]{
+//                                        i + 1,
+//                                        quotation.getQuotedItems().get(i).getId(),
+//                                        quotation.getQuotedItems().get(i).getProduct().getProductCode(),
+//                                        quotation.getQuotedItems().get(i).getProduct().getName(),
+//                                        quotation.getQuotedItems().get(i).getQuantity(),
+//                                        quotation.getQuotedItems().get(i).getPurchasePrice(),
+//                                        quotation.getQuotedItems().get(i).getSellingPrice(),
+//                                        quotation.getQuotedItems().get(i).getTax(),
+//                                        quotation.getQuotedItems().get(i).getProduct().getTaxType().name(),
+//                                        quotation.getQuotedItems().get(i).getSubtotal(),
+//                                        "Remove"
+//                                });
+//                            }
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         } catch (ExecutionException e) {
@@ -1470,35 +1468,35 @@ public class Quotation_List extends javax.swing.JPanel {
                     BigDecimal SubtotalSummation = BigDecimal.ZERO;
 
 
-                    try {
-                        for (ProductResponseDto product : productWorker.get()) {
-
-                            if (product.id() == productId) {
-                                BigDecimal updatedSubtotal = BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice().multiply(BigDecimal.valueOf(1.12)));
-
-                                BigDecimal taxValueForInclusive = (product.sellingPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP));
-
-                                tableModel.addRow(new Object[]{
-                                        tableModel.getRowCount() + 1, // Row number
-                                        product.id(),
-                                        product.code(),
-                                        product.name(),
-                                        String.valueOf(product.stock()), // Ensuring stock is a String
-                                        product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().subtract(taxValueForInclusive).setScale(2, RoundingMode.HALF_UP),
-                                        product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().multiply(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().setScale(2, RoundingMode.HALF_UP),
-                                        product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.subtract((BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice()))).setScale(2, RoundingMode.HALF_UP) : taxValueForInclusive.setScale(2, RoundingMode.HALF_UP),
-                                        product.taxType().name(), // Assuming taxType() returns an enum, use name() to get String
-                                        product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.setScale(2, RoundingMode.HALF_UP) : BigDecimal.valueOf(product.stock()).multiply(product.sellingPrice()).setScale(2, RoundingMode.HALF_UP), // Subtotal calculation
-                                        "Remove"
-                                });
-                                break;
-                            }
-                        }
-                    } catch (InterruptedException ex) {
-                        throw new RuntimeException(ex);
-                    } catch (ExecutionException ex) {
-                        throw new RuntimeException(ex);
-                    }
+//                    try {
+//                        for (ProductResponseDto product : productWorker.get()) {
+//
+//                            if (product.id() == productId) {
+//                                BigDecimal updatedSubtotal = BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice().multiply(BigDecimal.valueOf(1.12)));
+//
+//                                BigDecimal taxValueForInclusive = (product.sellingPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP));
+//
+//                                tableModel.addRow(new Object[]{
+//                                        tableModel.getRowCount() + 1, // Row number
+//                                        product.id(),
+//                                        product.code(),
+//                                        product.name(),
+//                                        String.valueOf(product.stock()), // Ensuring stock is a String
+//                                        product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().subtract(taxValueForInclusive).setScale(2, RoundingMode.HALF_UP),
+//                                        product.taxType().equals(ProductTaxType.EXCLUSIVE) ? product.purchasePrice().multiply(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP) : product.sellingPrice().setScale(2, RoundingMode.HALF_UP),
+//                                        product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.subtract((BigDecimal.valueOf(product.stock()).multiply(product.purchasePrice()))).setScale(2, RoundingMode.HALF_UP) : taxValueForInclusive.setScale(2, RoundingMode.HALF_UP),
+//                                        product.taxType().name(), // Assuming taxType() returns an enum, use name() to get String
+//                                        product.taxType().equals(ProductTaxType.EXCLUSIVE) ? updatedSubtotal.setScale(2, RoundingMode.HALF_UP) : BigDecimal.valueOf(product.stock()).multiply(product.sellingPrice()).setScale(2, RoundingMode.HALF_UP), // Subtotal calculation
+//                                        "Remove"
+//                                });
+//                                break;
+//                            }
+//                        }
+//                    } catch (InterruptedException ex) {
+//                        throw new RuntimeException(ex);
+//                    } catch (ExecutionException ex) {
+//                        throw new RuntimeException(ex);
+//                    }
 
                     for (int i = 0; i < tableModel.getRowCount(); i++) {
                         BigDecimal totalTax = (BigDecimal) tableModel.getValueAt(i, 7);

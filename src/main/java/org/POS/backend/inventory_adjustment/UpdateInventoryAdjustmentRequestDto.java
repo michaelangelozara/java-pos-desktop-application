@@ -5,7 +5,6 @@ public record UpdateInventoryAdjustmentRequestDto(
         String reason,
         InventoryAdjustmentType type,
         int quantity,
-        String note,
-        InventoryAdjustmentStatus status
+        String note
 ) {
 }

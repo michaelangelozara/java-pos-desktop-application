@@ -1,15 +1,6 @@
 package sale_service;
 
-import org.POS.backend.global_variable.CurrentUser;
-import org.POS.backend.sale.AddSaleRequestDto;
-import org.POS.backend.sale.SaleService;
-import org.POS.backend.sale_item.AddSaleItemRequestDto;
 import org.junit.jupiter.api.Test;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
 
 public class SaleTest {
 

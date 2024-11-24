@@ -5,23 +5,23 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.POS.backend.brand.BrandService;
-import org.POS.backend.cash_transaction.TransactionPaymentMethod;
+import org.POS.backend.additional_fee.AdditionalFee;
 import org.POS.backend.cryptography.Base64Converter;
-import org.POS.backend.global_variable.CurrentUser;
-import org.POS.backend.person.AddPersonRequestDto;
-import org.POS.backend.person.PersonService;
-import org.POS.backend.person.PersonStatus;
-import org.POS.backend.person.PersonType;
-import org.POS.backend.product.*;
+import org.POS.backend.payment.AddPaymentRequestDto;
+import org.POS.backend.payment.PaymentDiscountType;
+import org.POS.backend.payment.TransactionType;
+import org.POS.backend.person.*;
+import org.POS.backend.product.ProductResponseDto;
+import org.POS.backend.product.ProductService;
+import org.POS.backend.product.ProductType;
+import org.POS.backend.product_category.ProductCategoryResponseDto;
 import org.POS.backend.product_category.ProductCategoryService;
-import org.POS.backend.product_subcategory.ProductSubcategoryService;
 import org.POS.backend.sale.AddSaleRequestDto;
 import org.POS.backend.sale.SaleService;
-import org.POS.backend.sale_item.AddSaleItemRequestDto;
+import org.POS.backend.sale_product.AddSaleProductRequestDto;
+import org.POS.backend.shipping.AddShippingRequestDto;
 import org.POS.frontend.src.com.raven.component.Item;
 import org.POS.frontend.src.com.raven.model.ModelItem;
-import org.POS.frontend.src.raven.application.Application;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -29,262 +29,73 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.*;
 import java.util.Timer;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
 
 public class POS extends JPanel {
 
     private Timer timer;
 
-    private Vector<String> clientNames;
-
     private Map<Integer, Integer> clientMap;
 
-    private DefaultComboBoxModel<String> clientComboModel;
+    private CopyOnWriteArrayList<SelectedProduct> selectedProductSet;
 
-    private ActionListener clientActionListener;
+    private List<SelectedProduct> selectedProductList;
 
-    private List<PurchaseListedProduct> selectedItems;
+    private Map<Integer, Integer> categoryMap;
 
-    private Integer recentSubcategoryId = null;
+    private Integer selectClientId;
+
+    private List<AddFee> addFees;
+
+    private Shipping shipping;
+
+    private Discount discount;
+
 
     public POS() {
-        selectedItems = new ArrayList<>();
+        this.categoryMap = new HashMap<>();
+        this.clientMap = new HashMap<>();
+        this.selectedProductSet = new CopyOnWriteArrayList<>();
+        this.selectedProductList = new ArrayList<>();
+        this.addFees = new ArrayList<>();
+
+        this.shipping = new Shipping();
+        this.discount = new Discount();
+
         initComponents();
-        jButton4.addActionListener(e -> {
-            cashOut();
-        });
-    }
-
-    private void cashOut(){
-        if(CurrentUser.isPosLoginSetup){
-            Application.showForm(new AfterPOS());
-        }
-    }
-
-    private void reloadProductTable() {
-        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        List<PurchaseListedProduct> rows = getAllRows();
-
-        model.setRowCount(0);
-
-        int i = 1;
-        for (PurchaseListedProduct product : selectedItems) {
-            boolean isEqual = false;
-
-            for (var dataInTheTable : rows) {
-                if (Objects.equals(product.getId(), dataInTheTable.getId())) {
-                    model.addRow(new Object[]{
-                            i,
-                            dataInTheTable.getId(),
-                            dataInTheTable.getName(),
-                            dataInTheTable.getPrice(),
-                            dataInTheTable.getQuantity(),
-                            dataInTheTable.getSubtotal(),
-                            "Remove"
-                    });
-                    isEqual = true;
-                    break;
-                }
-            }
-
-            if (!isEqual) {
-                model.addRow(new Object[]{
-                        i,
-                        product.getId(),
-                        product.getName(),
-                        product.getPrice(),
-                        product.getQuantity(),
-                        product.getSubtotal(),
-                        "Remove"
-                });
-            }
-            i++;
-        }
-    }
-
-    public void addItem(ModelItem data) {
-        Item item = new Item();
-        item.setData(data);
-        item.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent me) {
-                if (SwingUtilities.isLeftMouseButton(me)) {
-                    Item clickedItem = (Item) me.getSource();
-
-                    ModelItem itemData = clickedItem.getData();
-
-                    for (int i = 0; i < selectedItems.size(); i++) {
-                        if (selectedItems.get(i).getId() == itemData.getItemID()) {
-                            JOptionPane.showMessageDialog(null, "Product is already added");
-                            return;
-                        }
-                    }
-
-                    selectedItems.add(new PurchaseListedProduct(
-                            data.getItemID(),
-                            data.getItemName(),
-                            1,
-                            BigDecimal.valueOf(data.getPrice()),
-                            BigDecimal.valueOf(data.getPrice())
-                    ));
-                    reloadProductTable();
-                    loadNetTotal();
-                }
-            }
-        });
-        panelItem.add(item);
-        panelItem.repaint();
-        panelItem.revalidate();
-    }
-
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
-
-        jPanel1 = new JPanel();
-        jLabel5 = new JLabel();
-        jSeparator1 = new JSeparator();
-        jPanel2 = new JPanel();
-        jComboBox1 = new JComboBox<>();
-        jButton3 = new JButton();
-        jComboBox2 = new JComboBox<>();
-        jComboBox3 = new JComboBox<>();
-        jButton2 = new JButton();
-        jTextField1 = new JTextField();
-        roundPanel2 = new org.POS.frontend.src.javaswingdev.swing.RoundPanel();
-        jScrollPane1 = new JScrollPane();
-        jTable1 = new JTable();
-        scroll = new JScrollPane();
-        panelItem = new org.POS.frontend.src.com.raven.swing.PanelItem();
-        jPanel7 = new JPanel();
-        jLabel1 = new JLabel();
-        jComboBox4 = new JComboBox<>();
-        jLabel2 = new JLabel();
-        jTextField2 = new JTextField();
-        jComboBox5 = new JComboBox<>();
-        jLabel4 = new JLabel();
-        jTextField3 = new JTextField();
-        jLabel3 = new JLabel();
-        jPanel3 = new JPanel();
-        jLabel7 = new JLabel();
-        jLabel6 = new JLabel();
-        jButton1 = new JButton();
-        jButton4 = new JButton();
-
-        jPanel1.setBorder(BorderFactory.createEtchedBorder());
-
-        jLabel5.setFont(new Font("Segoe UI", 0, 24)); // NOI18N
-        jLabel5.setText("Create Sales");
-
-        jPanel2.setBorder(BorderFactory.createEtchedBorder());
-
-        clientNames = new Vector<>();
-        clientNames.add("Select Customer");
-        clientMap = new HashMap<>();
-        PersonService personService = new PersonService();
-
-        clientComboModel = new DefaultComboBoxModel<>(clientNames);
-        jComboBox1.setModel(clientComboModel);
-
-        clientActionListener = e -> {
-            JComboBox<String> clientCombo = new JComboBox<>(clientComboModel);
-            JOptionPane.showMessageDialog(null, "Client : " + clientCombo.getSelectedItem());
-        };
-
-        var clients = personService.getAllValidPeopleByType(PersonType.CLIENT);
-        for (int i = 0; i < clients.size(); i++) {
-            clientNames.add(clients.get(i).name());
-            clientMap.put(i + 1, clients.get(i).id());
-        }
-
-        jComboBox1.addActionListener(clientActionListener);
-
-        jButton3.setBackground(new java.awt.Color(204, 255, 204));
-        jButton3.setFont(new Font("Segoe UI", 1, 14)); // NOI18N
-        jButton3.setText("Add Customer");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+        loadProductTable();
+        loadCategoryForComboBox(jComboBox2, categoryMap);
+        loadClientForComboBox(jComboBox1, clientMap);
+        jComboBox2.addActionListener(e -> {
+            int index = jComboBox2.getSelectedIndex();
+            Integer categoryId = categoryMap.get(index);
+            if (categoryId != null) {
+                loadProductsUnderCategory(categoryId);
             }
         });
 
-        Vector<String> categoryNames = new Vector<>();
-        Map<Integer, Integer> productCategoryMap = new HashMap<>();
-        categoryNames.add("Select Category");
-        ProductCategoryService productCategoryService = new ProductCategoryService();
-        var productCategories = productCategoryService.getAllValidProductCategories();
-
-        for (int i = 0; i < productCategories.size(); i++) {
-            categoryNames.add(productCategories.get(i).name());
-            productCategoryMap.put(i + 1, productCategories.get(i).id());
-        }
-        DefaultComboBoxModel<String> categoryCombo = new DefaultComboBoxModel<>(categoryNames);
-
-        jComboBox2.setModel(categoryCombo);
-        jComboBox2.setPreferredSize(new Dimension(318, 22));
-
-        Vector<String> subcategoryNames = new Vector<>();
-        Map<Integer, Integer> productSubcategoryMap = new HashMap<>();
-        subcategoryNames.add("Select Subcategory");
-        ProductSubcategoryService productSubcategoryService = new ProductSubcategoryService();
-
-        DefaultComboBoxModel<String> subcategoryCombo = new DefaultComboBoxModel<>(subcategoryNames);
-        jComboBox3.setModel(subcategoryCombo);
-
-        ProductService productService = new ProductService();
-        ActionListener subcategoryActionListener = e -> {
-            this.panelItem.removeAll();
-            JComboBox<String> productSubcategoryCombo = new JComboBox<>(subcategoryCombo);
-            int productSubcategorySelectedIndex = productSubcategoryCombo.getSelectedIndex();
-            Integer productSubcategoryId = productSubcategoryMap.get(productSubcategorySelectedIndex);
-
-            if(productSubcategoryId != null){
-                // load all the products that under the selected category
-                loadProductsUnderSubcategoryId(productSubcategoryId);
-
-                // assign the last subcategory id
-                recentSubcategoryId = productSubcategoryId;
-            }
-        };
-
-        jComboBox2.addActionListener(evt -> {
-            JComboBox<String> tempProductCategoryCombo = new JComboBox<>(categoryCombo);
-            int productSelectedIndex = tempProductCategoryCombo.getSelectedIndex();
-            Integer productCategoryId = productCategoryMap.get(productSelectedIndex);
-
-            if(productCategoryId != null){
-                jComboBox3.removeActionListener(subcategoryActionListener);
-                subcategoryCombo.removeAllElements();
-                subcategoryCombo.addElement("Select Subcategory");
-                var productSubcategories = productSubcategoryService.getAllValidSubcategoriesByCategoryId(productCategoryId);
-                for (int i = 0; i < productSubcategories.size(); i++) {
-                    subcategoryCombo.addElement(productSubcategories.get(i).name());
-                    productSubcategoryMap.put(i + 1, productSubcategories.get(i).id());
-                }
-                jComboBox3.addActionListener(subcategoryActionListener);
+        jComboBox1.addActionListener(e -> {
+            int index = jComboBox1.getSelectedIndex();
+            Integer clientId = clientMap.get(index);
+            if (clientId != null) {
+                selectClientId = clientId;
             }
         });
-
-        jButton2.setBackground(new java.awt.Color(204, 255, 204));
-        jButton2.setFont(new Font("Segoe UI", 1, 14)); // NOI18N
-        jButton2.setText("Add Product");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
+        activateTableListener();
 
         jTextField1.getDocument().addDocumentListener(new DocumentListener() {
             @Override
@@ -302,328 +113,696 @@ public class POS extends JPanel {
                 scheduleQuery();
             }
         });
+    }
 
-        GroupLayout jPanel2Layout = new GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-                jPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addGroup(jPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                        .addComponent(jButton3, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(jComboBox1, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                        .addComponent(jComboBox3, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(jComboBox2, 0, 0, Short.MAX_VALUE))
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                        .addComponent(jTextField1)
-                                        .addComponent(jButton2, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addContainerGap())
-        );
-        jPanel2Layout.setVerticalGroup(
-                jPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addGroup(jPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                        .addGroup(jPanel2Layout.createSequentialGroup()
-                                                .addGroup(jPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-                                                        .addComponent(jComboBox2, GroupLayout.DEFAULT_SIZE, 51, Short.MAX_VALUE)
-                                                        .addComponent(jTextField1))
-                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                                .addGroup(jPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-                                                        .addComponent(jComboBox3)
-                                                        .addComponent(jButton2, GroupLayout.DEFAULT_SIZE, 54, Short.MAX_VALUE)))
-                                        .addGroup(jPanel2Layout.createSequentialGroup()
-                                                .addComponent(jComboBox1, GroupLayout.PREFERRED_SIZE, 51, GroupLayout.PREFERRED_SIZE)
-                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(jButton3, GroupLayout.PREFERRED_SIZE, 54, GroupLayout.PREFERRED_SIZE)))
-                                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
-                new Object[][]{
-                },
-                new String[]{
-                        "#", "ID", "Product", "Price", "Quantity", "Subtotal", "Action"
-                }
-        ) {
-            boolean[] canEdit = new boolean[]{
-                    false, false, false, false, true, false, false
-            };
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit[columnIndex];
-            }
-        });
-
-        jScrollPane1.setViewportView(jTable1);
-        if (jTable1.getColumnModel().getColumnCount() > 0) {
-            jTable1.getColumnModel().getColumn(0).setResizable(false);
-            jTable1.getColumnModel().getColumn(1).setResizable(false);
-            jTable1.getColumnModel().getColumn(2).setResizable(false);
-            jTable1.getColumnModel().getColumn(3).setResizable(false);
-            jTable1.getColumnModel().getColumn(4).setResizable(false);
-            jTable1.getColumnModel().getColumn(5).setResizable(false);
-        }
-
+    private void activateTableListener() {
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        TableColumn actionColumn = jTable1.getColumnModel().getColumn(5);
-//        actionColumn.setCellRenderer(new ButtonRenderer());
-        jTable1.getColumnModel().getColumn(6).setCellRenderer(new ButtonRenderer());
-        actionColumn.setCellEditor(new ButtonEditor(new JCheckBox(), jTable1, model)); // Pass model to editor for row removal
-
-        // Add MouseListener to handle "Remove" button clicks in the table
-        jTable1.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
-                int column = jTable1.columnAtPoint(e.getPoint());
-                int row = jTable1.rowAtPoint(e.getPoint());
-
-                if (column == 6) { // "Action" column index for "Remove" button
-                    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-                    int id = (Integer) model.getValueAt(row, 1);
-                    for (var selectedItem : selectedItems) {
-                        if (selectedItem.getId() == id) {
-                            selectedItems.remove(selectedItem);
-                            reloadProductTable();
-                            loadNetTotal();
-                            break;
-                        }
-                    }
-                }
-            }
-        });
-
         model.addTableModelListener(e -> {
             int row = e.getFirstRow();
             int column = e.getColumn();
 
-            if (column == 4) {
-                int productId = (Integer) model.getValueAt(row, 1);
-                List<PurchaseListedProduct> products = getAllRows();
-
-                model.setRowCount(0);
-                Integer insufficientIndexOccurred = null;
-                for (int i = 0; i < products.size(); i++) {
-                    if (products.get(i).getId() == productId) {
-
-                        var fetchedProduct = productService.getValidProductById(productId);
-                        // check if the product's stock is sufficient
-                        if(fetchedProduct.stock() < products.get(i).getQuantity()){
-                            JOptionPane.showMessageDialog(null, "The remaining quantity is only : " + fetchedProduct.stock(), "Insufficient quantity", JOptionPane.PLAIN_MESSAGE);
-                            insufficientIndexOccurred = i;
-                            continue;
+            if (column == 2) {
+                Integer id = (Integer) model.getValueAt(row, 0);
+                Integer updatedQuantity = Integer.parseInt(model.getValueAt(row, 2).toString());
+                for (var selectedItem : selectedProductList) {
+                    if (id.equals(selectedItem.getId())) {
+                        if (selectedItem.getType().equals(ProductType.VARIABLE) && selectedItem.getVariableTotalQuantity() < updatedQuantity) {
+                            JOptionPane.showMessageDialog(null, "Stock Remaining : " + selectedItem.getVariableTotalQuantity(), "Insufficient Stock", JOptionPane.ERROR_MESSAGE);
+                            model.setValueAt(selectedItem.getVariableTotalQuantity(), row, 2);
+                            return;
                         }
 
-                        products.get(i).setSubtotal((BigDecimal.valueOf(products.get(i).getQuantity()).multiply(products.get(i).getPrice())).setScale(2, RoundingMode.HALF_UP));
+                        if (selectedItem.getType().equals(ProductType.SIMPLE) && selectedItem.getQuantity() < updatedQuantity) {
+                            JOptionPane.showMessageDialog(null, "Stock Remaining : " + selectedItem.getQuantity(), "Insufficient Stock", JOptionPane.ERROR_MESSAGE);
+                            model.setValueAt(selectedItem.getQuantity(), row, 2);
+                            return;
+                        }
                     }
                 }
 
-                for (int i = 0; i < products.size(); i++) {
-                    if(insufficientIndexOccurred != null && i == insufficientIndexOccurred){
-                        model.addRow(new Object[]{
-                                i + 1,
-                                products.get(i).getId(),
-                                products.get(i).getName(),
-                                products.get(i).getPrice(),
-                                1,
-                                products.get(i).getPrice(),
-                                "Remove"
-                        });
-                        continue;
-                    }
-
-                    model.addRow(new Object[]{
-                            i + 1,
-                            products.get(i).getId(),
-                            products.get(i).getName(),
-                            products.get(i).getPrice(),
-                            products.get(i).getQuantity(),
-                            products.get(i).getSubtotal(),
-                            "Remove"
-                    });
-                }
-
-                loadNetTotal();
+                updateSubtotal();
             }
         });
 
+        jTable1.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int column = jTable1.columnAtPoint(e.getPoint());
+                int row = jTable1.rowAtPoint(e.getPoint());
+
+                if (column == 4) {
+                    Integer id = (Integer) model.getValueAt(row, 0);
+                    model.removeRow(row);
+                    // remove the item from the list
+                    for (var selectedItem : selectedProductSet) {
+                        if (id != null && id.equals(selectedItem.getId())) {
+                            selectedProductSet.remove(selectedItem);
+                            reloadProductTable();
+                        }
+                    }
+
+                }
+            }
+        });
+    }
+
+    private ModelItem openModalForVariableProducts(ModelItem itemData) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.CENTER;
+
+        // Fonts
+        Font boldFont = new Font("Arial", Font.BOLD, 16);
+        Font regularFont = new Font("Arial", Font.PLAIN, 14);
+
+        // Product Name Label (Centered)
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        JLabel productNameLabel = new JLabel(itemData.getItemName(), SwingConstants.CENTER);
+        productNameLabel.setFont(boldFont);
+        panel.add(productNameLabel, gbc);
+
+        // Price Label (Centered)
+        gbc.gridy = 1;
+        JLabel priceLabel = new JLabel("0.00", SwingConstants.CENTER);
+        priceLabel.setFont(boldFont);
+        panel.add(priceLabel, gbc);
+
+        // Variation Categories Panel (ScrollPane)
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        JPanel variationsContainer = new JPanel();
+        variationsContainer.setLayout(new BoxLayout(variationsContainer, BoxLayout.Y_AXIS));
+
+        // ScrollPane for Variations
+        JScrollPane scrollPane = new JScrollPane(variationsContainer);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setPreferredSize(new Dimension(400, 200)); // Adjust size for scrollable variations
+        panel.add(scrollPane, gbc);
+
+        // Add Variation Categories (e.g., Color, Size)
+        // Example 1: Color
+        Map<Integer, Integer> variationMap = new HashMap<>();
+        Map<Integer, Integer> variationQuantityMap = new HashMap<>();
+        for (var attribute : itemData.getProductAttributes()) {
+            double[] prices = new double[attribute.getProductVariations().size()];
+            String[] names = new String[attribute.getProductVariations().size()];
+            Integer[] variationIds = new Integer[attribute.getProductVariations().size()];
+            int[] variationQuantities = new int[attribute.getProductVariations().size()];
+
+
+            for (int i = 0; i < attribute.getProductVariations().size(); i++) {
+
+                prices[i] = Double.parseDouble(String.valueOf(attribute.getProductVariations().get(i).getSrp()));
+                names[i] = attribute.getProductVariations().get(i).getVariation();
+                variationIds[i] = attribute.getProductVariations().get(i).getId();
+                variationQuantities[i] = attribute.getProductVariations().get(i).getQuantity();
+            }
+
+
+            variationsContainer.add(createVariationCategoryPanel(attribute.getName(), names,
+                    prices, priceLabel, regularFont, boldFont, variationIds, variationQuantities, variationQuantityMap, variationMap));
+
+        }
+
+        // Quantity Label
+        gbc.gridy = 3;
+        gbc.gridx = 0;
+        gbc.gridwidth = 1;
+        JLabel quantityLabel = new JLabel("Quantity:");
+        quantityLabel.setFont(regularFont);
+        panel.add(quantityLabel, gbc);
+
+        // Quantity Spinner
+        gbc.gridx = 1;
+        JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
+        quantitySpinner.setFont(regularFont);
+        panel.add(quantitySpinner, gbc);
+
+        // Notes Label
+        gbc.gridy = 4;
+        gbc.gridx = 0;
+        JLabel notesLabel = new JLabel("Notes:");
+        notesLabel.setFont(regularFont);
+        panel.add(notesLabel, gbc);
+
+        // Notes Text Area
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.BOTH;
+        JTextArea notesTextArea = new JTextArea(3, 20);
+        notesTextArea.setFont(regularFont);
+        notesTextArea.setLineWrap(true);
+        notesTextArea.setWrapStyleWord(true);
+        JScrollPane notesScrollPane = new JScrollPane(notesTextArea);
+        panel.add(notesScrollPane, gbc);
+
+        // Buttons Panel
+        gbc.gridy = 5;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 0));
+
+        // Display the form in a dialog
+        JDialog dialog = new JDialog((Frame) null, "Product Selection", true);
+
+        boolean[] isAddToCartClicked = new boolean[1];
+
+        // Add to Cart Button
+        JButton addToCartButton = new JButton("Add to Cart");
+        addToCartButton.setFont(boldFont);
+        addToCartButton.setBackground(new Color(0, 102, 204));
+        addToCartButton.setForeground(Color.WHITE);
+        addToCartButton.addActionListener(e -> {
+            int selectedQuantity = (int) quantitySpinner.getValue();
+            double price = Double.parseDouble(priceLabel.getText());
+            if (selectedQuantity <= 0) {
+                JOptionPane.showMessageDialog(null, "Please enter a valid quantity.", "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                itemData.setPrice(price);
+                boolean hasSelectedVatiation = false;
+                for (var attribute : itemData.getProductAttributes()) {
+                    boolean isBreak = false;
+                    for (var variation : attribute.getProductVariations()) {
+                        if (variationMap.get(variation.getId()) != null) {
+                            itemData.setVariationId(variationMap.get(variation.getId()));
+                            isBreak = true;
+                            break;
+                        }
+                    }
+
+                    if (isBreak) {
+                        hasSelectedVatiation = true;
+                        break;
+                    }
+                }
+
+                // validate the stock if enough
+                int remainingStock = 0;
+                for (var attribute : itemData.getProductAttributes()) {
+                    boolean isBreak = false;
+                    for (var variation : attribute.getProductVariations()) {
+                        if (variationQuantityMap.get(variation.getId()) != null) {
+                            // check if the quantity is enough
+                            if (variationQuantityMap.get(variation.getId()) < selectedQuantity) {
+                                isBreak = true;
+                                remainingStock = variationQuantityMap.get(variation.getId());
+                            } else {
+                                itemData.setQuantity(selectedQuantity);
+                                itemData.setVariableTotalQuantity(variation.getQuantity());
+                            }
+                            break;
+                        }
+                    }
+
+                    if (isBreak) {
+                        itemData.setQuantity(remainingStock);
+                        JOptionPane.showMessageDialog(null, "Stock Remaining : " + remainingStock, "Insufficient Stock", JOptionPane.ERROR_MESSAGE);
+                        break;
+                    }
+                }
+
+                if (hasSelectedVatiation) {
+                    isAddToCartClicked[0] = true;
+                    dialog.dispose();
+                } else {
+                    JOptionPane.showMessageDialog(null, "Please Select a Product Variation");
+                }
+            }
+        });
+        buttonPanel.add(addToCartButton);
+
+        // Cancel Button
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.setFont(boldFont);
+        cancelButton.setBackground(new Color(204, 0, 0));
+        cancelButton.setForeground(Color.WHITE);
+        cancelButton.addActionListener(e -> {
+            // Close the dialog
+            SwingUtilities.getWindowAncestor(panel).dispose();
+        });
+        buttonPanel.add(cancelButton);
+
+        panel.add(buttonPanel, gbc);
+
+        dialog.getContentPane().add(panel);
+        dialog.pack();
+        dialog.setLocationRelativeTo(null);
+        dialog.setVisible(true);
+
+        return isAddToCartClicked[0] ? itemData : null;
+    }
+
+    private JPanel createVariationCategoryPanel(
+            String categoryName,
+            String[] options,
+            double[] prices,
+            JLabel priceLabel,
+            Font regularFont,
+            Font boldFont,
+            Integer[] variationId,
+            int[] variationQuantities,
+            Map<Integer, Integer> variationQuantityMap,
+            Map<Integer, Integer> variationMap
+    ) {
+        JPanel categoryPanel = new JPanel();
+        categoryPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        categoryPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.GRAY), categoryName, 0, 0, boldFont));
+
+        for (int i = 0; i < options.length; i++) {
+            JButton optionButton = new JButton(options[i]);
+            int index = i; // Capture index for event handling
+
+            if (variationQuantities[index] <= 0) {
+                optionButton.setEnabled(false);
+            }
+            optionButton.setFont(regularFont);
+            optionButton.addActionListener(e -> {
+                // clear the map
+                variationMap.clear();
+                variationQuantityMap.clear();
+
+                priceLabel.setText(String.valueOf(prices[index]));
+                variationMap.put(variationId[index], variationId[index]);
+                variationQuantityMap.put(variationId[index], variationQuantities[index]);
+            });
+            categoryPanel.add(optionButton);
+        }
+        return categoryPanel;
+    }
+
+    private void loadClientForComboBox(JComboBox<String> clientCombo, Map<Integer, Integer> clientMap) {
+        PersonService personService = new PersonService();
+        SwingWorker<List<PersonResponseDto>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<PersonResponseDto> doInBackground() {
+                return personService.getAllValidPeopleByType(PersonType.CLIENT);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var clients = get();
+                    clientCombo.removeAllItems();
+                    clientCombo.addItem("Select Customer");
+                    for (int i = 0; i < clients.size(); i++) {
+                        clientCombo.addItem(clients.get(i).name());
+                        clientMap.put(i + 1, clients.get(i).id());
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
+    }
+
+    private void loadCategoryForComboBox(JComboBox<String> categoryCombo, Map<Integer, Integer> categoryMap) {
+        ProductCategoryService productCategoryService = new ProductCategoryService();
+        categoryCombo.removeAllItems();
+        SwingWorker<List<ProductCategoryResponseDto>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<ProductCategoryResponseDto> doInBackground() {
+                return productCategoryService.getAllValidProductCategories();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var categories = get();
+                    categoryCombo.addItem("Select Category");
+                    int i = 1;
+                    for (var category : categories) {
+                        categoryCombo.addItem(category.name());
+                        categoryMap.put(i, category.id());
+                        i++;
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
+    }
+
+    private void loadProductsUnderCategory(int id) {
+        selectedProductList.clear();
+        selectedProductSet.clear();
+        ProductService productService = new ProductService();
+        SwingWorker<List<ProductResponseDto>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<ProductResponseDto> doInBackground() throws Exception {
+                return productService.getAllValidProductByCategoryId(id);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    panelItem.removeAll();
+                    var products = get();
+                    for (var product : products) {
+                        if (product.type().equals(ProductType.SIMPLE) && product.stock() <= 0) continue;
+                        ModelItem modelItem = new ModelItem();
+                        modelItem.setQuantity(product.type().equals(ProductType.SIMPLE) ? product.stock() : 0);
+                        modelItem.setProductAttributes(product.productAttributes());
+                        modelItem.setType(product.type());
+                        modelItem.setItemID(product.id());
+                        modelItem.setItemName(product.name());
+                        modelItem.setDescription("");
+                        modelItem.setPrice(Double.parseDouble(String.valueOf(product.sellingPrice())));
+                        modelItem.setBrandName(product.category().getName());
+                        modelItem.setImage(product.image().isEmpty() ? null : decodeBase64(product.image()));
+                        addItem(modelItem);
+                    }
+                    panelItem.repaint();
+                    panelItem.revalidate();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
+    }
+
+    public void addItem(ModelItem data) {
+        Item item = new Item();
+        item.setData(data);
+        item.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent me) {
+                if (SwingUtilities.isLeftMouseButton(me)) {
+                    Item clickedItem = (Item) me.getSource();
+
+                    ModelItem itemData = clickedItem.getData();
+
+                    for (var purchaseProduct : selectedProductSet) {
+                        if (purchaseProduct.getId() == itemData.getItemID()) {
+                            JOptionPane.showMessageDialog(null, purchaseProduct.getName() + " is already added");
+                            return;
+                        }
+                    }
+
+                    if (itemData.getType().equals(ProductType.VARIABLE)) {
+                        ModelItem updatedItem = openModalForVariableProducts(itemData);
+                        if (updatedItem != null) {
+                            selectedProductSet.add(new SelectedProduct(
+                                    updatedItem.getItemID(),
+                                    updatedItem.getItemName(),
+                                    updatedItem.getQuantity(),
+                                    BigDecimal.valueOf(updatedItem.getPrice()),
+                                    updatedItem.getType(),
+                                    updatedItem.getVariationId(),
+                                    updatedItem.getVariableTotalQuantity()
+                            ));
+
+                            selectedProductList.add(new SelectedProduct(
+                                    updatedItem.getItemID(),
+                                    updatedItem.getItemName(),
+                                    updatedItem.getVariableTotalQuantity(),
+                                    BigDecimal.valueOf(updatedItem.getPrice()),
+                                    updatedItem.getType(),
+                                    updatedItem.getVariationId(),
+                                    updatedItem.getVariableTotalQuantity()
+                            ));
+
+                        }
+                    } else {
+
+                        selectedProductSet.add(new SelectedProduct(
+                                data.getItemID(),
+                                data.getItemName(),
+                                1,
+                                BigDecimal.valueOf(data.getPrice()),
+                                itemData.getType(),
+                                null,
+                                0
+                        ));
+
+                        selectedProductList.add(new SelectedProduct(
+                                data.getItemID(),
+                                data.getItemName(),
+                                data.getQuantity(),
+                                BigDecimal.valueOf(data.getPrice()),
+                                itemData.getType(),
+                                null,
+                                0
+                        ));
+                    }
+                    reloadProductTable();
+                }
+            }
+        });
+        panelItem.add(item);
+        panelItem.repaint();
+        panelItem.revalidate();
+    }
+
+    private void reloadProductTable() {
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        var productRows = getAllRows();
+
+        for (var selectedProduct : selectedProductSet) {
+            boolean isEqualed = false;
+            for (var row : productRows) {
+                if (selectedProduct.getId().equals(row.getId())) {
+                    isEqualed = true;
+                    break;
+                }
+            }
+
+            if (!isEqualed) {
+                model.addRow(new Object[]{
+                        selectedProduct.getId(),
+                        selectedProduct.getName(),
+                        selectedProduct.getQuantity(),
+                        selectedProduct.getPrice(),
+                        "Remove"
+                });
+            }
+        }
+        updateSubtotal();
+    }
+
+    private void updateSubtotal() {
+        var rows = getAllRows();
+        double summation = 0D;
+        for (var row : rows) {
+            summation += Double.parseDouble(String.valueOf(row.getPrice().multiply(BigDecimal.valueOf(row.getQuantity()))));
+        }
+
+        double addFeeAmount = 0D;
+        if (!addFees.isEmpty()) {
+            for (var addFee : addFees) {
+                addFeeAmount += addFee.getAmount();
+            }
+        }
+
+        jLabel8.setText(String.valueOf(BigDecimal.valueOf((summation + addFeeAmount) - discount.getAmount()).setScale(2, RoundingMode.HALF_UP)));
+        updateTotalTax();
+    }
+
+    private void updateTotalTax() {
+        Double subtotal = Double.parseDouble(jLabel8.getText()) * 0.12 / 1.12;
+        jLabel10.setText(String.valueOf(BigDecimal.valueOf(subtotal).setScale(2, RoundingMode.HALF_UP)));
+    }
+
+    private ImageIcon decodeBase64(String base64String) {
+        ImageIcon icon = null;
+        try {
+            // Decode Base64 string to byte array
+            byte[] imageBytes = Base64.getDecoder().decode(base64String);
+
+            // Convert byte array to BufferedImage
+            ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
+            BufferedImage image = ImageIO.read(bis);
+
+            // Create ImageIcon from BufferedImage
+            icon = new ImageIcon(image);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Failed to load image from Base64 string: " + e.getMessage());
+
+        }
+        return icon;
+    }
+
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jPanel1 = new javax.swing.JPanel();
+        jLabel5 = new javax.swing.JLabel();
+        jSeparator1 = new javax.swing.JSeparator();
+        jPanel2 = new javax.swing.JPanel();
+        jComboBox1 = new javax.swing.JComboBox<>();
+        jButton3 = new javax.swing.JButton();
+        jTextField1 = new javax.swing.JTextField();
+        jComboBox2 = new javax.swing.JComboBox<>();
+        roundPanel2 = new org.POS.frontend.src.javaswingdev.swing.RoundPanel();
+        scroll = new javax.swing.JScrollPane();
+        panelItem = new org.POS.frontend.src.com.raven.swing.PanelItem();
+        jPanel3 = new javax.swing.JPanel();
+        jLabel6 = new javax.swing.JLabel();
+        jButton2 = new javax.swing.JButton();
+        jButton4 = new javax.swing.JButton();
+        jButton5 = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
+        roundPanel3 = new org.POS.frontend.src.javaswingdev.swing.RoundPanel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
+        jPanel4 = new javax.swing.JPanel();
+        jLabel8 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        jPanel5 = new javax.swing.JPanel();
+        jLabel10 = new javax.swing.JLabel();
+        jLabel11 = new javax.swing.JLabel();
+
+        jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+
+        jLabel5.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
+        jLabel5.setText("Create Sales");
+
+        jPanel2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"Select Customer", "Andy Suarez", "Christian James Torres", "Michael Angelo Zara"}));
+
+        jButton3.setBackground(new java.awt.Color(204, 255, 204));
+        jButton3.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jButton3.setText("Add Customer");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
+
+        jTextField1.setText("");
+
+        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"Select Category"}));
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+                jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jTextField1, javax.swing.GroupLayout.DEFAULT_SIZE, 654, Short.MAX_VALUE)
+                                        .addComponent(jComboBox2, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                        .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(jComboBox1, 0, 422, Short.MAX_VALUE))
+                                .addContainerGap())
+        );
+        jPanel2Layout.setVerticalGroup(
+                jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jTextField1)
+                                        .addComponent(jComboBox1, javax.swing.GroupLayout.DEFAULT_SIZE, 50, Short.MAX_VALUE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                        .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, 33, Short.MAX_VALUE)
+                                        .addComponent(jComboBox2))
+                                .addGap(10, 10, 10))
+        );
 
         scroll.setBorder(null);
-        scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scroll.setViewportView(panelItem);
 
-        GroupLayout roundPanel2Layout = new GroupLayout(roundPanel2);
+        javax.swing.GroupLayout roundPanel2Layout = new javax.swing.GroupLayout(roundPanel2);
         roundPanel2.setLayout(roundPanel2Layout);
         roundPanel2Layout.setHorizontalGroup(
-                roundPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                roundPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(roundPanel2Layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(scroll, GroupLayout.DEFAULT_SIZE, 540, Short.MAX_VALUE)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jScrollPane1)
-                                .addContainerGap())
+                                .addComponent(scroll, javax.swing.GroupLayout.DEFAULT_SIZE, 637, Short.MAX_VALUE)
+                                .addGap(10, 10, 10))
         );
         roundPanel2Layout.setVerticalGroup(
-                roundPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                roundPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(roundPanel2Layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addGroup(roundPanel2Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                        .addComponent(jScrollPane1, GroupLayout.DEFAULT_SIZE, 265, Short.MAX_VALUE)
-                                        .addComponent(scroll))
+                                .addComponent(scroll)
                                 .addGap(10, 10, 10))
         );
 
-        jPanel7.setBorder(BorderFactory.createEtchedBorder());
+        jPanel3.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
-        jLabel1.setFont(new Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel1.setText("Discount Type");
-        String[] discountComboArr = new String[]{"Select Discount Type", "Fixed", "Percentage %"};
-        DefaultComboBoxModel<String> discountCombo = new DefaultComboBoxModel<>(discountComboArr);
-        jComboBox4.setModel(discountCombo);
+        jLabel6.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        jLabel6.setText("Add");
 
-        jLabel2.setFont(new Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel2.setText("Transport Cost");
-
-        jTextField2.setText("0");
-
-        jTextField2.addFocusListener(new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent e) {
-
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                String currentText = jTextField2.getText();
-                for (char c : currentText.toCharArray()) {
-                    if (Character.isLetter(c)) {
-                        JOptionPane.showMessageDialog(null, "Letter is not allow for this field");
-                        jTextField2.setText("0");
-                        return;
-                    }
-                }
-
-                loadNetTotal();
+        jButton2.setBackground(new java.awt.Color(204, 255, 204));
+        jButton2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jButton2.setText("Fee");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
             }
         });
 
-        jComboBox5.setModel(new DefaultComboBoxModel<>(new String[]{"0"}));
-        jComboBox5.setSelectedItem("0");
-        jComboBox5.setEnabled(false);
-
-        jLabel4.setFont(new Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel4.setText("Total Tax");
-
-        jTextField3.setText("0");
-        jTextField3.addFocusListener(new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent e) {
-
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                String currentText = jTextField3.getText();
-                for (char c : currentText.toCharArray()) {
-                    if (Character.isLetter(c)) {
-                        JOptionPane.showMessageDialog(null, "Letter is not allow for this field");
-                        jTextField3.setText("0");
-                        return;
-                    }
-                }
-
-                if (discountCombo.getSelectedItem().equals("Select Discount Type")) {
-                    JOptionPane.showMessageDialog(null, "Select discount type first");
-                    jTextField3.setText("0");
-                    return;
-                }
-                loadNetTotal();
+        jButton4.setBackground(new java.awt.Color(204, 255, 204));
+        jButton4.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jButton4.setText("Shipping");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
             }
         });
 
-        jLabel3.setFont(new Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel3.setText("Discount");
+        jButton5.setBackground(new java.awt.Color(204, 255, 204));
+        jButton5.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jButton5.setText("Discount");
+        jButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton5ActionPerformed(evt);
+            }
+        });
 
-        GroupLayout jPanel7Layout = new GroupLayout(jPanel7);
-        jPanel7.setLayout(jPanel7Layout);
-        jPanel7Layout.setHorizontalGroup(
-                jPanel7Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(jPanel7Layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addGroup(jPanel7Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                        .addComponent(jComboBox4, GroupLayout.Alignment.TRAILING, 0, 520, Short.MAX_VALUE)
-                                        .addGroup(jPanel7Layout.createSequentialGroup()
-                                                .addGroup(jPanel7Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                                        .addComponent(jLabel1)
-                                                        .addComponent(jLabel2))
-                                                .addGap(0, 0, Short.MAX_VALUE))
-                                        .addComponent(jTextField2))
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel7Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                        .addComponent(jTextField3, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
-                                        .addComponent(jComboBox5, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addGroup(jPanel7Layout.createSequentialGroup()
-                                                .addGroup(jPanel7Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                                        .addComponent(jLabel3)
-                                                        .addComponent(jLabel4))
-                                                .addGap(0, 0, Short.MAX_VALUE)))
-                                .addContainerGap())
-        );
-        jPanel7Layout.setVerticalGroup(
-                jPanel7Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addGroup(jPanel7Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                        .addComponent(jLabel1)
-                                        .addComponent(jLabel3))
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel7Layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-                                        .addComponent(jComboBox4, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jTextField3, GroupLayout.PREFERRED_SIZE, 42, GroupLayout.PREFERRED_SIZE))
-                                .addGap(10, 10, 10)
-                                .addGroup(jPanel7Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                        .addComponent(jLabel2)
-                                        .addComponent(jLabel4))
-                                .addGap(0, 0, Short.MAX_VALUE)
-                                .addGroup(jPanel7Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                        .addComponent(jComboBox5, GroupLayout.DEFAULT_SIZE, 46, Short.MAX_VALUE)
-                                        .addComponent(jTextField2))
-                                .addGap(10, 10, 10))
-        );
-
-        jPanel3.setBorder(BorderFactory.createEtchedBorder());
-
-        jLabel7.setFont(new Font("Segoe UI", 1, 36)); // NOI18N
-        jLabel7.setText("0.00");
-
-        jLabel6.setFont(new Font("Segoe UI", 1, 36)); // NOI18N
-        jLabel6.setText("Net Total:");
-
-        GroupLayout jPanel3Layout = new GroupLayout(jPanel3);
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
-                jPanel3Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(jPanel3Layout.createSequentialGroup()
-                                .addGap(293, 293, 293)
-                                .addComponent(jLabel6, GroupLayout.DEFAULT_SIZE, 214, Short.MAX_VALUE)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jLabel7, GroupLayout.DEFAULT_SIZE, 159, Short.MAX_VALUE)
-                                .addGap(329, 329, 329))
-        );
-        jPanel3Layout.setVerticalGroup(
-                jPanel3Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(jPanel3Layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addGroup(jPanel3Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                                        .addComponent(jLabel6, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(jLabel7, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addGap(14, 14, 14))
+                                .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGap(24, 24, 24)
+                                .addComponent(jButton4)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addContainerGap())
+        );
+        jPanel3Layout.setVerticalGroup(
+                jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel3Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addGroup(jPanel3Layout.createSequentialGroup()
+                                                .addGap(1, 1, 1)
+                                                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                                        .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                        .addComponent(jButton5)
+                                                        .addComponent(jButton4)))
+                                        .addComponent(jLabel6))
+                                .addGap(10, 10, 10))
         );
 
         jButton1.setBackground(new java.awt.Color(235, 161, 132));
-        jButton1.setFont(new Font("Segoe UI", 1, 18)); // NOI18N
+        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jButton1.setForeground(new java.awt.Color(255, 255, 255));
         jButton1.setText("Save & Payment");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -632,220 +811,682 @@ public class POS extends JPanel {
             }
         });
 
-        jButton4.setBackground(new java.awt.Color(255, 153, 153));
-        jButton4.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jButton4.setText("Close Register");
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+                new Object[][]{
 
+                },
+                new String[]{
+                        "ID", "Product", "Quantity", "Price", "Action"
+                }
+        ) {
+            boolean[] canEdit = new boolean[]{
+                    false, false, true, false, true
+            };
 
-        GroupLayout jPanel1Layout = new GroupLayout(jPanel1);
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit[columnIndex];
+            }
+        });
+        jScrollPane2.setViewportView(jTable1);
+        if (jTable1.getColumnModel().getColumnCount() > 0) {
+            jTable1.getColumnModel().getColumn(0).setResizable(false);
+            jTable1.getColumnModel().getColumn(1).setResizable(false);
+            jTable1.getColumnModel().getColumn(2).setResizable(false);
+            jTable1.getColumnModel().getColumn(3).setResizable(false);
+        }
+
+        jTable1.getColumn("Action").setCellRenderer(new ButtonRenderer());
+
+        javax.swing.GroupLayout roundPanel3Layout = new javax.swing.GroupLayout(roundPanel3);
+        roundPanel3.setLayout(roundPanel3Layout);
+        roundPanel3Layout.setHorizontalGroup(
+                roundPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, roundPanel3Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 421, Short.MAX_VALUE)
+                                .addContainerGap())
+        );
+        roundPanel3Layout.setVerticalGroup(
+                roundPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(roundPanel3Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 308, Short.MAX_VALUE)
+                                .addContainerGap())
+        );
+
+        jPanel4.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+
+        jLabel8.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
+        jLabel8.setText("0.00");
+
+        jLabel9.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
+        jLabel9.setText("Subtotal");
+
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+                jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel4Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, 188, Short.MAX_VALUE)
+                                .addGap(120, 120, 120)
+                                .addComponent(jLabel8)
+                                .addContainerGap())
+        );
+        jPanel4Layout.setVerticalGroup(
+                jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel4Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                        .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(jLabel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addGap(14, 14, 14))
+        );
+
+        jPanel5.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+
+        jLabel10.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        jLabel10.setText("0");
+
+        jLabel11.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        jLabel11.setText("Tax");
+
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+                jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel5Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 57, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jLabel10)
+                                .addContainerGap())
+        );
+        jPanel5Layout.setVerticalGroup(
+                jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jLabel11, javax.swing.GroupLayout.DEFAULT_SIZE, 38, Short.MAX_VALUE)
+                                .addComponent(jLabel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
-                jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addGroup(jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addComponent(jSeparator1)
-                                        .addComponent(jPanel2, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(jPanel7, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(jPanel3, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addGroup(GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                                                .addGap(0, 0, Short.MAX_VALUE)
-                                                .addComponent(jButton1, GroupLayout.PREFERRED_SIZE, 190, GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                                                .addComponent(roundPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                                        .addComponent(jButton1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 190, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                        .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                        .addComponent(jPanel3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                        .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                        .addComponent(roundPanel3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                                         .addGroup(jPanel1Layout.createSequentialGroup()
                                                 .addComponent(jLabel5)
-                                                .addGap(0, 0, Short.MAX_VALUE)
-                                                .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 194, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                        .addComponent(roundPanel2, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                                .addGap(0, 0, Short.MAX_VALUE)))
                                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
-                jPanel1Layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addContainerGap()
                                 .addComponent(jLabel5)
-                                .addComponent(jButton4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jSeparator1, GroupLayout.PREFERRED_SIZE, 10, GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jPanel2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(roundPanel2, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jPanel7, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jPanel3, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton1, GroupLayout.PREFERRED_SIZE, 57, GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(10, 10, 10)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                                .addComponent(roundPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(8, 8, 8)
+                                                .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(roundPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                 .addContainerGap())
         );
 
-        GroupLayout layout = new GroupLayout(this);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
-                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addComponent(jPanel1, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
-                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addComponent(jPanel1, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void loadProductsUnderSubcategoryId(int subcategoryId){
-        ProductService productService = new ProductService();
-        var productsUnderSubcategory = productService.getAllValidProductByProductSubcategoryId(subcategoryId, true);
-        for (int i = 0; i < productsUnderSubcategory.size(); i++) {
-            addItem(new ModelItem(
-                    productsUnderSubcategory.get(i).id(),
-                    productsUnderSubcategory.get(i).name(),
-                    "",
-                    productsUnderSubcategory.get(i).sellingPrice().doubleValue(),
-                    productsUnderSubcategory.get(i).brand().name(),
-                    productsUnderSubcategory.get(i).image() != null ? new ImageIcon(getImage(productsUnderSubcategory.get(i).image())) : new ImageIcon()
-            ));
-        }
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // Create a modal dialog
+        JDialog paymentDialog = new JDialog((JFrame) null, "Select Payment Method", true);
+        paymentDialog.setSize(400, 300);
+        paymentDialog.setLayout(new BorderLayout());
+
+        // Create a panel for buttons
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(3, 1, 10, 10)); // 3 rows, 1 column, with spacing
+
+        // Create buttons with styling
+        JButton cashPaymentButton = new JButton("Cash Payment");
+        JButton poPaymentButton = new JButton("PO Payment");
+        JButton onlinePaymentButton = new JButton("Online Payment");
+
+        // Apply custom styles to the buttons
+        styleButton(cashPaymentButton);
+        styleButton(poPaymentButton);
+        styleButton(onlinePaymentButton);
+
+        // Add action listeners for each button
+        cashPaymentButton.addActionListener(e -> {
+            paymentDialog.dispose();
+            showCashPaymentModal();
+        });
+
+        poPaymentButton.addActionListener(e -> {
+            paymentDialog.dispose();
+            showPaymentModal("PO", paymentDialog, 200.00);
+        });
+
+        onlinePaymentButton.addActionListener(e -> {
+
+            paymentDialog.dispose();
+            showPaymentModal("Online", paymentDialog, 100.00);// Close the dialog
+        });
+
+        // Add buttons to the panel
+        buttonPanel.add(cashPaymentButton);
+        buttonPanel.add(poPaymentButton);
+        buttonPanel.add(onlinePaymentButton);
+
+        // Add padding around the buttons
+        JPanel paddedPanel = new JPanel(new BorderLayout());
+        paddedPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); // Padding
+        paddedPanel.add(buttonPanel, BorderLayout.CENTER);
+
+        // Add the padded panel to the dialog
+        paymentDialog.add(paddedPanel, BorderLayout.CENTER);
+
+        // Center the dialog relative to the parent frame and make it visible
+        paymentDialog.setLocationRelativeTo(null);
+        paymentDialog.setVisible(true);
     }
 
-    private void scheduleQuery() {
-        if (timer != null) {
-            timer.cancel(); // Cancel any existing scheduled query
-        }
-        timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                filterList();
+    private void styleButton(JButton button) {
+        button.setFocusPainted(false);
+        button.setBackground(new Color(150, 183, 162)); // Extracted color
+        button.setForeground(Color.WHITE);             // Text color
+        button.setFont(new Font("Arial", Font.BOLD, 16)); // Custom font
+        button.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Padding
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); // Hand cursor
+
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void showPaymentModal(String paymentType, JDialog paymentDialog, double totalAmount) {
+        // Create the modal dialog
+        JDialog paymentModal = new JDialog(paymentDialog, paymentType + " Payment", true);
+        paymentModal.setSize(400, 300);
+        paymentModal.setLayout(new GridBagLayout());
+        paymentModal.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+
+        // Components
+        JLabel totalLabel = new JLabel("Total Amount: ₱" + Double.parseDouble(jLabel8.getText()));
+        totalLabel.setFont(new Font("Arial", Font.BOLD, 30)); // Bold label
+        totalLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+        JLabel referenceLabel = new JLabel("Reference Number:");
+        referenceLabel.setFont(new Font("Arial", Font.BOLD, 16)); // Bold label
+
+        JTextField referenceField = new JTextField(15);
+
+        // Styled Cancel Button
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.setPreferredSize(new Dimension(120, 40));
+        cancelButton.setBackground(Color.RED);
+        cancelButton.setForeground(Color.WHITE);
+        cancelButton.setFont(new Font("Arial", Font.BOLD, 18));
+        cancelButton.addActionListener(e -> {
+            paymentModal.dispose(); // Close the modal
+            paymentDialog.setVisible(true); // Show the original payment dialog
+        });
+
+        // Styled Save Button
+        JButton saveButton = new JButton("Save");
+        saveButton.setPreferredSize(new Dimension(120, 40));
+        saveButton.setBackground(Color.BLUE);
+        saveButton.setForeground(Color.WHITE);
+        saveButton.setFont(new Font("Arial", Font.BOLD, 18));
+        saveButton.addActionListener(e -> {
+            String referenceNumber = referenceField.getText().trim();
+            if (referenceNumber.isEmpty()) {
+                JOptionPane.showMessageDialog(paymentModal, "Reference Number cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                SaleService saleService = new SaleService();
+                if (selectClientId == null) {
+                    JOptionPane.showMessageDialog(null, "Please Select Customer First");
+                    return;
+                }
+                AddSaleRequestDto dto = new AddSaleRequestDto(
+                        selectClientId
+                );
+
+                List<AddSaleProductRequestDto> saleProductDtoList = new ArrayList<>();
+                for (var saleProduct : selectedProductSet) {
+                    for (var row : getAllRows()) {
+                        if (row.getId().equals(saleProduct.getId()) && saleProduct.getType().equals(ProductType.SIMPLE)) {
+                            AddSaleProductRequestDto saleDto = new AddSaleProductRequestDto(
+                                    saleProduct.getId(),
+                                    saleProduct.getPrice(),
+                                    row.getQuantity(),
+                                    saleProduct.getVariationId()
+                            );
+                            saleProductDtoList.add(saleDto);
+                            break;
+                        }
+
+                        if (row.getId().equals(saleProduct.getId()) && saleProduct.getType().equals(ProductType.VARIABLE)) {
+                            AddSaleProductRequestDto saleDto = new AddSaleProductRequestDto(
+                                    saleProduct.getId(),
+                                    saleProduct.getPrice(),
+                                    row.getQuantity(),
+                                    saleProduct.getVariationId()
+                            );
+                            saleProductDtoList.add(saleDto);
+                            break;
+                        }
+                    }
+                }
+                AddShippingRequestDto shippingDto = new AddShippingRequestDto(
+                        shipping.getName(),
+                        shipping.getPhoneNumber(),
+                        shipping.getShippingAddress(),
+                        shipping.getCity(),
+                        shipping.getBarangay(),
+                        shipping.getLandmark(),
+                        shipping.getNote()
+                );
+                AddPaymentRequestDto paymentDto = new AddPaymentRequestDto(
+                        discount.getType(),
+                        discount.getAmount(),
+                        TransactionType.PO,
+                        BigDecimal.ZERO,
+                        ""
+                );
+                List<AdditionalFee> additionalFees = new ArrayList<>();
+                for (var addFee : addFees) {
+                    AdditionalFee additionalFee = new AdditionalFee();
+                    additionalFee.setTitle(addFee.getName());
+                    additionalFee.setAmount(BigDecimal.valueOf(addFee.getAmount()));
+                    additionalFees.add(additionalFee);
+                }
+
+                SwingWorker<Void, Void> worker = new SwingWorker<>() {
+                    @Override
+                    protected Void doInBackground() {
+                        try{
+                            saleService.add(
+                                    dto,
+                                    saleProductDtoList,
+                                    shippingDto,
+                                    paymentDto,
+                                    additionalFees
+                            );
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    protected void done() {
+                        try {
+                            JOptionPane.showMessageDialog(paymentDialog, "Payment successful!\n\nCash In : " + totalAmount + "\nDate: " + LocalDate.now(), "Success", JOptionPane.INFORMATION_MESSAGE);
+                            reset();
+                            paymentDialog.dispose();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            JOptionPane.showMessageDialog(paymentDialog, "An error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                };
+                worker.execute();
             }
-        }, 400); // Delay of 300 ms
+        });
+
+        // Layout
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2; // Span across two columns
+        paymentModal.add(totalLabel, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 1; // Reset to single column
+        paymentModal.add(referenceLabel, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        paymentModal.add(referenceField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 1;
+        paymentModal.add(cancelButton, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        paymentModal.add(saveButton, gbc);
+
+        // Show the modal
+        paymentModal.setLocationRelativeTo(paymentDialog);
+        paymentModal.setVisible(true);
     }
 
-    private void filterList() {
-        String name = jTextField1.getText();
+    private void reset() {
+        jComboBox1.setSelectedItem("Select Customer");
+        selectedProductSet.clear();
+        selectedProductList.clear();
+        selectClientId = null;
+        addFees.clear();
 
-        if (name.isEmpty() && recentSubcategoryId != null) {
-            panelItem.removeAll();
-            loadProductsUnderSubcategoryId(recentSubcategoryId);
-            return;
-        }
+        shipping.setBarangay("");
+        shipping.setCity("");
+        shipping.setNote("");
+        shipping.setShippingAddress("");
+        shipping.setPhoneNumber("");
+        shipping.setLandmark("");
+        shipping.setName("");
 
-        ProductService productService = new ProductService();
-        var products = productService.getAllValidProductByNameAndQuantityGreaterThanZero(name);
-
-        // remove all items from the item panel before re add a set of items
-        panelItem.removeAll();
-
-        for (int i = 0; i < products.size(); i++) {
-            addItem(new ModelItem(
-                    products.get(i).id(),
-                    products.get(i).name(),
-                    "",
-                    products.get(i).sellingPrice().doubleValue(),
-                    products.get(i).brand().name(),
-                    products.get(i).image() != null ? new ImageIcon(getImage(products.get(i).image())) : new ImageIcon()
-            ));
-        }
-    }
-
-    private void computeTotalTax() {
-        BigDecimal netTotal = new BigDecimal(jLabel7.getText());
-        String totalValue = String.valueOf((netTotal.multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP));
-        jComboBox5.addItem(totalValue);
-        jComboBox5.setSelectedItem(totalValue);
-    }
-
-    private List<PurchaseListedProduct> getAllRows() {
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        List<PurchaseListedProduct> rows = new ArrayList<>();
-        for (int i = 0; i < model.getRowCount(); i++) {
-            int id = (Integer) model.getValueAt(i, 1);
-            String name = (String) model.getValueAt(i, 2);
-            // Check if `quantity` and `purchasePrice` are stored as `String`; otherwise, safely convert them.
-            int quantity = Integer.parseInt(model.getValueAt(i, 4).toString());
-            BigDecimal purchasePrice = (BigDecimal) model.getValueAt(i, 3);
-            BigDecimal subtotal = new BigDecimal(model.getValueAt(i, 5).toString());
+        model.setRowCount(0);
 
-            // Create a new `PurchaseListedProduct` instance with the parsed values and add it to the list
-            PurchaseListedProduct purchaseListedProduct = new PurchaseListedProduct(
-                    id,
-                    name,
-                    quantity,
-                    purchasePrice,
-                    subtotal
-            );
-            rows.add(purchaseListedProduct);
-        }
-        return rows;
+        discount.setAmount(0D);
+        jLabel8.setText("0");
+        updateSubtotal();
+        panelItem.removeAll();
+        loadProductTable();
+        panelItem.repaint();
+        panelItem.revalidate();
     }
 
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Getter
-    @Setter
-    class PurchaseListedProduct {
-        private Integer id;
-        private String name;
-        private int quantity;
-        private BigDecimal price;
-        private BigDecimal subtotal;
+    private void showCashPaymentModal() {
+        JDialog paymentDialog = new JDialog((Frame) null, "Payment Details", true);
+        paymentDialog.setSize(500, 600);
+        paymentDialog.setLayout(new BorderLayout());
+        paymentDialog.setResizable(false);
+
+        // Title panel
+        JLabel amountLabel = new JLabel(String.valueOf(jLabel8.getText()), SwingConstants.CENTER);
+        amountLabel.setFont(new Font("Arial", Font.BOLD, 36));
+        paymentDialog.add(amountLabel, BorderLayout.NORTH);
+
+        // Center panel
+        JPanel centerPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.BOTH;
+
+        // Row 1: Tendered/Change section
+        JLabel tenderedLabel = new JLabel("Tendered / Change:");
+        tenderedLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        centerPanel.add(tenderedLabel, gbc);
+
+        // Tendered Field
+        JTextField tenderedField = new JTextField("");
+        tenderedField.setFont(new Font("Arial", Font.PLAIN, 18));
+        tenderedField.setHorizontalAlignment(SwingConstants.CENTER);
+        tenderedField.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
+        tenderedField.setPreferredSize(new Dimension(150, 40));
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        centerPanel.add(tenderedField, gbc);
+
+        // Change Label
+        JLabel changeLabel = new JLabel("0.00", SwingConstants.CENTER);
+        changeLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        changeLabel.setForeground(Color.RED);
+        changeLabel.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
+        changeLabel.setPreferredSize(new Dimension(150, 40));
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        centerPanel.add(changeLabel, gbc);
+
+        double finalSummationOfTotal = Double.parseDouble(jLabel8.getText());
+        tenderedField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                updateChange(tenderedField, changeLabel, finalSummationOfTotal);
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                updateChange(tenderedField, changeLabel, finalSummationOfTotal);
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                updateChange(tenderedField, changeLabel, finalSummationOfTotal);
+            }
+        });
+
+        // Row 2: Numeric Keypad
+        JPanel keypadPanel = new JPanel(new GridLayout(4, 3, 5, 5));
+        Font buttonFont = new Font("Arial", Font.BOLD, 16);
+
+        // Add buttons to the keypad
+        Dimension buttonSize = new Dimension(50, 50);
+        for (int i = 1; i <= 9; i++) {
+            JButton numberButton = new JButton(String.valueOf(i));
+            numberButton.setFont(buttonFont);
+            numberButton.setPreferredSize(buttonSize);
+            numberButton.setFocusable(false);
+            numberButton.addActionListener(e -> {
+                tenderedField.setText(tenderedField.getText() + numberButton.getText());
+                updateChange(tenderedField, changeLabel, finalSummationOfTotal);
+            });
+            keypadPanel.add(numberButton);
+        }
+
+        JButton zeroButton = new JButton("0");
+        zeroButton.setFont(buttonFont);
+        zeroButton.setPreferredSize(buttonSize);
+        zeroButton.setFocusable(false);
+        zeroButton.addActionListener(e -> {
+            if (!tenderedField.getText().equals("0")) {
+                tenderedField.setText(tenderedField.getText() + "0");
+                updateChange(tenderedField, changeLabel, finalSummationOfTotal);
+            }
+        });
+        keypadPanel.add(zeroButton);
+
+        JButton decimalButton = new JButton(".");
+        decimalButton.setFont(buttonFont);
+        decimalButton.setPreferredSize(buttonSize);
+        decimalButton.setFocusable(false);
+        decimalButton.addActionListener(e -> {
+            if (!tenderedField.getText().contains(".")) {
+                tenderedField.setText(tenderedField.getText() + ".");
+            }
+        });
+        keypadPanel.add(decimalButton);
+
+        JButton clearButton = new JButton("Clear");
+        clearButton.setFont(buttonFont);
+        clearButton.setBackground(Color.RED);
+        clearButton.setForeground(Color.WHITE);
+        clearButton.setPreferredSize(buttonSize);
+        clearButton.setFocusable(false);
+        clearButton.addActionListener(e -> {
+            tenderedField.setText("");
+            changeLabel.setText("0.00");
+        });
+        keypadPanel.add(clearButton);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        centerPanel.add(keypadPanel, gbc);
+
+        paymentDialog.add(centerPanel, BorderLayout.CENTER);
+
+        // Footer panel
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.setPreferredSize(new Dimension(120, 40));
+        cancelButton.setBackground(Color.RED);
+        cancelButton.setForeground(Color.WHITE);
+        cancelButton.setFont(new Font("Arial", Font.BOLD, 18));
+        cancelButton.addActionListener(e -> paymentDialog.dispose());
+
+        JButton payButton = new JButton("Pay");
+        payButton.setPreferredSize(new Dimension(120, 40));
+        payButton.setBackground(Color.BLUE);
+        payButton.setForeground(Color.WHITE);
+        payButton.setFont(new Font("Arial", Font.BOLD, 18));
+        payButton.addActionListener(e -> {
+            String tendered = tenderedField.getText();
+            double change = Double.parseDouble(changeLabel.getText());
+            if (change < 0) {
+                JOptionPane.showMessageDialog(paymentDialog, "Insufficient amount!", "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                SaleService saleService = new SaleService();
+                if (selectClientId == null) {
+                    JOptionPane.showMessageDialog(null, "Please Select Customer First");
+                    return;
+                }
+                AddSaleRequestDto dto = new AddSaleRequestDto(
+                        selectClientId
+                );
+
+                List<AddSaleProductRequestDto> saleProductDtoList = new ArrayList<>();
+                for (var saleProduct : selectedProductSet) {
+                    for (var row : getAllRows()) {
+                        if (row.getId().equals(saleProduct.getId()) && saleProduct.getType().equals(ProductType.SIMPLE)) {
+                            AddSaleProductRequestDto saleDto = new AddSaleProductRequestDto(
+                                    saleProduct.getId(),
+                                    saleProduct.getPrice(),
+                                    row.getQuantity(),
+                                    saleProduct.getVariationId()
+                            );
+                            saleProductDtoList.add(saleDto);
+                            break;
+                        }
+
+                        if (row.getId().equals(saleProduct.getId()) && saleProduct.getType().equals(ProductType.VARIABLE)) {
+                            AddSaleProductRequestDto saleDto = new AddSaleProductRequestDto(
+                                    saleProduct.getId(),
+                                    saleProduct.getPrice(),
+                                    row.getQuantity(),
+                                    saleProduct.getVariationId()
+                            );
+                            saleProductDtoList.add(saleDto);
+                            break;
+                        }
+                    }
+                }
+                AddShippingRequestDto shippingDto = new AddShippingRequestDto(
+                        shipping.getName(),
+                        shipping.getPhoneNumber(),
+                        shipping.getShippingAddress(),
+                        shipping.getCity(),
+                        shipping.getBarangay(),
+                        shipping.getLandmark(),
+                        shipping.getNote()
+                );
+                AddPaymentRequestDto paymentDto = new AddPaymentRequestDto(
+                        discount.getType(),
+                        discount.getAmount(),
+                        TransactionType.CASH,
+                        BigDecimal.valueOf(finalSummationOfTotal),
+                        ""
+                );
+                List<AdditionalFee> additionalFees = new ArrayList<>();
+                for (var addFee : addFees) {
+                    AdditionalFee additionalFee = new AdditionalFee();
+                    additionalFee.setTitle(addFee.getName());
+                    additionalFee.setAmount(BigDecimal.valueOf(addFee.getAmount()));
+                    additionalFees.add(additionalFee);
+                }
+
+                SwingWorker<Void, Void> worker = new SwingWorker<>() {
+                    @Override
+                    protected Void doInBackground() {
+                        try{
+                            saleService.add(
+                                    dto,
+                                    saleProductDtoList,
+                                    shippingDto,
+                                    paymentDto,
+                                    additionalFees
+                            );
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    protected void done() {
+                        try {
+                            JOptionPane.showMessageDialog(paymentDialog, "Payment successful!\n\nCash In : " + finalSummationOfTotal + "\nChange : " + change + "\nDate: " + LocalDate.now(), "Success", JOptionPane.INFORMATION_MESSAGE);
+                            reset();
+                            paymentDialog.dispose();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            JOptionPane.showMessageDialog(paymentDialog, "An error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                };
+                worker.execute();
+            }
+        });
+
+        footerPanel.add(cancelButton);
+        footerPanel.add(payButton);
+
+        paymentDialog.add(footerPanel, BorderLayout.SOUTH);
+
+        // Display the dialog
+        paymentDialog.setLocationRelativeTo(null);
+        paymentDialog.setVisible(true);
     }
 
-    private void loadNetTotal() {
-        List<PurchaseListedProduct> products = getAllRows();
-
-        BigDecimal summation = BigDecimal.ZERO;
-
-        for (int i = 0; i < products.size(); i++) {
-            summation = summation.add(products.get(i).getSubtotal());
-        }
-
-        BigDecimal transportCost = new BigDecimal(jTextField2.getText());
-        BigDecimal fixDiscount = new BigDecimal(jTextField3.getText());
-        double percentageDiscount = Double.parseDouble(jTextField3.getText());
-
-        String discountType = (String) jComboBox4.getSelectedItem();
-
-        assert discountType != null;
-        if (discountType.equals("Fixed")) {
-            BigDecimal tempVar = transportCost.add(summation).subtract(fixDiscount);
-            jLabel7.setText(String.valueOf(tempVar.setScale(2, RoundingMode.HALF_UP)));
-        } else if (discountType.equals("Percentage %")) {
-            double percentage = percentageDiscount / 100;
-            BigDecimal tempVar = ((transportCost.add(summation)).multiply(BigDecimal.valueOf(percentage))).setScale(2, RoundingMode.HALF_UP);
-            jLabel7.setText(String.valueOf(tempVar));
-        } else {
-            BigDecimal tempVar = (transportCost.add(summation));
-            jLabel7.setText(String.valueOf(tempVar.setScale(2, RoundingMode.HALF_UP)));
-        }
-        computeTotalTax();
-    }
-
-    static class ButtonRenderer extends JButton implements TableCellRenderer {
-        public ButtonRenderer() {
-            setOpaque(true);
-        }
-
-        @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            setText((value == null) ? "" : value.toString());
-            setBackground(Color.RED);
-            setForeground(Color.WHITE);
-            return this;
-        }
-    }
-
-    private Image getImage(String imageBase64) {
-
-        byte[] imageBytes = Base64.getDecoder().decode(imageBase64);
-
-        // Convert byte array to Image
-        Image image = null;
+    private void updateChange(JTextField tenderedField, JLabel changeLabel, double finalSummationOfTotal) {
         try {
-            image = ImageIO.read(new ByteArrayInputStream(imageBytes));
-        } catch (IOException e) {
-            e.printStackTrace();
+            String text = tenderedField.getText();
+            if (text.isEmpty() || !text.matches("-?\\d+(\\.\\d+)?")) {
+                changeLabel.setText("0");
+                return;
+            }
+            Double tender = Double.parseDouble(text);
+            Double change = tender - finalSummationOfTotal;
+            changeLabel.setText(String.valueOf(change));
+        } catch (NumberFormatException e) {
+            changeLabel.setText("0.00");
         }
-
-        return image;
     }
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
@@ -994,662 +1635,653 @@ public class POS extends JPanel {
 
             personService.add(dto);
             JOptionPane.showMessageDialog(null, "Client added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            loadClients(personService);
+//            loadClients(personService);
         }
     }//GEN-LAST:event_jButton3ActionPerformed
 
-    private void loadClients(PersonService personService) {
-        jComboBox1.removeActionListener(clientActionListener);
-        this.clientComboModel.removeAllElements();
-        var clients = personService.getAllValidPeopleByType(PersonType.CLIENT);
-        clientNames.add("Select Customer");
-        for (int i = 0; i < clients.size(); i++) {
-            clientNames.add(clients.get(i).name());
-            clientMap.put(i + 1, clients.get(i).id());
-        }
-        clientComboModel.setSelectedItem("Select Customer");
-        jComboBox1.addActionListener(clientActionListener);
-    }
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+        JDialog discountDialog = new JDialog((Frame) null, "Cart Discount", true);
+        discountDialog.setSize(500, 500);
+        discountDialog.setLayout(new BorderLayout());
+        discountDialog.setResizable(false);
 
-    private void jComboBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox2ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jComboBox2ActionPerformed
+        discount = new Discount();
+
+        // Title panel
+        JLabel titleLabel = new JLabel("Cart Discount", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        discountDialog.add(titleLabel, BorderLayout.NORTH);
+
+        // Center panel
+        JPanel centerPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.BOTH;
+
+        // Type section
+        JPanel typePanel = new JPanel(new BorderLayout());
+        typePanel.setBorder(BorderFactory.createTitledBorder("Type"));
+        JComboBox<String> typeComboBox = new JComboBox<>(new String[]{"Select Type", "Percentage (%)", "Amount (₱)"});
+        typeComboBox.setFont(new Font("Arial", Font.BOLD, 18));
+        typePanel.add(typeComboBox, BorderLayout.CENTER);
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0.5;
+        centerPanel.add(typePanel, gbc);
+
+        // Amount section
+        JPanel amountPanel = new JPanel(new BorderLayout());
+        amountPanel.setBorder(BorderFactory.createTitledBorder("Amount"));
+        JLabel amountDisplay = new JLabel(String.valueOf(discount == null ? 0D : discount.getAmount()), SwingConstants.CENTER);
+        amountDisplay.setFont(new Font("Arial", Font.BOLD, 36));
+        amountPanel.add(amountDisplay, BorderLayout.CENTER);
+
+
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.weightx = 0.5;
+        centerPanel.add(amountPanel, gbc);
+
+        // Numeric keypad
+        JPanel keypadPanel = new JPanel(new GridLayout(4, 3, 10, 10));
+        keypadPanel.setBackground(Color.LIGHT_GRAY);
+
+        Font keypadFont = new Font("Arial", Font.BOLD, 24);
+        for (int i = 1; i <= 9; i++) {
+            JButton numberButton = new JButton(String.valueOf(i));
+            numberButton.setFont(keypadFont);
+            keypadPanel.add(numberButton);
+            numberButton.addActionListener(e -> {
+                String currentText = amountDisplay.getText();
+                if (currentText.equals("0.00")) currentText = "";
+                amountDisplay.setText(currentText + numberButton.getText());
+            });
+        }
+
+        JButton zeroButton = new JButton("0");
+        zeroButton.setFont(keypadFont);
+        keypadPanel.add(zeroButton);
+        zeroButton.addActionListener(e -> {
+            String currentText = amountDisplay.getText();
+            if (!currentText.equals("0.00")) amountDisplay.setText(currentText + "0");
+        });
+
+        JButton decimalButton = new JButton(".");
+        decimalButton.setFont(keypadFont);
+        keypadPanel.add(decimalButton);
+        decimalButton.addActionListener(e -> {
+            String currentText = amountDisplay.getText();
+            if (!currentText.contains(".")) amountDisplay.setText(currentText + ".");
+        });
+
+        JButton clearButton = new JButton("X");
+        clearButton.setBackground(Color.RED);
+        clearButton.setForeground(Color.WHITE);
+        clearButton.setFont(keypadFont);
+        keypadPanel.add(clearButton);
+        clearButton.addActionListener(e -> amountDisplay.setText("0.00"));
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        centerPanel.add(keypadPanel, gbc);
+
+        discountDialog.add(centerPanel, BorderLayout.CENTER);
+
+// Footer panel
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.setPreferredSize(new Dimension(120, 40)); // Set fixed button size
+        cancelButton.setBackground(Color.RED);
+        cancelButton.setForeground(Color.WHITE);
+        cancelButton.setFont(new Font("Arial", Font.BOLD, 18));
+        cancelButton.addActionListener(e -> discountDialog.dispose());
+
+        JButton saveButton = new JButton("Save");
+        saveButton.setPreferredSize(new Dimension(120, 40)); // Set fixed button size
+        saveButton.setBackground(Color.BLUE);
+        saveButton.setForeground(Color.WHITE);
+        saveButton.setFont(new Font("Arial", Font.BOLD, 18));
+        saveButton.addActionListener(e -> {
+            try {
+                String type = (String) typeComboBox.getSelectedItem();
+                double amount = Double.parseDouble(amountDisplay.getText());
+                double subtotal = Double.parseDouble(jLabel8.getText());
+                if (type.equals("Percentage (%)")) {
+                    discount.setAmount(subtotal * (amount / (double) 100));
+                    discount.setType(PaymentDiscountType.PERCENTAGE);
+                    updateSubtotal();
+                    discountDialog.dispose();
+                } else if (type.equals("Amount (₱)")) {
+                    discount.setAmount(amount);
+                    discount.setType(PaymentDiscountType.AMOUNT);
+                    updateSubtotal();
+                    discountDialog.dispose();
+                } else {
+                    discount.setAmount(0D);
+                    JOptionPane.showMessageDialog(null, "Please Select Discount Type");
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(null, "Make sure that there's no any Character Entered");
+            }
+        });
+
+        footerPanel.add(cancelButton);
+        footerPanel.add(saveButton);
+
+        discountDialog.add(footerPanel, BorderLayout.SOUTH);
+
+
+        // Display dialog
+        discountDialog.setLocationRelativeTo(null);
+        discountDialog.setVisible(true);
+    }//GEN-LAST:event_jButton5ActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        JDialog shippingDialog = new JDialog((Frame) null, "Shipping Information", true);
+        shippingDialog.setSize(600, 400); // Adjusted size for fewer fields
+        shippingDialog.setLayout(new BorderLayout());
+        shippingDialog.setResizable(false);
+
+        // Title panel
+        JLabel titleLabel = new JLabel("Shipping Information", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        shippingDialog.add(titleLabel, BorderLayout.NORTH);
+
+        // Center panel
+        JPanel centerPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 10, 5, 10); // Reduced spacing
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // Fields to be added
+        String[] stringLabels = {
+                "Full Name",
+                "Phone Number",
+                "Shipping Address",
+                "City",
+                "Barangay",
+                "Landmark",
+                "Shipping Note"
+        };
+
+        JTextField[] fields = new JTextField[stringLabels.length];
+        JLabel[] labels = new JLabel[stringLabels.length];
+        for (int i = 0; i < labels.length; i++) {
+            // Add label
+            JLabel label = new JLabel(stringLabels[i] + ":");
+            label.setFont(new Font("Arial", Font.PLAIN, 16));
+            gbc.gridx = 0;
+            gbc.gridy = i;
+            gbc.weightx = 0.3; // Label takes 30% of the width
+            centerPanel.add(label, gbc);
+            labels[i] = label;
+
+            // Add input field
+            JTextField textField = new JTextField();
+            textField.setFont(new Font("Arial", Font.PLAIN, 16));
+            gbc.gridx = 1;
+            gbc.gridy = i;
+            gbc.weightx = 0.7; // Input field takes 70% of the width
+            centerPanel.add(textField, gbc);
+            fields[i] = textField;
+        }
+
+        if(shipping != null){
+            fields[0].setText(shipping.getName());
+            fields[1].setText(shipping.getPhoneNumber());
+            fields[2].setText(shipping.getShippingAddress());
+            fields[3].setText(shipping.getCity());
+            fields[4].setText(shipping.getBarangay());
+            fields[5].setText(shipping.getLandmark());
+            fields[6].setText(shipping.getNote());
+        }
+
+        shippingDialog.add(new JScrollPane(centerPanel), BorderLayout.CENTER);
+
+        // Footer panel
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5)); // Adjusted spacing
+
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.setPreferredSize(new Dimension(120, 40));
+        cancelButton.setBackground(Color.RED);
+        cancelButton.setForeground(Color.WHITE);
+        cancelButton.setFont(new Font("Arial", Font.BOLD, 18));
+        cancelButton.addActionListener(e -> shippingDialog.dispose());
+
+        JButton saveButton = new JButton("Save");
+        saveButton.setPreferredSize(new Dimension(120, 40));
+        saveButton.setBackground(Color.BLUE);
+        saveButton.setForeground(Color.WHITE);
+        saveButton.setFont(new Font("Arial", Font.BOLD, 18));
+        saveButton.addActionListener(e -> {
+            boolean isValid = true;
+            for (int i = 0; i < labels.length; i++) {
+                if (fields[i].getText().isEmpty()) {
+                    isValid = false;
+                    JOptionPane.showMessageDialog(null, labels[i].getText() + " is Empty");
+                    return;
+                }
+            }
+
+            if (isValid) {
+                // Save logic
+                shipping = new Shipping(
+                        fields[0].getText(),
+                        fields[1].getText(),
+                        fields[2].getText(),
+                        fields[3].getText(),
+                        fields[4].getText(),
+                        fields[5].getText(),
+                        fields[6].getText()
+                );
+
+                shippingDialog.dispose();
+            }
+        });
+
+        footerPanel.add(cancelButton);
+        footerPanel.add(saveButton);
+
+        shippingDialog.add(footerPanel, BorderLayout.SOUTH);
+
+        // Display dialog
+        shippingDialog.setLocationRelativeTo(null);
+        shippingDialog.setVisible(true);
+    }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridBagLayout()); // Use GridBagLayout for a more flexible layout
+        JDialog discountDialog = new JDialog((Frame) null, "Fee", true);
+        discountDialog.setSize(500, 600);
+        discountDialog.setLayout(new BorderLayout());
+        discountDialog.setResizable(false);
+
+        // Title panel
+        JLabel titleLabel = new JLabel("Additional Fee", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        discountDialog.add(titleLabel, BorderLayout.NORTH);
+
+        // Center panel
+        JPanel centerPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10); // Add padding
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.BOTH;
 
+// Row 1: Title and TextBox
+        JLabel titleInputLabel = new JLabel("Title:");
+        titleInputLabel.setFont(new Font("Arial", Font.PLAIN, 18));
+        gbc.gridx = 0; // First column
+        gbc.gridy = 0; // First row
+        gbc.weightx = 0; // No resizing for the label
+        gbc.gridwidth = 1; // Single column for the label
+        gbc.anchor = GridBagConstraints.EAST; // Align to the right of the grid cell
+        centerPanel.add(titleInputLabel, gbc);
 
-        // Create a bold and larger font for the labels
-        Font boldFont = new Font("Arial", Font.BOLD, 14);
-        Font regularFont = new Font("Arial", Font.PLAIN, 14);
+        JTextField titleTextField = new JTextField();
+        titleTextField.setFont(new Font("Arial", Font.PLAIN, 18));
+        gbc.gridx = 1; // Second column
+        gbc.gridy = 0; // Same row as the label
+        gbc.weightx = 1; // Allow resizing horizontally
+        gbc.gridwidth = 1; // Single column for the text field
+        gbc.anchor = GridBagConstraints.WEST; // Align to the left of the grid cell
+        centerPanel.add(titleTextField, gbc);
 
-        // Item Name *
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        JLabel itemNameLabel = new JLabel("Item Name *");
-        itemNameLabel.setFont(boldFont);
-        panel.add(itemNameLabel, gbc);
+        // Row 2: Amount section
+        JPanel amountPanel = new JPanel(new BorderLayout());
+        amountPanel.setBorder(BorderFactory.createTitledBorder("Amount"));
+        JLabel amountDisplay = new JLabel("0.00", SwingConstants.CENTER);
+        amountDisplay.setFont(new Font("Arial", Font.BOLD, 36));
+        amountPanel.add(amountDisplay, BorderLayout.CENTER);
 
         gbc.gridx = 1;
-        JTextField itemNameField = new JTextField(15);
-        itemNameField.setFont(regularFont);
-        panel.add(itemNameField, gbc);
-
-        // Item Model
-        gbc.gridx = 2;
-        JLabel itemModelLabel = new JLabel("Item Model");
-        itemModelLabel.setFont(boldFont);
-        panel.add(itemModelLabel, gbc);
-
-        gbc.gridx = 3;
-        JTextField itemModelField = new JTextField(15);
-        itemModelField.setFont(regularFont);
-        panel.add(itemModelField, gbc);
-
-        // Item Code *
-        gbc.gridx = 0;
         gbc.gridy = 1;
-        JLabel itemStock = new JLabel("Stock *");
-        itemStock.setFont(boldFont);
-        panel.add(itemStock, gbc);
+        gbc.weightx = 0.5;
+        gbc.gridwidth = 1;
+        centerPanel.add(amountPanel, gbc);
 
-        gbc.gridx = 1;
-        JTextField itemStockField = new JTextField(15);
-        itemStockField.setFont(regularFont);
-        panel.add(itemStockField, gbc);
+        // Row 3: Numeric keypad
+        JPanel keypadPanel = new JPanel(new GridLayout(4, 3, 10, 10));
+        keypadPanel.setBackground(Color.LIGHT_GRAY);
 
-        // Category
-        gbc.gridx = 2;
-        JLabel categoryLabel = new JLabel("Subcategory");
-        categoryLabel.setFont(boldFont);
-        panel.add(categoryLabel, gbc);
-
-        gbc.gridx = 3;
-        Vector<String> productSubcategoryNames = new Vector<>();
-        productSubcategoryNames.add("Select Subcategory");
-        Map<Integer, Integer> productSubcategoryMap = new HashMap<>();
-        ProductSubcategoryService productSubcategoryService = new ProductSubcategoryService();
-        var productSubcategories = productSubcategoryService.getAllValidSubcategories();
-        for (int i = 0; i < productSubcategories.size(); i++) {
-            productSubcategoryNames.add(productSubcategories.get(i).name());
-            productSubcategoryMap.put(i + 1, productSubcategories.get(i).id());
+        Font keypadFont = new Font("Arial", Font.BOLD, 24);
+        for (int i = 1; i <= 9; i++) {
+            JButton numberButton = new JButton(String.valueOf(i));
+            numberButton.setFont(keypadFont);
+            keypadPanel.add(numberButton);
+            numberButton.addActionListener(e -> {
+                String currentText = amountDisplay.getText();
+                if (currentText.equals("0.00")) currentText = "";
+                amountDisplay.setText(currentText + numberButton.getText());
+            });
         }
-        JComboBox<String> categoryCombo = new JComboBox<>(productSubcategoryNames);
-        categoryCombo.setFont(regularFont);
-        panel.add(categoryCombo, gbc);
 
-        // Brand
+        JButton zeroButton = new JButton("0");
+        zeroButton.setFont(keypadFont);
+        keypadPanel.add(zeroButton);
+        zeroButton.addActionListener(e -> {
+            String currentText = amountDisplay.getText();
+            if (!currentText.equals("0.00")) amountDisplay.setText(currentText + "0");
+        });
+
+        JButton decimalButton = new JButton(".");
+        decimalButton.setFont(keypadFont);
+        keypadPanel.add(decimalButton);
+        decimalButton.addActionListener(e -> {
+            String currentText = amountDisplay.getText();
+            if (!currentText.contains(".")) amountDisplay.setText(currentText + ".");
+        });
+
+        JButton clearButton = new JButton("X");
+        clearButton.setBackground(Color.RED);
+        clearButton.setForeground(Color.WHITE);
+        clearButton.setFont(keypadFont);
+        keypadPanel.add(clearButton);
+        clearButton.addActionListener(e -> amountDisplay.setText("0.00"));
+
         gbc.gridx = 0;
         gbc.gridy = 2;
-        JLabel brandLabel = new JLabel("Brand");
-        brandLabel.setFont(boldFont);
-        panel.add(brandLabel, gbc);
+        gbc.gridwidth = 2;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        centerPanel.add(keypadPanel, gbc);
 
-        gbc.gridx = 1;
-        Vector<String> brandNames = new Vector<>();
-        brandNames.add("Select Brand");
-        BrandService brandService = new BrandService();
-        Map<Integer, Integer> brandMap = new HashMap<>();
+        discountDialog.add(centerPanel, BorderLayout.CENTER);
 
-        JComboBox<String> brandCombo = new JComboBox<>(brandNames);
-        brandCombo.setFont(regularFont);
-        brandCombo.setSelectedItem("Select Brand");
-        panel.add(brandCombo, gbc);
+        // Footer panel
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
 
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.setPreferredSize(new Dimension(120, 40)); // Set fixed button size
+        cancelButton.setBackground(Color.RED);
+        cancelButton.setForeground(Color.WHITE);
+        cancelButton.setFont(new Font("Arial", Font.BOLD, 18));
+        cancelButton.addActionListener(e -> discountDialog.dispose());
 
-        categoryCombo.addActionListener(e -> {
-            int productSubcategorySelectedIndex = categoryCombo.getSelectedIndex();
-            int productSubcategoryId = productSubcategoryMap.get(productSubcategorySelectedIndex);
-
-            brandCombo.removeAllItems();
-
-            var brands = brandService.getAllBrandByProductSubcategoryId(productSubcategoryId);
-            brandNames.add("Select Brand");
-            brandCombo.setSelectedItem("Select Brand");
-            for (int i = 0; i < brands.size(); i++) {
-                brandNames.add(brands.get(i).name());
-                brandMap.put(i + 1, brands.get(i).id());
+        JButton saveButton = new JButton("Save");
+        saveButton.setPreferredSize(new Dimension(120, 40)); // Set fixed button size
+        saveButton.setBackground(Color.BLUE);
+        saveButton.setForeground(Color.WHITE);
+        saveButton.setFont(new Font("Arial", Font.BOLD, 18));
+        saveButton.addActionListener(e -> {
+            String titleText = titleTextField.getText();
+            if (titleText.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(discountDialog, "Please enter a title.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
             }
+            AddFee addFee = new AddFee(titleText, Double.parseDouble(amountDisplay.getText()));
+            addFees.add(addFee);
+            updateSubtotal();
+            discountDialog.dispose();
         });
 
-        // Unit - Change to JComboBox with options
-        gbc.gridx = 2;
-        JLabel unitLabel = new JLabel("Unit");
-        unitLabel.setFont(boldFont);
-        panel.add(unitLabel, gbc);
+        footerPanel.add(cancelButton);
+        footerPanel.add(saveButton);
 
-        gbc.gridx = 3;
-        JComboBox<String> unitCombo = new JComboBox<>(new String[]{"Per Piece", "12 pcs"});
-        unitCombo.setFont(regularFont);
-        panel.add(unitCombo, gbc);
+        discountDialog.add(footerPanel, BorderLayout.SOUTH);
 
-        // Product Tax *
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        JLabel productTaxLabel = new JLabel("Product Tax *");
-        productTaxLabel.setFont(boldFont);
-        panel.add(productTaxLabel, gbc);
-
-        gbc.gridx = 1;
-        Map<String, Integer> productTaxTypeMap = new HashMap<>();
-        productTaxTypeMap.put("VAT@12%", 12);
-
-        JTextField productTaxField = new JTextField();
-        productTaxField.setFont(regularFont);
-        productTaxField.setText("VAT@12%");
-        productTaxField.setEnabled(false);
-        panel.add(productTaxField, gbc);
-
-        // Tax Type
-        gbc.gridx = 2;
-        JLabel taxTypeLabel = new JLabel("Tax Type");
-        taxTypeLabel.setFont(boldFont);
-        panel.add(taxTypeLabel, gbc);
-
-        gbc.gridx = 3;
-        JComboBox<String> taxTypeCombo = new JComboBox<>(new String[]{"Select Tax Type", "Exclusive", "Inclusive"});
-        taxTypeCombo.setFont(regularFont);
-        panel.add(taxTypeCombo, gbc);
-
-        // Purchase Price
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        JLabel purchasePriceLabel = new JLabel("Purchase Price");
-        purchasePriceLabel.setFont(boldFont);
-        panel.add(purchasePriceLabel, gbc);
-
-        gbc.gridx = 1;
-        final JTextField purchasePriceField = new JTextField(15);
-        purchasePriceField.setFont(regularFont);
-        purchasePriceField.setEnabled(false);
-        panel.add(purchasePriceField, gbc);
-
-        // Regular Price *
-        gbc.gridx = 2;
-        JLabel sellingPriceLabel = new JLabel("Selling Price *");
-        sellingPriceLabel.setFont(boldFont);
-        panel.add(sellingPriceLabel, gbc);
-
-        gbc.gridx = 3;
-        JTextField sellingPriceField = new JTextField(15);
-        sellingPriceField.setFont(regularFont);
-        sellingPriceField.setEnabled(false);
-        panel.add(sellingPriceField, gbc);
-
-        purchasePriceField.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                onTextChanged();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                onTextChanged();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-
-            }
-
-            private void onTextChanged() {
-
-                if (purchasePriceField.getText().isEmpty())
-                    return;
-
-                for (int i = 0; i < purchasePriceField.getText().length(); i++) {
-                    if (Character.isLetter(purchasePriceField.getText().charAt(i))) {
-                        return;
-                    }
-                }
-
-                if (purchasePriceField.getText().isEmpty())
-                    sellingPriceField.setText("");
-
-
-                double purchase = Double.parseDouble(purchasePriceField.getText());
-                sellingPriceField.setText(String.format("%.2f", purchase * 1.12));
-            }
-        });
-
-        sellingPriceField.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                onChange();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                onChange();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-
-            }
-
-            private void onChange() {
-
-                if (sellingPriceField.getText().isEmpty())
-                    return;
-
-                for (int i = 0; i < sellingPriceField.getText().length(); i++) {
-                    if (Character.isLetter(sellingPriceField.getText().charAt(i))) {
-                        return;
-                    }
-                }
-
-                if (sellingPriceField.getText().isEmpty())
-                    purchasePriceField.setText("");
-
-                double purchase = Double.parseDouble(sellingPriceField.getText());
-                purchasePriceField.setText(String.format("%.2f", purchase * 0.12 / 1.12));
-            }
-        });
-
-        taxTypeCombo.addActionListener(e -> {
-            String selectedItem = (String) taxTypeCombo.getSelectedItem();
-            assert selectedItem != null;
-            if (selectedItem.equals("Exclusive")) {
-                sellingPriceField.setText("");
-                sellingPriceField.setEnabled(false);
-                purchasePriceField.setEnabled(true);
-            } else if (selectedItem.equals("Inclusive")) {
-                sellingPriceField.setEnabled(true);
-                purchasePriceField.setEnabled(false);
-                purchasePriceField.setText("");
-            } else {
-                sellingPriceField.setEnabled(false);
-                purchasePriceField.setEnabled(false);
-                purchasePriceField.setText("");
-                sellingPriceField.setText("");
-            }
-        });
-
-        // Discount
-        gbc.gridx = 0;
-        gbc.gridy = 5;
-        JLabel discountLabel = new JLabel("Discount");
-        discountLabel.setFont(boldFont);
-        panel.add(discountLabel, gbc);
-
-        gbc.gridx = 1;
-        JTextField discountField = new JTextField(15);
-        discountField.setFont(regularFont);
-        panel.add(discountField, gbc);
-
-        // Note
-        gbc.gridx = 0;
-        gbc.gridy = 6;
-        JLabel noteLabel = new JLabel("Note");
-        noteLabel.setFont(boldFont);
-        panel.add(noteLabel, gbc);
-
-        gbc.gridx = 1;
-        gbc.gridwidth = 3;
-        JTextArea noteArea = new JTextArea(3, 15);
-        noteArea.setFont(regularFont);
-        JScrollPane noteScrollPane = new JScrollPane(noteArea);
-        panel.add(noteScrollPane, gbc);
-        gbc.gridwidth = 1;
-
-        // Alert Quantity
-        gbc.gridx = 0;
-        gbc.gridy = 7;
-        JLabel alertQuantityLabel = new JLabel("Alert Quantity");
-        alertQuantityLabel.setFont(boldFont);
-        panel.add(alertQuantityLabel, gbc);
-
-        gbc.gridx = 1;
-        JTextField alertQuantityField = new JTextField(15);
-        alertQuantityField.setFont(regularFont);
-        panel.add(alertQuantityField, gbc);
-
-        // Status
-        gbc.gridx = 2;
-        JLabel statusLabel = new JLabel("Status");
-        statusLabel.setFont(boldFont);
-        panel.add(statusLabel, gbc);
-
-        gbc.gridx = 3;
-        JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Select status", "Active", "Inactive"});
-        statusCombo.setFont(regularFont);
-        panel.add(statusCombo, gbc);
-
-        // Image - Modify to use JFileChooser for file upload
-        gbc.gridx = 0;
-        gbc.gridy = 8;
-        JLabel imageLabel = new JLabel("Image");
-        imageLabel.setFont(boldFont);
-        panel.add(imageLabel, gbc);
-
-        gbc.gridx = 1;
-        JButton imageButton = new JButton("Choose File");
-        imageButton.setFont(regularFont);
-
-        // Add action listener for the imageButton to open file explorer
-        Base64Converter base64Converter = new Base64Converter();
-        imageButton.addActionListener(e -> {
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            int returnValue = fileChooser.showOpenDialog(null);
-            if (returnValue == JFileChooser.APPROVE_OPTION) {
-                File selectedFile = fileChooser.getSelectedFile();
-                try {
-                    base64Converter.setConvertFileToBase64(selectedFile);
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
-        });
-        panel.add(imageButton, gbc);
-
-        // Display the form in a dialog
-        int result = JOptionPane.showConfirmDialog(null, panel, "Create Product", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-        // If the user clicks OK, process the input
-        if (result == JOptionPane.OK_OPTION) {
-            String name = itemNameField.getText();
-            String stock = itemStockField.getText();
-
-            // Validate the required fields
-            if (name.isEmpty()) {
-                JOptionPane.showMessageDialog(null, "Please fill out all required fields.", "Error", JOptionPane.ERROR_MESSAGE);
-            } else {
-                int brandSelectedIndex = brandCombo.getSelectedIndex();
-                int brandId = brandMap.get(brandSelectedIndex);
-
-                String model = itemModelField.getText();
-                String unit = (String) unitCombo.getSelectedItem();
-                String taxType = (String) taxTypeCombo.getSelectedItem();
-                String purchasePrice = purchasePriceField.getText();
-                String discount = discountField.getText();
-                String note = noteArea.getText();
-                String alertQuantity = alertQuantityField.getText();
-                String status = (String) statusCombo.getSelectedItem();
-                String image = base64Converter.getBase64();
-                String sellingPrice = sellingPriceField.getText();
-
-                ProductService productService = new ProductService();
-                assert unit != null;
-                assert taxType != null;
-                assert status != null;
-                AddProductRequestDto dto = new AddProductRequestDto(
-                        name,
-                        model,
-                        brandId,
-                        unit.equals("Per Piece") ? ProductUnit.PIECE : ProductUnit.DOZEN,
-                        productTaxTypeMap.get("VAT@12%"),
-                        taxType.equals("Exclusive") ? ProductTaxType.EXCLUSIVE : ProductTaxType.INCLUSIVE,
-                        BigDecimal.valueOf(Double.parseDouble(purchasePrice)),
-                        BigDecimal.valueOf(Double.parseDouble(sellingPrice)),
-                        Integer.parseInt(discount),
-                        note,
-                        Integer.parseInt(alertQuantity),
-                        status.equals("Active") ? ProductStatus.ACTIVE : ProductStatus.INACTIVE,
-                        image,
-                        Integer.parseInt(stock)
-                );
-                productService.add(dto);
-                JOptionPane.showMessageDialog(null, "Product Created Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            }
-        }
+        // Display dialog
+        discountDialog.setLocationRelativeTo(null);
+        discountDialog.setVisible(true);
     }//GEN-LAST:event_jButton2ActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        JPanel paymentPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10); // Padding between elements
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
+    private void loadProductTable() {
+        selectedProductList.clear();
+        selectedProductSet.clear();
 
-        // Creating input fields
-        JTextField amountField = new JTextField(20); // Increased field width
-        amountField.setText("0");
-        JTextField receiptNoField = new JTextField(15);
-        JTextField referenceNumberField = new JTextField(15);
-        referenceNumberField.setEnabled(false);
-        JTextField deliveryPlaceField = new JTextField(30);
-        JTextField dateField = new JTextField(15);
-        JTextField noteField = new JTextField(30);
-
-        // Creating a combo box for Payment Method
-        String[] paymentMethods = {"Cash Payment", "PO Payment", "Online Payment"};
-        JComboBox<String> paymentMethodComboBox = new JComboBox<>(paymentMethods);
-        // Make receiptNoField non-editable
-        receiptNoField.setEditable(false);
-
-        // Fetch the current createdAt and set it in dateField
-        LocalDate currentDate = LocalDate.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        dateField.setText(currentDate.format(formatter));
-        dateField.setEditable(false);
-
-        // Adding labels and fields to the panel in two columns
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        paymentPanel.add(new JLabel("Receipt No:"), gbc);
-        gbc.gridx = 1;
-        paymentPanel.add(receiptNoField, gbc);
-
-        gbc.gridx = 2;
-        gbc.gridy = 0;
-        paymentPanel.add(new JLabel("Date:"), gbc);
-        gbc.gridx = 3;
-        paymentPanel.add(dateField, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        paymentPanel.add(new JLabel( "Payment Method:"), gbc);
-        gbc.gridx = 1;
-        paymentPanel.add(paymentMethodComboBox, gbc);
-
-        paymentMethodComboBox.addActionListener(e -> {
-            String selectedItem = (String) paymentMethodComboBox.getSelectedItem();
-            if(!selectedItem.equals(paymentMethods[2])){
-                referenceNumberField.setEnabled(false);
-            }else{
-                referenceNumberField.setEnabled(true);
-            }
-        });
-
-        gbc.gridx = 2;
-        gbc.gridy = 1;
-        paymentPanel.add(new JLabel("Reference Number:"), gbc);
-        gbc.gridx = 3;
-        paymentPanel.add(referenceNumberField, gbc);
-
-        // Modify Amount label and field
-        JLabel amountLabel = new JLabel("Amount:");
-        amountLabel.setFont(new Font("Arial", Font.BOLD, 18)); // Set larger font for Amount label
-        amountField.setFont(new Font("Arial", Font.PLAIN, 20));
-        amountField.setPreferredSize(new Dimension(300, 50)); // Increased height
-        amountField.setMinimumSize(new Dimension(300, 50));
-        amountField.setMaximumSize(new Dimension(300, 50)); // Increase field size
-
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        paymentPanel.add(amountLabel, gbc);
-        gbc.gridx = 1;
-        gbc.gridwidth = 3; // Span across multiple columns
-        paymentPanel.add(amountField, gbc);
-        gbc.gridwidth = 1; // Reset grid width for following fields
-
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        paymentPanel.add(new JLabel("Delivery Place:"), gbc);
-        gbc.gridx = 1;
-        gbc.gridwidth = 3; // Span across multiple columns
-        paymentPanel.add(deliveryPlaceField, gbc);
-        gbc.gridwidth = 1;
-
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        paymentPanel.add(new JLabel("Note:"), gbc);
-        gbc.gridx = 1;
-        gbc.gridwidth = 3;
-        paymentPanel.add(noteField, gbc);
-
-        // Show the JOptionPane with the custom panel
-        int result = JOptionPane.showConfirmDialog(null, paymentPanel, "Add Payment", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-        if (result == JOptionPane.OK_OPTION) {
-            BigDecimal amountValue = new BigDecimal(amountField.getText().isEmpty() ? "0" : amountField.getText()); // Convert amount to BigDecimal
-
-
-            String paymentMethod = (String) paymentMethodComboBox.getSelectedItem();
-            String receiptNo = receiptNoField.getText();
-            String poReference = referenceNumberField.getText();
-            String deliveryPlace = deliveryPlaceField.getText();
-            String note = noteField.getText();
-
-            int customerSelectedIndex = jComboBox1.getSelectedIndex();
-            Integer customerId = clientMap.get(customerSelectedIndex);
-
-            if(customerId == null){
-                JOptionPane.showMessageDialog(null, "Please select customer first", "Transaction Failed", JOptionPane.PLAIN_MESSAGE);
-                return;
+        ProductService productService = new ProductService();
+        SwingWorker<List<ProductResponseDto>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<ProductResponseDto> doInBackground() {
+                return productService.getAllValidProducts();
             }
 
-            String discountType = (String) jComboBox4.getSelectedItem();
-            BigDecimal totalTax = BigDecimal.valueOf(Double.parseDouble(jComboBox5.getSelectedItem().toString().isEmpty() ? "0" : jComboBox5.getSelectedItem().toString()));
-            BigDecimal discount = BigDecimal.valueOf(Double.parseDouble(jTextField3.getText()));
-            BigDecimal transportCost = BigDecimal.valueOf(Double.parseDouble(jTextField2.getText()));
-            BigDecimal netTotal = BigDecimal.valueOf(Double.parseDouble(jLabel7.getText()));
-            BigDecimal change = amountValue.subtract(netTotal); // Calculate change
+            @Override
+            protected void done() {
+                try {
+                    panelItem.removeAll();
+                    var products = get();
 
-            AddSaleRequestDto saleDto = new AddSaleRequestDto(
-                    customerId,
-                    discountType,
-                    discount,
-                    transportCost,
-                    totalTax,
-                    netTotal,
-                    receiptNo,
-                    amountValue,
-                    LocalDate.now(),
-                    poReference,
-                    deliveryPlace,
-                    note,
-                    paymentMethod.equals(paymentMethods[0]) ? TransactionPaymentMethod.CASH_PAYMENT : paymentMethod.equals(paymentMethods[1]) ? TransactionPaymentMethod.PO_PAYMENT : paymentMethod.equals(paymentMethods[2]) ? TransactionPaymentMethod.ONLINE_PAYMENT : null,
-                    change
-            );
+                    for (var product : products) {
 
-            SaleService saleService = new SaleService();
-            Set<AddSaleItemRequestDto> addSaleItemRequestDtoSet = new HashSet<>();
-            var choseItems = getAllRows();
+                        if (product.type().equals(ProductType.SIMPLE) && product.stock() <= 0) continue;
 
-            for (var item : choseItems) {
-                AddSaleItemRequestDto dto = new AddSaleItemRequestDto(
-                        item.getId(),
-                        item.getPrice(),
-                        item.getQuantity(),
-                        item.getSubtotal()
-                );
-                addSaleItemRequestDtoSet.add(dto);
+                        ModelItem modelItem = new ModelItem();
+                        modelItem.setProductAttributes(product.productAttributes());
+                        modelItem.setQuantity(product.type().equals(ProductType.SIMPLE) ? product.stock() : 0);
+                        modelItem.setType(product.type());
+                        modelItem.setItemID(product.id());
+                        modelItem.setItemName(product.name());
+                        modelItem.setDescription("");
+                        modelItem.setPrice(Double.parseDouble(String.valueOf(product.sellingPrice())));
+                        modelItem.setBrandName(product.category().getName());
+                        modelItem.setImage(product.image().isEmpty() ? null : decodeBase64(product.image()));
+                        addItem(modelItem);
+                    }
+                    panelItem.repaint();
+                    panelItem.revalidate();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
             }
-//            paymentMethods = {"Cash Payment", "PO Payment", "Online Payment"};
-            if (amountValue.subtract(netTotal).compareTo(BigDecimal.ZERO) < 0 && (paymentMethod.equals(paymentMethods[0]) || paymentMethod.equals(paymentMethods[2]))) {
-                JOptionPane.showMessageDialog(null, "The amount is not enough");
-                return;
-            }
+        };
+        worker.execute();
+    }
 
-            try {
-                int transactionId = saleService.add(saleDto, addSaleItemRequestDtoSet);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
 
-            // Create a new JPanel for the confirmation display
-            JPanel confirmationPanel = new JPanel();
-            confirmationPanel.setLayout(new BoxLayout(confirmationPanel, BoxLayout.Y_AXIS));
-            confirmationPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); // Add padding around edges
-
-            // Amount and change labels with improved styling
-            JLabel amountLabelDisplay = new JLabel("Amount: " + amountValue.toString());
-            JLabel changeLabelDisplay = new JLabel();
-
-            if(paymentMethod.equals(paymentMethods[1])){
-                changeLabelDisplay.setText("Balance: " + change.abs().toString());
-            }else{
-                changeLabelDisplay.setText("Change: " + change.toString());
-            }
-
-            amountLabelDisplay.setFont(new Font("Arial", Font.BOLD, 20));
-            amountLabelDisplay.setForeground(new Color(50, 50, 50));
-            amountLabelDisplay.setAlignmentX(Component.CENTER_ALIGNMENT); // Center-align text
-
-            changeLabelDisplay.setFont(new Font("Arial", Font.BOLD, 20));
-            changeLabelDisplay.setForeground(new Color(50, 50, 50));
-            changeLabelDisplay.setAlignmentX(Component.CENTER_ALIGNMENT); // Center-align text
-
-            confirmationPanel.add(amountLabelDisplay);
-            confirmationPanel.add(Box.createVerticalStrut(15)); // Add vertical space
-            confirmationPanel.add(changeLabelDisplay);
-
-            // Create and style Print Receipt button
-            JButton printButton = new JButton("Print Receipt");
-            printButton.setFont(new Font("Arial", Font.BOLD, 16));
-            printButton.setBackground(new Color(255, 140, 0)); // Light orange color
-            printButton.setForeground(Color.WHITE);
-            printButton.setFocusPainted(false);
-            printButton.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20)); // Add padding inside button
-            printButton.setAlignmentX(Component.CENTER_ALIGNMENT); // Center-align button
-
-            printButton.addActionListener(e -> {
-                // Call the print receipt function (to be implemented)
-                JOptionPane.showMessageDialog(null, "Receipt printed successfully.");
-            });
-
-            confirmationPanel.add(Box.createVerticalStrut(20)); // Add vertical space
-            confirmationPanel.add(printButton);
-
-            // Create a JDialog to hold the confirmation panel and the button
-            JDialog dialog = new JDialog((Frame) null, "Payment Confirmation", true);
-            dialog.setLayout(new BorderLayout());
-            dialog.add(confirmationPanel, BorderLayout.CENTER);
-            dialog.setSize(350, 250); // Increase dialog size for a more spacious look
-            dialog.setLocationRelativeTo(null); // Center the dialog
-            dialog.setVisible(true);
-        } else {
-            JOptionPane.showMessageDialog(null, "Payment cancelled.");
+    private void scheduleQuery() {
+        if (timer != null) {
+            timer.cancel(); // Cancel any existing scheduled query
         }
-    }//GEN-LAST:event_jButton1ActionPerformed
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                filterList();
+            }
+        }, 400); // Delay of 300 ms
+    }
+
+    private void filterList() {
+        String name = jTextField1.getText();
+
+        if (name.isEmpty()) {
+            loadProductTable();
+            return;
+        }
+
+        ProductService productService = new ProductService();
+        SwingWorker<List<ProductResponseDto>, Void> worker = new SwingWorker<List<ProductResponseDto>, Void>() {
+            @Override
+            protected List<ProductResponseDto> doInBackground() throws Exception {
+                return productService.getAllValidProductByName(name);
+            }
+
+            @Override
+            protected void done() {
+
+                try {
+                    panelItem.removeAll();
+                    var products = get();
+
+                    for (var product : products) {
+                        if (product.type().equals(ProductType.SIMPLE) && product.stock() <= 0) continue;
+
+                        ModelItem modelItem = new ModelItem();
+                        modelItem.setProductAttributes(product.productAttributes());
+                        modelItem.setQuantity(product.type().equals(ProductType.SIMPLE) ? product.stock() : 0);
+                        modelItem.setType(product.type());
+                        modelItem.setItemID(product.id());
+                        modelItem.setItemName(product.name());
+                        modelItem.setDescription("");
+                        modelItem.setPrice(Double.parseDouble(String.valueOf(product.sellingPrice())));
+                        modelItem.setBrandName(product.category().getName());
+                        modelItem.setImage(product.image().isEmpty() ? null : decodeBase64(product.image()));
+                        addItem(modelItem);
+                    }
+                    panelItem.repaint();
+                    panelItem.revalidate();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
+    }
+
+    //
+//    private void computeTotalTax() {
+//        BigDecimal netTotal = new BigDecimal(jLabel7.getText());
+//        String totalValue = String.valueOf((netTotal.multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP));
+//        jComboBox5.addItem(totalValue);
+//        jComboBox5.setSelectedItem(totalValue);
+//    }
+//
+    private List<SelectedProduct> getAllRows() {
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        List<SelectedProduct> rows = new ArrayList<>();
+        for (int i = 0; i < model.getRowCount(); i++) {
+            int id = (Integer) model.getValueAt(i, 0);
+            String name = (String) model.getValueAt(i, 1);
+            // Check if `quantity` and `purchasePrice` are stored as `String`; otherwise, safely convert them.
+            int quantity = Integer.parseInt(model.getValueAt(i, 2).toString());
+            BigDecimal purchasePrice = (BigDecimal) model.getValueAt(i, 3);
+
+            // Create a new `PurchaseListedProduct` instance with the parsed values and add it to the list
+            SelectedProduct purchaseListedProduct = new SelectedProduct();
+            purchaseListedProduct.setId(id);
+            purchaseListedProduct.setQuantity(quantity);
+            purchaseListedProduct.setName(name);
+            purchaseListedProduct.setPrice(purchasePrice);
+            rows.add(purchaseListedProduct);
+        }
+        return rows;
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    class SelectedProduct {
+        private Integer id;
+        private String name;
+        private int quantity;
+        private BigDecimal price;
+        private ProductType type;
+        private Integer variationId;
+        private int variableTotalQuantity;
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    class AddFee {
+        private String name;
+        private double amount;
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    class Shipping {
+        private String name;
+        private String phoneNumber;
+        private String shippingAddress;
+        private String city;
+        private String barangay;
+        private String landmark;
+        private String note;
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    class Discount {
+        private PaymentDiscountType type;
+        private double amount;
+    }
+
+    //
+//    private void loadNetTotal() {
+//        List<PurchaseListedProduct> products = getAllRows();
+//
+//        BigDecimal summation = BigDecimal.ZERO;
+//
+//        for (int i = 0; i < products.size(); i++) {
+//            summation = summation.add(products.get(i).getSubtotal());
+//        }
+//
+//        BigDecimal transportCost = new BigDecimal(jTextField2.getText());
+//        BigDecimal fixDiscount = new BigDecimal(jTextField3.getText());
+//        double percentageDiscount = Double.parseDouble(jTextField3.getText());
+//
+//        String discountType = (String) jComboBox4.getSelectedItem();
+//
+//        assert discountType != null;
+//        if (discountType.equals("Fixed")) {
+//            BigDecimal tempVar = transportCost.add(summation).subtract(fixDiscount);
+//            jLabel7.setText(String.valueOf(tempVar.setScale(2, RoundingMode.HALF_UP)));
+//        } else if (discountType.equals("Percentage %")) {
+//            double percentage = percentageDiscount / 100;
+//            BigDecimal tempVar = ((transportCost.add(summation)).multiply(BigDecimal.valueOf(percentage))).setScale(2, RoundingMode.HALF_UP);
+//            jLabel7.setText(String.valueOf(tempVar));
+//        } else {
+//            BigDecimal tempVar = (transportCost.add(summation));
+//            jLabel7.setText(String.valueOf(tempVar.setScale(2, RoundingMode.HALF_UP)));
+//        }
+//        computeTotalTax();
+//    }
+//
+    static class ButtonRenderer extends JButton implements TableCellRenderer {
+        public ButtonRenderer() {
+            setOpaque(true);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            setText((value == null) ? "" : value.toString());
+            setBackground(Color.RED);
+            setForeground(Color.WHITE);
+            return this;
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private JButton jButton1;
-    private JButton jButton2;
-    private JButton jButton3;
-    private JButton jButton4;
-    private JComboBox<String> jComboBox1;
-    private JComboBox<String> jComboBox2;
-    private JComboBox<String> jComboBox3;
-    private JComboBox<String> jComboBox4;
-    private JComboBox<String> jComboBox5;
-    private JLabel jLabel1;
-    private JLabel jLabel2;
-    private JLabel jLabel3;
-    private JLabel jLabel4;
-    private JLabel jLabel5;
-    private JLabel jLabel6;
-    private JLabel jLabel7;
-    private JPanel jPanel1;
-    private JPanel jPanel2;
-    private JPanel jPanel3;
-    private JPanel jPanel7;
-    private JScrollPane jScrollPane1;
-    private JSeparator jSeparator1;
-    private JTable jTable1;
-    private JTextField jTextField1;
-    private JTextField jTextField2;
-    private JTextField jTextField3;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
+    private javax.swing.JButton jButton5;
+    private javax.swing.JComboBox<String> jComboBox1;
+    private javax.swing.JComboBox<String> jComboBox2;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JTable jTable1;
+    private javax.swing.JTextField jTextField1;
     private org.POS.frontend.src.com.raven.swing.PanelItem panelItem;
     private org.POS.frontend.src.javaswingdev.swing.RoundPanel roundPanel2;
-    private JScrollPane scroll;
+    private org.POS.frontend.src.javaswingdev.swing.RoundPanel roundPanel3;
+    private javax.swing.JScrollPane scroll;
     // End of variables declaration//GEN-END:variables
 }

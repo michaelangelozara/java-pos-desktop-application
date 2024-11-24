@@ -22,13 +22,8 @@ public class InventoryAdjustment {
 
     private String reason;
 
-    private String note;
-
     @Column(name = "created_date")
     private LocalDate createdDate;
-
-    @Column(name = "updated_at")
-    private LocalDate updatedAt;
 
     @Column(name = "is_deleted")
     private boolean isDeleted;
@@ -36,16 +31,13 @@ public class InventoryAdjustment {
     @Column(name = "deleted_at")
     private LocalDate deletedAt;
 
+    @Enumerated(EnumType.STRING)
+    private InventoryAdjustmentType type;
+
     private int quantity;
 
     @Column(columnDefinition = "VARCHAR(50) NOT NULL")
     private String code;
-
-    @Enumerated(EnumType.STRING)
-    private InventoryAdjustmentType type;
-
-    @Enumerated(EnumType.STRING)
-    private InventoryAdjustmentStatus status;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

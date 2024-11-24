@@ -7,14 +7,16 @@ import org.POS.backend.global_variable.UserActionPrefixes;
 import org.POS.backend.person.PersonDAO;
 import org.POS.backend.person.PersonType;
 import org.POS.backend.product.ProductDAO;
-import org.POS.backend.purchased_item.*;
-import org.POS.backend.stock.Stock;
-import org.POS.backend.stock.StockType;
+import org.POS.backend.purchased_item.PurchaseItem;
+import org.POS.backend.purchased_item.PurchaseItemDAO;
+import org.POS.backend.purchased_item.PurchaseItemMapper;
 import org.POS.backend.user.UserDAO;
 import org.POS.backend.user_log.UserLog;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class PurchaseService {
 
@@ -45,136 +47,80 @@ public class PurchaseService {
         this.codeGeneratorService = new CodeGeneratorService();
     }
 
-    public String add(AddPurchaseRequestDto dto, Set<AddPurchaseItemRequestDto> purchaseItemDtoList) {
+    public void add(AddPurchaseRequestDto dto, Set<PurchaseItem> purchaseItemSet) {
         var supplier = this.personDAO.getValidPersonByTypeAndId(dto.supplierId(), PersonType.SUPPLIER);
-        var user = this.userDAO.getUserById(CurrentUser.id);
+        var admin = this.userDAO.getUserById(CurrentUser.id);
 
-        if (supplier != null && user != null) {
-            Set<Integer> productIds = new HashSet<>();
-            for (var purchaseItem : purchaseItemDtoList) {
-                productIds.add(purchaseItem.productId());
-            }
+        if (admin == null) throw new RuntimeException("Invalid User");
 
-            Purchase purchase = this.purchaseMapper.toPurchase(dto);
-            supplier.addPurchase(purchase);
-            user.addPurchase(purchase);
+        if (supplier == null) throw new RuntimeException("Invalid Supplier");
 
-            var products = this.productDAO.getAllValidProductsByProductIds(productIds);
-            List<PurchaseItem> purchaseItemList = new ArrayList<>();
-            List<Stock> stocks = new ArrayList<>();
-            for (var product : products) {
-                for (var purchaseItemDto : purchaseItemDtoList) {
-                    if (product.getId() == purchaseItemDto.productId()) {
-                        var purchaseItem = this.purchaseItemMapper.toPurchaseItem(purchaseItemDto);
-                        product.addPurchaseItem(purchaseItem);
-                        purchase.addPurchaseItem(purchaseItem);
-                        purchaseItemList.add(purchaseItem);
+        Purchase purchase = new Purchase();
+        purchase.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.PURCHASE_PREFIX));
+        purchase.setNote(dto.note());
+        purchase.setCreatedDate(LocalDate.now());
+        purchase.setPerson(supplier);
+        purchase.setUser(admin);
 
-                        Stock stock = new Stock();
-                        stock.setDate(LocalDate.now());
-                        stock.setStockInOrOut(purchaseItem.getQuantity());
-                        stock.setPrice(purchaseItem.getSubtotal());
-                        stock.setType(StockType.IN);
-                        stock.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.STOCK_IN_PREFIX));
-
-                        user.addStock(stock);
-                        supplier.addStock(stock);
-                        product.addStock(stock);
-
-                        product.setStock(product.getStock() + purchaseItem.getQuantity());
-                        break;
-                    }
-                }
-            }
-
-            UserLog userLog = new UserLog();
-            userLog.setCode(purchase.getCode());
-            userLog.setDate(LocalDate.now());
-            userLog.setAction(UserActionPrefixes.PURCHASES_ADD_ACTION_LOG_PREFIX);
-            user.addUserLog(userLog);
-
-            this.purchaseDAO.add(purchase, purchaseItemList, userLog, products);
+        for (var purchaseItem : purchaseItemSet) {
+            purchaseItem.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.PURCHASE_ITEM_PREFIX));
+            purchase.addPurchaseItem(purchaseItem);
         }
-        return GlobalVariable.PURCHASE_ADDED;
+
+        UserLog userLog = new UserLog();
+        userLog.setCode(purchase.getCode());
+        userLog.setDate(LocalDate.now());
+        userLog.setAction(UserActionPrefixes.PURCHASES_ADD_ACTION_LOG_PREFIX);
+        admin.addUserLog(userLog);
+
+        this.purchaseDAO.add(purchase, userLog);
     }
 
-    public void update(UpdatePurchaseRequestDto dto) {
+    public void update(UpdatePurchaseRequestDto dto, Set<PurchaseItem> purchaseItems) {
         var purchase = this.purchaseDAO.getValidPurchaseById(dto.purchaseId());
         var user = this.userDAO.getUserById(CurrentUser.id);
 
-        if (purchase != null && user != null) {
-            var updatedPurchase = this.purchaseMapper.toUpdatedPurchase(purchase, dto);
+        if (purchase == null) throw new RuntimeException("Invalid Purchase");
 
-            Set<String> productCodes = new HashSet<>();
-            List<UpdatePurchaseItemRequestDto> newPurchaseItemDtoList = new ArrayList<>();
-            for (var purchaseItemDto : dto.purchaseItems()) {
-                if (purchaseItemDto.purchaseItemId() == null) {
-                    productCodes.add(purchaseItemDto.productCode());
-                    newPurchaseItemDtoList.add(purchaseItemDto);
+        if (user == null) throw new RuntimeException("Invalid User");
+        CopyOnWriteArrayList<PurchaseItem> oldPurchaseItems = new CopyOnWriteArrayList<>(purchase.getPurchaseItems());
+        for (var oldPurchaseItem : oldPurchaseItems) {
+            boolean isEqualed = false;
+            for (var purchaseItem : purchaseItems) {
+                if (purchaseItem.getId() == null) {
+                    purchaseItem.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.PURCHASE_ITEM_PREFIX));
+                    purchase.addPurchaseItem(purchaseItem);
+                    continue;
+                }
+
+                if (oldPurchaseItem.getId().equals(purchaseItem.getId())) {
+                    isEqualed = true;
+                    break;
                 }
             }
 
-            // get all the products that equaled to products' codes
-            var products = this.productDAO.getAllValidProductByProductCode(productCodes);
-            // iterate all the product and save the purchase item
-            for (var product : products) {
-                for (var purchaseItemDto : newPurchaseItemDtoList) {
-                    if (product.getCode().equals(purchaseItemDto.productCode())) {
-                        PurchaseItem purchaseItem = new PurchaseItem();
-                        purchaseItem.setQuantity(purchaseItemDto.quantity());
-                        purchaseItem.setPurchasePrice(purchaseItemDto.purchasePrice());
-                        purchaseItem.setSellingPrice(purchaseItemDto.sellingPrice());
-                        purchaseItem.setTax(purchaseItemDto.taxValue());
-                        purchaseItem.setSubtotal(purchaseItemDto.subtotal());
-
-                        product.addPurchaseItem(purchaseItem);
-                        updatedPurchase.addPurchaseItem(purchaseItem);
-
-                        break;
-                    }
-                }
+            if (!isEqualed) {
+                if (oldPurchaseItem.isDeleted())
+                    continue;
+                oldPurchaseItem.setDeleted(true);
+                oldPurchaseItem.setDeletedAt(LocalDate.now());
             }
-
-            Set<Integer> purchaseItemsIds = new HashSet<>();
-            // filter all existing purchase item
-            for (var purchaseItemDto : dto.purchaseItems()) {
-                if (purchaseItemDto.purchaseItemId() != null) {
-                    purchaseItemsIds.add(purchaseItemDto.purchaseItemId());
-                }
-            }
-
-            List<PurchaseItem> updatedPurchaseItems = new ArrayList<>();
-
-            // fetch all valid purchase items
-            var fetchedPurchaseItems = this.purchaseItemDAO.getAllValidPurchaseItemByPurchaseItemIds(purchaseItemsIds);
-            for (var fetchedPurchaseItem : fetchedPurchaseItems) {
-                for (var purchaseItemDto : dto.purchaseItems()) {
-                    if (Objects.equals(fetchedPurchaseItem.getId(), purchaseItemDto.purchaseItemId())) {
-                        fetchedPurchaseItem.setQuantity(purchaseItemDto.quantity());
-                        fetchedPurchaseItem.setPurchasePrice(purchaseItemDto.purchasePrice());
-                        fetchedPurchaseItem.setSellingPrice(purchaseItemDto.sellingPrice());
-                        fetchedPurchaseItem.setTax(purchaseItemDto.taxValue());
-                        fetchedPurchaseItem.setSubtotal(purchaseItemDto.subtotal());
-                        updatedPurchaseItems.add(fetchedPurchaseItem);
-                        break;
-                    }
-                }
-            }
-
-            UserLog userLog = new UserLog();
-            userLog.setCode(updatedPurchase.getCode());
-            userLog.setDate(LocalDate.now());
-            userLog.setAction(UserActionPrefixes.PURCHASES_EDIT_ACTION_LOG_PREFIX);
-            user.addUserLog(userLog);
-
-            // save here
-            this.purchaseDAO.update(updatedPurchase, updatedPurchaseItems, userLog);
         }
+
+        purchase.setNote(dto.note());
+
+        UserLog userLog = new UserLog();
+        userLog.setCode(purchase.getCode());
+        userLog.setDate(LocalDate.now());
+        userLog.setAction(UserActionPrefixes.PURCHASES_ADD_ACTION_LOG_PREFIX);
+        user.addUserLog(userLog);
+
+        this.purchaseDAO.update(purchase, userLog);
     }
 
     public void delete(int purchaseId) {
         var user = this.userDAO.getUserById(CurrentUser.id);
-        if(user == null)
+        if (user == null)
             throw new RuntimeException(GlobalVariable.USER_NOT_FOUND);
 
         UserLog userLog = new UserLog();
@@ -206,19 +152,19 @@ public class PurchaseService {
         return this.purchaseMapper.toPurchaseResponseDtoList(this.purchaseDAO.getAllValidPurchaseByRange(start, end));
     }
 
-    public List<Purchase> getAllValidPurchasesWithoutLimit(){
+    public List<Purchase> getAllValidPurchasesWithoutLimit() {
         return this.purchaseDAO.getAllValidPurchasesWithoutLimit();
     }
 
-    public Purchase getValidPurchaseWithoutDto(int id){
+    public Purchase getValidPurchaseWithoutDto(int id) {
         return this.purchaseDAO.getValidPurchaseById(id);
     }
 
-    public List<PurchaseResponseDto> getAllValidPurchaseByRangeAndSupplierId(LocalDate start, LocalDate end, int id){
+    public List<PurchaseResponseDto> getAllValidPurchaseByRangeAndSupplierId(LocalDate start, LocalDate end, int id) {
         return this.purchaseMapper.toPurchaseResponseDtoList(this.purchaseDAO.getAllValidPurchaseByRangeAndSupplierId(start, end, id));
     }
 
-    public List<Purchase> getAllValidPurchaseByCodeAndSupplierId(String query, int id){
+    public List<Purchase> getAllValidPurchaseByCodeAndSupplierId(String query, int id) {
         return this.purchaseDAO.getAllValidPurchasesByCodeAndSupplierId(query, id);
     }
 

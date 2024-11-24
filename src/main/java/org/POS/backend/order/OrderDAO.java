@@ -3,10 +3,10 @@ package org.POS.backend.order;
 import org.POS.backend.configuration.HibernateUtil;
 import org.POS.backend.payment.Payment;
 import org.POS.backend.product.Product;
-import org.POS.backend.return_product.ReturnProduct;
+import org.POS.backend.product_attribute.ProductVariation;
+import org.POS.backend.return_product.ReturnOrder;
 import org.POS.backend.sale.Sale;
-import org.POS.backend.sale_item.SaleItem;
-import org.POS.backend.user.User;
+import org.POS.backend.sale_product.SaleProduct;
 import org.POS.backend.user_log.UserLog;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
@@ -26,68 +26,55 @@ public class OrderDAO {
     }
 
 
-    public List<Order> getAllValidOrders(int number){
+    public List<Order> getAllValidOrders(int number) {
         List<Order> orders = new ArrayList<>();
-        try (Session session = sessionFactory.openSession()){
+        try (Session session = sessionFactory.openSession()) {
 
             orders = session.createQuery("SELECT o FROM Order o", Order.class)
                     .setMaxResults(number)
                     .getResultList();
 
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         return orders;
     }
 
-    public Order getValidOrderById(int id){
+    public Order getValidOrderById(int id) {
         Order order = null;
-        try (Session session = sessionFactory.openSession()){
+        try (Session session = sessionFactory.openSession()) {
 
             order = session.createQuery("SELECT o FROM Order o WHERE o.id = :id", Order.class)
                     .setParameter("id", id)
                     .getSingleResult();
 
             Hibernate.initialize(order.getSale());
-            Hibernate.initialize(order.getSale().getSaleItems());
-            Hibernate.initialize(order.getPerson().getStocks());
-            Hibernate.initialize(order.getPerson().getPayments());
-            Hibernate.initialize(order.getSale().getInvoice().getPayments());
-
-        }catch (Exception e){
+            Hibernate.initialize(order.getSale().getSaleProducts());
+            Hibernate.initialize(order.getSale().getPayment());
+            Hibernate.initialize(order.getSale().getInvoice());
+            Hibernate.initialize(order.getSale().getPayment().getPoLogs());
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return order;
     }
 
     public void update(
-            Order order,
-            ReturnProduct returnProduct,
-            Sale sale,
             List<Product> products,
-            List<SaleItem> saleItems,
-            UserLog userLog
+            ReturnOrder returnOrder,
+            UserLog userLog,
+            Sale sale
     ) {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
-            session.merge(order);
-            // Update sale
-            session.merge(sale);
-            // Update products
-            for (Product product : products) {
-                session.merge(product);
-            }
-            // Update saleItems
-            for (SaleItem saleItem : saleItems) {
-                session.merge(saleItem);
-            }
-            // Save returnProduct
-            session.merge(returnProduct);
-            // Commit transaction
 
+            session.merge(sale);
+            products.forEach(session::merge);
+            session.persist(returnOrder);
             session.persist(userLog);
+
             transaction.commit();
         } catch (Exception e) {
             if (transaction != null && transaction.isActive()) {
@@ -97,50 +84,49 @@ public class OrderDAO {
         }
     }
 
-    public void updateOrderAmountDue(Order order, Sale sale, Payment payment){
+    public void updateOrderAmountDue(Order order, Sale sale) {
         Transaction transaction = null;
-        try (Session session = sessionFactory.openSession()){
+        try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
 
             session.merge(order);
             session.merge(sale);
-            session.persist(payment);
 
             transaction.commit();
-        }catch (Exception e){
-            if(transaction != null && transaction.isActive()){
+        } catch (Exception e) {
+            if (transaction != null && transaction.isActive()) {
                 transaction.rollback();
             }
-            throw new RuntimeException(e.getMessage());
+            throw e;
         }
     }
 
-    public List<Order> getAllValidOrdersByCode(String code){
+    public List<Order> getAllValidOrdersByCode(String code) {
         List<Order> orders = new ArrayList<>();
-        try (Session session = sessionFactory.openSession()){
-            String query = "SELECT o FROM Order o WHERE (o.code LIKE : code) OR (o.person.name LIKE : code) OR (STR(o.status) LIKE : code) OR (STR(o.sale.transactionMethod) LIKE : code)";
-            orders = session.createQuery(query, Order.class)
-                    .setParameter("code", "%" + code + "%")
-                    .getResultList();
-
-        }catch (Exception e){
-            e.printStackTrace();
-        }
+//        try (Session session = sessionFactory.openSession()){
+//            String query = "SELECT o FROM Order o WHERE (o.code LIKE : code) OR (o.person.name LIKE : code) OR (STR(o.status) LIKE : code) OR (STR(o.sale.transactionMethod) LIKE : code)";
+//            orders = session.createQuery(query, Order.class)
+//                    .setParameter("code", "%" + code + "%")
+//                    .getResultList();
+//
+//        }catch (Exception e){
+//            e.printStackTrace();
+//        }
         return orders;
     }
 
-    public List<Order> getAllValidOrdersByRange(LocalDate start, LocalDate end){
+    public List<Order> getAllValidOrdersByRange(LocalDate start, LocalDate end) {
         List<Order> orders = new ArrayList<>();
-        try (Session session = sessionFactory.openSession()){
-            String query = "SELECT o FROM Order o WHERE o.orderDate >= :start AND o.orderDate <= : end";
-            orders = session.createQuery(query, Order.class)
-                    .setParameter("start", start)
-                    .setParameter("end", end)
-                    .getResultList();
-
-        }catch (Exception e){
-            e.printStackTrace();
-        }
+//        try (Session session = sessionFactory.openSession()){
+//            String query = "SELECT o FROM Order o WHERE o.orderDate >= :start AND o.orderDate <= : end";
+//            orders = session.createQuery(query, Order.class)
+//                    .setParameter("start", start)
+//                    .setParameter("end", end)
+//                    .getResultList();
+//
+//        }catch (Exception e){
+//            e.printStackTrace();
+//        }
         return orders;
     }
 }

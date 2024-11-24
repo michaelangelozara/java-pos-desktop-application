@@ -11,6 +11,7 @@ import raven.toast.Notifications;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 
 /**
  * @author Raven
@@ -38,7 +39,7 @@ public class Application extends javax.swing.JFrame {
         app.mainForm.showForm(component);
     }
 
-    public static void login() {
+    public static void login() throws IOException {
         FlatAnimatedLafChange.showSnapshot();
         app.setContentPane(app.mainForm);
         app.mainForm.applyComponentOrientation(app.getComponentOrientation());
@@ -56,7 +57,7 @@ public class Application extends javax.swing.JFrame {
         FlatAnimatedLafChange.hideSnapshotWithAnimation();
     }
 
-    public static void setSelectedMenu(int index, int subIndex) {
+    public static void setSelectedMenu(int index, int subIndex) throws IOException {
         app.mainForm.setSelectedMenu(index, subIndex);
     }
 

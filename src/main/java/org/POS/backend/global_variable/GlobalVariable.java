@@ -107,6 +107,7 @@ public class GlobalVariable {
     public static String RETURN_PRODUCT_PREFIX = "REF-";
     public static String RETURN_PURCHASE_PREFIX = "RP-";
     public static String OPEN_CASH_PREFIX = "OPC-";
+    public static String PURCHASE_ITEM_PREFIX = "OPC-";
 
     public static String REFERENCE_PREFIX = "REF-";
 }

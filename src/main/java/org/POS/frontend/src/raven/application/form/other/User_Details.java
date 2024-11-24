@@ -1,7 +1,6 @@
 
 package org.POS.frontend.src.raven.application.form.other;
 
-import org.POS.backend.cash_transaction.CashTransactionService;
 import org.POS.backend.user.UserResponseDto;
 import org.POS.backend.user_log.UserLog;
 import org.POS.backend.user_log.UserLogDAO;
@@ -13,7 +12,6 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

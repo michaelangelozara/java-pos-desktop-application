@@ -31,7 +31,7 @@ public class PersonService {
         var person = this.personMapper.toPerson(dto);
 
         UserLog userLog = new UserLog();
-        userLog.setCode(person.getCode());
+        userLog.setCode(person.getPersonCode());
         userLog.setDate(LocalDate.now());
         userLog.setAction(person.getType().equals(PersonType.CLIENT) ? UserActionPrefixes.CLIENTS_ADD_ACTION_LOG_PREFIX : UserActionPrefixes.SUPPLIERS_ADD_ACTION_LOG_PREFIX);
         user.addUserLog(userLog);
@@ -53,7 +53,7 @@ public class PersonService {
         var updatedPerson = this.personMapper.toUpdatedPerson(person, dto);
 
         UserLog userLog = new UserLog();
-        userLog.setCode(updatedPerson.getCode());
+        userLog.setCode(updatedPerson.getPersonCode());
         userLog.setDate(LocalDate.now());
         userLog.setAction(person.getType().equals(PersonType.CLIENT) ? UserActionPrefixes.CLIENTS_EDIT_ACTION_LOG_PREFIX : UserActionPrefixes.SUPPLIERS_EDIT_ACTION_LOG_PREFIX);
         user.addUserLog(userLog);

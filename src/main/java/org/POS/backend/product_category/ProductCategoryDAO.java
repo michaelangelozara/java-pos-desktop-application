@@ -86,10 +86,11 @@ public class ProductCategoryDAO {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
-            productCategory = session.createQuery("SELECT c FROM ProductCategory c LEFT JOIN FETCH c.subcategories WHERE c.id =: categoryId AND c.isDeleted = FALSE", ProductCategory.class)
+            productCategory = session.createQuery("SELECT c FROM ProductCategory c WHERE c.id =: categoryId AND c.isDeleted = FALSE", ProductCategory.class)
                     .setParameter("categoryId", categoryId)
                     .getSingleResult();
 
+            Hibernate.initialize(productCategory.getProducts());
             session.getTransaction().commit();
         } catch (Exception e) {
             System.out.println("Error getting category: " + e.getMessage());

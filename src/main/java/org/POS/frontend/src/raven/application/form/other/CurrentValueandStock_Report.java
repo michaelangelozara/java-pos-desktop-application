@@ -532,7 +532,7 @@ public class CurrentValueandStock_Report extends javax.swing.JPanel {
             int stockInHand = (stockIn - stockOut) < 0 ? 0 : (stockIn - stockOut);
             model.addRow(new Object[]{
                     i,
-                    product.getCode(),
+                    product.getProductCode(),
                     product.getDate(),
                     product.getName(),
                     stockIn,
@@ -558,21 +558,21 @@ public class CurrentValueandStock_Report extends javax.swing.JPanel {
 
         int i = 1;
         BigDecimal totalValue = BigDecimal.ZERO;
-        for (var product : products) {
-            totalValue = totalValue.add(BigDecimal.valueOf(product.getStock()).multiply(product.getSellingPrice()));
-            model.addRow(new Object[]{
-                    i,
-                    "No Image yet",
-                    product.getCode(),
-                    product.getName(),
-                    product.getModel(),
-                    product.getStock(),
-                    product.getPurchasePrice(),
-                    product.getSellingPrice(),
-                    product.getStatus()
-            });
-            i++;
-        }
+//        for (var product : products) {
+//            totalValue = totalValue.add(BigDecimal.valueOf(product.getStock()).multiply(product.getSellingPrice()));
+//            model.addRow(new Object[]{
+//                    i,
+//                    "No Image yet",
+//                    product.getProductCode(),
+//                    product.getName(),
+//                    product.getModel(),
+//                    product.getStock(),
+//                    product.getPurchasePrice(),
+//                    product.getSellingPrice(),
+//                    product.getStatus()
+//            });
+//            i++;
+//        }
         jLabel32.setText(String.valueOf(totalValue));
 
     }
@@ -643,7 +643,7 @@ public class CurrentValueandStock_Report extends javax.swing.JPanel {
             int stockInHand = (stockIn - stockOut) < 0 ? 0 : (stockIn - stockOut);
             model.addRow(new Object[]{
                     i,
-                    product.getCode(),
+                    product.getProductCode(),
                     product.getDate(),
                     product.getName(),
                     stockIn,
@@ -668,21 +668,21 @@ public class CurrentValueandStock_Report extends javax.swing.JPanel {
 
         int i = 1;
         BigDecimal totalValue = BigDecimal.ZERO;
-        for (var product : products) {
-            totalValue = totalValue.add(BigDecimal.valueOf(product.getStock()).multiply(product.getSellingPrice()));
-            model.addRow(new Object[]{
-                    i,
-                    "No Image yet",
-                    product.getCode(),
-                    product.getName(),
-                    product.getModel(),
-                    product.getStock(),
-                    product.getPurchasePrice(),
-                    product.getSellingPrice(),
-                    product.getStatus()
-            });
-            i++;
-        }
+//        for (var product : products) {
+//            totalValue = totalValue.add(BigDecimal.valueOf(product.getStock()).multiply(product.getSellingPrice()));
+//            model.addRow(new Object[]{
+//                    i,
+//                    "No Image yet",
+//                    product.getProductCode(),
+//                    product.getName(),
+//                    product.getModel(),
+//                    product.getStock(),
+//                    product.getPurchasePrice(),
+//                    product.getSellingPrice(),
+//                    product.getStatus()
+//            });
+//            i++;
+//        }
         jLabel32.setText(String.valueOf(totalValue));
     }
 

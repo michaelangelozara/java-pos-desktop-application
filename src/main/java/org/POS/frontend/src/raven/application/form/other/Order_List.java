@@ -1,11 +1,16 @@
 
 package org.POS.frontend.src.raven.application.form.other;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.POS.backend.order.Order;
 import org.POS.backend.order.OrderService;
 import org.POS.backend.order.OrderStatus;
 import org.POS.backend.order.UpdateOrderRequestDto;
-import org.POS.backend.sale.SaleTransactionMethod;
+import org.POS.backend.payment.TransactionType;
+import org.POS.backend.return_product.AddReturnItemRequestDto;
+import org.POS.backend.sale_product.SaleProduct;
 import org.POS.frontend.src.raven.application.Application;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
@@ -20,7 +25,6 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
-import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -39,19 +43,19 @@ public class Order_List extends javax.swing.JPanel {
     public Order_List() {
         initComponents();
         TableActionEvent event = new TableActionEvent() {
-
-            List<Integer> returnedProductIds;
-
             JTextField netTotalField;
+
+            List<RemovedItem> removedItems;
+            Set<SaleProduct> saleProducts;
 
             @Override
             public void onEdit(int row) {
-                returnedProductIds = new ArrayList<>();
-
                 DefaultTableModel tempModel = (DefaultTableModel) table.getModel();
                 int orderId = (Integer) tempModel.getValueAt(row, 1);
-
                 OrderService orderService = new OrderService();
+
+                removedItems = new ArrayList<>();
+                saleProducts = new HashSet<>();
 
                 JPanel panel = new JPanel(new GridBagLayout());
                 GridBagConstraints gbc = new GridBagConstraints();
@@ -115,7 +119,7 @@ public class Order_List extends javax.swing.JPanel {
                 gbc.gridx = 0;
                 gbc.gridwidth = 6;
 
-                String[] columnNames = {"#", "ID", "Code", "Product Name", "Invoice Qty", "Price", "Tax", "Subtotal", "Action"};
+                String[] columnNames = {"#", "ID", "Code", "Product Name", "Product Qty", "Price", "Tax", "Subtotal", "Action"};
                 Object[][] data = {
                         {1, "AP-000001", "Plywood 12mm", 10, 300, "$3000", 150, "$3150", "Remove"},
                         {2, "AP-000002", "PVC Pipes 3 inch", 20, 50, "$1000", 50, "$1050", "Remove"},
@@ -298,27 +302,14 @@ public class Order_List extends javax.swing.JPanel {
                     protected void done() {
                         try {
                             var order = get();
-
+                            saleProducts = order.getSale().getSaleProducts();
                             SwingUtilities.invokeLater(() -> {
                                 clientField.setText(order.getSale().getPerson().getName());
 
-
-                                if (order.getSale().getTransactionMethod().equals(SaleTransactionMethod.ONLINE_PAYMENT)) {
-                                    referenceField.setText(order.getSale().getReference());
-                                    poReferenceField.setText("");
-                                } else if (order.getSale().getTransactionMethod().equals(SaleTransactionMethod.PO_PAYMENT)) {
-                                    poReferenceField.setText(order.getSale().getReference());
-                                    payButton.setEnabled(true);
-                                    referenceField.setText("");
-                                }
-
-                                discountField.setText(String.valueOf(order.getSale().getDiscount()));
-
-                                transportCostField.setText(String.valueOf(order.getSale().getTransportCost()));
+                                discountField.setText(String.valueOf(order.getSale().getPayment().getDiscount()));
 
                                 totalTaxField.setText(String.valueOf(order.getSale().getTotalTax()));
-
-                                deliveryPlaceField.setText(order.getSale().getDeliveryPlace());
+                                deliveryPlaceField.setText(order.getSale().getShippingAddress() != null ? order.getSale().getShippingAddress().getShippingAddress() + " " + order.getSale().getShippingAddress().getBarangay() + " " + order.getSale().getShippingAddress().getCity() : "");
 
                                 statusCombo.removeAllItems();
                                 statusCombo.addItem("Completed");
@@ -328,28 +319,35 @@ public class Order_List extends javax.swing.JPanel {
 
                                 netTotalField.setText(String.valueOf(order.getSale().getNetTotal()));
 
-                                noteArea.setText(order.getSale().getNote());
+                                if(order.getSale().getPayment().getTransactionType().equals(TransactionType.PO)){
+                                    poReferenceField.setText(order.getSale().getPayment().getReferenceNumber());
+                                    referenceField.setText("");
+                                }else{
+                                    poReferenceField.setText("");
+                                    referenceField.setText(order.getSale().getPayment().getReferenceNumber());
+                                }
 
                                 date.setText(String.valueOf(order.getSale().getDate()));
 
-                                if (order.getStatus().equals(OrderStatus.COMPLETED)) {
+                                if (order.getStatus().equals(OrderStatus.COMPLETED) || order.getStatus().equals(OrderStatus.RETURNED)) {
                                     payButton.setEnabled(false);
+                                } else {
+                                    payButton.setEnabled(true);
                                 }
                             });
 
-
                             int i = 1;
-                            for (var saleItem : order.getSale().getSaleItems()) {
-                                if (saleItem.isReturned()) continue;
+                            for (var saleItem : order.getSale().getSaleProducts()) {
                                 model.addRow(new Object[]{
                                         i,
                                         saleItem.getId(),
-                                        saleItem.getProduct().getCode(),
+                                        saleItem.getProduct().getProductCode(),
                                         saleItem.getProduct().getName(),
                                         saleItem.getQuantity(),
                                         saleItem.getPrice(),
                                         saleItem.getPrice().multiply(BigDecimal.valueOf(0.12)).setScale(2, RoundingMode.HALF_UP),
-                                        saleItem.getSubtotal()
+                                        saleItem.getSubtotal(),
+                                        "Return"
                                 });
                                 i++;
                             }
@@ -363,6 +361,7 @@ public class Order_List extends javax.swing.JPanel {
                 worker.execute();
 
                 JTextField amountField = new JTextField(20);
+                amountField.setText("0");
                 // Add an ActionListener to handle Pay button click
                 payButton.addActionListener(e -> {
                     // Logic to handle payment
@@ -372,16 +371,10 @@ public class Order_List extends javax.swing.JPanel {
                     gbc2.fill = GridBagConstraints.HORIZONTAL;
                     gbc2.anchor = GridBagConstraints.WEST;
 
-                    // Create input fields
-                    // Increased field width
-                    amountField.setText("0");
-
                     JTextField dateField = new JTextField(15);
                     JTextField balanceField = new JTextField(15);
-
-                    // Make balanceField non-editable
                     try {
-                        balanceField.setText(String.valueOf(worker.get().getSale().getAmountDue())); // Example initial value
+                        balanceField.setText(String.valueOf(worker.get().getSale().getPayment().getAmountDue()));
                     } catch (InterruptedException ex) {
                         throw new RuntimeException(ex);
                     } catch (ExecutionException ex) {
@@ -426,27 +419,33 @@ public class Order_List extends javax.swing.JPanel {
 
                     // Show the dialog
                     int result = JOptionPane.showConfirmDialog(null, paymentPanel, "Pay Debt", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-                    if (result == JOptionPane.OK_OPTION) {
+                    if (result == JOptionPane.OK_OPTION && !amountField.getText().equals("0")) {
                         // Logic to handle payment confirmation
                         try {
                             var order = worker.get();
                             BigDecimal pay = new BigDecimal(amountField.getText());
                             SwingWorker<Boolean, Void> tempWorker = new SwingWorker<>() {
                                 @Override
-                                protected Boolean doInBackground() throws Exception {
-                                    payButton.setText("Loading...");
-                                    payButton.setEnabled(false);
-                                    orderService.updateSaleAmountDue(order, pay);
-                                    return true;
+                                protected Boolean doInBackground() {
+                                    try {
+                                        payButton.setText("Loading...");
+                                        payButton.setEnabled(false);
+                                        orderService.updateSaleAmountDue(order, pay);
+                                        return true;
+                                    } catch (Exception e) {
+                                        JOptionPane.showMessageDialog(null, "Updating Error : " + e.getMessage());
+                                    }
+                                    return false;
                                 }
 
                                 @Override
                                 protected void done() {
                                     try {
+                                        amountField.setText("0");
                                         payButton.setEnabled(true);
                                         payButton.setText("Pay");
                                         statusCombo.setSelectedItem(order.getStatus().equals(OrderStatus.COMPLETED) ? "Completed" : order.getStatus().equals(OrderStatus.PENDING) ? "Pending" : "Payment Refunded");
-                                        if (order.getStatus().equals(OrderStatus.COMPLETED)) {
+                                        if (order.getStatus().equals(OrderStatus.COMPLETED) || order.getStatus().equals(OrderStatus.RETURNED)) {
                                             payButton.setEnabled(false);
                                         }
                                         boolean result = get();
@@ -466,6 +465,8 @@ public class Order_List extends javax.swing.JPanel {
                         } catch (ExecutionException ex) {
                             throw new RuntimeException(ex);
                         }
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Please Enter a Valid Amount");
                     }
                 });
 
@@ -475,31 +476,46 @@ public class Order_List extends javax.swing.JPanel {
                 int result = JOptionPane.showConfirmDialog(null, panel, "Edit Orders", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
                 if (result == JOptionPane.OK_OPTION) {
-                    String reason = JOptionPane.showInputDialog(null, "Reason :");
-
-                    // Handle user inputs
-                    String deliveryPlace = deliveryPlaceField.getText();
-                    String note = noteArea.getText();
-                    BigDecimal amount = new BigDecimal(amountField.getText());
-                    UpdateOrderRequestDto dto = new UpdateOrderRequestDto(
-                            orderId,
-                            returnedProductIds,
-                            note,
-                            deliveryPlace,
-                            reason,
-                            amount
-                    );
-
                     try {
-                        orderService.update(dto);
-                        JOptionPane.showMessageDialog(null, "Order updated");
+                        String reason = JOptionPane.showInputDialog(null, "Reason :");
+                        // Handle user inputs
+                        String note = noteArea.getText();
+                        BigDecimal amount = new BigDecimal(amountField.getText());
+
+                        List<AddReturnItemRequestDto> addReturnItemRequestDtoList = new ArrayList<>();
+                        for (var returnedItem : removedItems) {
+                            AddReturnItemRequestDto dto = new AddReturnItemRequestDto(
+                                    returnedItem.getId(),
+                                    returnedItem.getRemovedQuantity()
+                            );
+                            addReturnItemRequestDtoList.add(dto);
+                        }
+
+                        UpdateOrderRequestDto dto = new UpdateOrderRequestDto(
+                                orderId,
+                                addReturnItemRequestDtoList,
+                                note,
+                                reason
+                        );
+
+                        SwingWorker<Void, Void> worker1 = new SwingWorker<>() {
+                            @Override
+                            protected Void doInBackground() {
+                                orderService.update(dto);
+                                return null;
+                            }
+
+                            @Override
+                            protected void done() {
+                                JOptionPane.showMessageDialog(null, "Product Returned");
+                                loadOrders();
+                            }
+                        };
+                        worker1.execute();
                     } catch (Exception e) {
                         e.printStackTrace();
-                        JOptionPane.showMessageDialog(null, e.getMessage());
                     }
-
                 }
-                loadOrders();
             }
 
             private void computeNetTotal(BigDecimal subtotal) {
@@ -507,6 +523,14 @@ public class Order_List extends javax.swing.JPanel {
                 SwingUtilities.invokeLater(() -> {
                     netTotalField.setText(String.valueOf(currentNetTotal.subtract(subtotal)));
                 });
+            }
+
+            @Getter
+            @Setter
+            @NoArgsConstructor
+            class RemovedItem {
+                private int id;
+                private int removedQuantity;
             }
 
             // Custom editor for Quantity column with plus/minus buttons
@@ -587,13 +611,26 @@ public class Order_List extends javax.swing.JPanel {
                     if (isPushed) {
                         // Remove the row when the button is clicked
                         int row = table.getSelectedRow();
-                        DefaultTableModel model = (DefaultTableModel) table.getModel();
-                        int removedProductId = (Integer) model.getValueAt(row, 1);
-                        BigDecimal removeSubtotal = (BigDecimal) model.getValueAt(row, 8);
-                        computeNetTotal(removeSubtotal);
-                        returnedProductIds.add(removedProductId);
                         if (row >= 0) {
-                            SwingUtilities.invokeLater(() -> tableModel.removeRow(row));
+                            SwingUtilities.invokeLater(() -> {
+                                DefaultTableModel model = (DefaultTableModel) table.getModel();
+                                int removedProductId = (Integer) model.getValueAt(row, 1);
+                                int updatedQuantity = Integer.parseInt(model.getValueAt(row, 4).toString());
+                                BigDecimal removeSubtotal = (BigDecimal) model.getValueAt(row, 7);
+                                computeNetTotal(removeSubtotal);
+
+                                RemovedItem removedItem = new RemovedItem();
+                                removedItem.setId(removedProductId);
+                                for (var saleProduct : saleProducts) {
+                                    if (saleProduct.getId().equals(removedProductId)) {
+                                        removedItem.setRemovedQuantity(saleProduct.getQuantity() - updatedQuantity);
+                                    }
+                                }
+                                JOptionPane.showMessageDialog(null, removedItem.getRemovedQuantity() + " Products Returned");
+                                removedItems.add(removedItem);
+                            });
+
+//                            SwingUtilities.invokeLater(() -> tableModel.removeRow(row));
                         }
                     }
                     isPushed = false;
@@ -673,7 +710,7 @@ public class Order_List extends javax.swing.JPanel {
         }
 
         OrderService orderService = new OrderService();
-        SwingWorker<List<Order>, Void> worker = new SwingWorker<List<Order>, Void>() {
+        SwingWorker<List<Order>, Void> worker = new SwingWorker<>() {
             @Override
             protected List<Order> doInBackground() throws Exception {
                 var orders = orderService.getAllValidOrderByClientNameOrOrderIdOrTransactionMethodOrStatus(name);
@@ -683,18 +720,17 @@ public class Order_List extends javax.swing.JPanel {
             @Override
             protected void done() {
                 try {
-
                     var orders = get();
                     for (int i = 0; i < orders.size(); i++) {
                         model.addRow(new Object[]{
                                 i + 1,
                                 orders.get(i).getId(),
-                                orders.get(i).getCode(),
-                                orders.get(i).getOrderDate(),
+                                orders.get(i).getOrderNumber(),
+                                orders.get(i).getSale().getDate(),
                                 orders.get(i).getSale().getPerson().getName(),
-                                orders.get(i).getSale().getTransactionMethod().name(),
+                                orders.get(i).getSale().getPayment().getTransactionType().name(),
                                 orders.get(i).getSale().getNetTotal(),
-                                orders.get(i).getSale().getAmountDue(),
+                                orders.get(i).getSale().getPayment().getAmountDue(),
                                 orders.get(i).getStatus().name()
                         });
                     }
@@ -728,12 +764,12 @@ public class Order_List extends javax.swing.JPanel {
                         model.addRow(new Object[]{
                                 i + 1,
                                 orders.get(i).getId(),
-                                orders.get(i).getCode(),
-                                orders.get(i).getOrderDate(),
+                                orders.get(i).getOrderNumber(),
+                                orders.get(i).getSale().getDate(),
                                 orders.get(i).getSale().getPerson().getName(),
-                                orders.get(i).getSale().getTransactionMethod().name(),
+                                orders.get(i).getSale().getPayment().getTransactionType().name(),
                                 orders.get(i).getSale().getNetTotal(),
-                                orders.get(i).getSale().getAmountDue(),
+                                orders.get(i).getSale().getPayment().getAmountDue(),
                                 orders.get(i).getStatus().name()
                         });
                     }
@@ -991,12 +1027,12 @@ public class Order_List extends javax.swing.JPanel {
                         model.addRow(new Object[]{
                                 i + 1,
                                 orders.get(i).getId(),
-                                orders.get(i).getCode(),
-                                orders.get(i).getOrderDate(),
+                                orders.get(i).getOrderNumber(),
+                                orders.get(i).getSale().getDate(),
                                 orders.get(i).getSale().getPerson().getName(),
-                                orders.get(i).getSale().getTransactionMethod().name(),
+                                orders.get(i).getSale().getPayment().getTransactionType().name(),
                                 orders.get(i).getSale().getNetTotal(),
-                                orders.get(i).getSale().getAmountDue(),
+                                orders.get(i).getSale().getPayment().getAmountDue(),
                                 orders.get(i).getStatus().name()
                         });
                     }

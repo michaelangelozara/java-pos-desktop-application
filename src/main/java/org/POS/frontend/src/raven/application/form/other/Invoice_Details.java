@@ -38,16 +38,16 @@ public class Invoice_Details extends javax.swing.JPanel {
                 try {
                     var invoice = get();
                     fetchedInvoice = invoice;
-                    model.addRow(new Object[]{
-                            invoice.getCode(),
-                            invoice.getDate(),
-                            invoice.getSale().getReference(),
-                            invoice.getSale().getTransactionMethod().name(),
-                            invoice.getSale().getDeliveryPlace(),
-                            invoice.getSale().getNote(),
-                            invoice.getStatus().name(),
-                            invoice.getSale().getUser().getName()
-                    });
+//                    model.addRow(new Object[]{
+//                            invoice.getInvoiceNumber(),
+//                            invoice.getDate(),
+//                            invoice.getSale().getReference(),
+//                            invoice.getSale().getTransactionMethod().name(),
+//                            invoice.getSale().getDeliveryPlace(),
+//                            invoice.getSale().getNote(),
+//                            invoice.getStatus().name(),
+//                            invoice.getSale().getUser().getName()
+//                    });
                     loadPayments();
                     loadProducts();
                 } catch (InterruptedException e) {
@@ -64,45 +64,45 @@ public class Invoice_Details extends javax.swing.JPanel {
         DefaultTableModel model = (DefaultTableModel) table5.getModel();
         model.setRowCount(0);
 
-        var payments = fetchedInvoice.getPayments();
-        for (int i = 0; i < payments.size(); i++) {
-            model.addRow(new Object[]{
-                    i + 1,
-                    payments.get(i).getDate(),
-                    payments.get(i).getPaidAmount(),
-                    payments.get(i).getAmountDue(),
-                    payments.get(i).getNetTotal()
-            });
-        }
+//        var payments = fetchedInvoice.getPayments();
+//        for (int i = 0; i < payments.size(); i++) {
+//            model.addRow(new Object[]{
+//                    i + 1,
+//                    payments.get(i).getDate(),
+//                    payments.get(i).getPaidAmount(),
+//                    payments.get(i).getAmountDue(),
+//                    payments.get(i).getNetTotal()
+//            });
+//        }
     }
 
     private void loadProducts() {
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         model.setRowCount(0);
 
-        var saleItems = fetchedInvoice.getSale().getSaleItems();
+        var saleItems = fetchedInvoice.getSale().getSaleProducts();
         int i = 1;
 
         BigDecimal subtotal = BigDecimal.ZERO;
-        BigDecimal transportCost = fetchedInvoice.getSale().getTransportCost();
+//        BigDecimal transportCost = fetchedInvoice.getSale().getTransportCost();
         BigDecimal tax = BigDecimal.ZERO;
         for (var saleItem : saleItems) {
             model.addRow(new Object[]{
                     i,
-                    saleItem.getProduct().getCode(),
+                    saleItem.getProduct().getProductCode(),
                     saleItem.getProduct().getName(),
                     saleItem.getQuantity(),
                     saleItem.getPrice(),
                     saleItem.getPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP),
-                    fetchedInvoice.getSale().getTransportCost(),
+//                    fetchedInvoice.getSale().getTransportCost(),
                     saleItem.getPrice().multiply(BigDecimal.valueOf(saleItem.getQuantity()))
             });
             subtotal = subtotal.add(saleItem.getPrice().multiply(BigDecimal.valueOf(saleItem.getQuantity())));
             tax = tax.add(saleItem.getPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP));
             i++;
         }
-        BigDecimal total = subtotal.add(transportCost).add(tax);
-        loadSummaries(subtotal, transportCost, tax, total);
+//        BigDecimal total = subtotal.add(transportCost).add(tax);
+//        loadSummaries(subtotal, transportCost, tax, total);
     }
 
     private void loadSummaries(
@@ -115,7 +115,7 @@ public class Invoice_Details extends javax.swing.JPanel {
         jLabel40.setText(String.valueOf(transportCost));
         jLabel42.setText(String.valueOf(tax));
         jLabel43.setText(String.valueOf(total));
-        jLabel41.setText(String.valueOf(fetchedInvoice.getSale().getDiscount()));
+//        jLabel41.setText(String.valueOf(fetchedInvoice.getSale().getDiscount()));
     }
 
     @SuppressWarnings("unchecked")

@@ -46,7 +46,6 @@ public class InventoryAdjustment_Details extends javax.swing.JPanel {
                 inventoryAdjustment.code(),
                 inventoryAdjustment.reason(),
                 inventoryAdjustment.date(),
-                inventoryAdjustment.note(),
                 inventoryAdjustment.user().getName()
         });
     }
@@ -57,11 +56,10 @@ public class InventoryAdjustment_Details extends javax.swing.JPanel {
 
         var product = inventoryAdjustment.product();
         model.addRow(new Object[]{
-                product.getCode(),
+                product.getProductCode(),
                 product.getName(),
                 product.getPurchasePrice(),
-                inventoryAdjustment.quantity(),
-                inventoryAdjustment.type().name()
+                inventoryAdjustment.quantity()
         });
     }
 
@@ -87,7 +85,6 @@ public class InventoryAdjustment_Details extends javax.swing.JPanel {
                                 inventoryAdjustments.get(i).date(),
                                 inventoryAdjustments.get(i).product().getName(),
                                 inventoryAdjustments.get(i).quantity(),
-                                inventoryAdjustments.get(i).type().name(),
                                 inventoryAdjustments.get(i).user().getName()
                         });
                     }
@@ -142,7 +139,6 @@ public class InventoryAdjustment_Details extends javax.swing.JPanel {
                                 inventoryAdjustments.get(i).date(),
                                 inventoryAdjustments.get(i).product().getName(),
                                 inventoryAdjustments.get(i).quantity(),
-                                inventoryAdjustments.get(i).type().name(),
                                 inventoryAdjustments.get(i).user().getName()
                         });
                     }

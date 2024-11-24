@@ -1,31 +1,34 @@
 package org.POS.backend.sale;
 
-import org.POS.backend.cash_transaction.CashTransaction;
-import org.POS.backend.cash_transaction.TransactionPaymentMethod;
+import org.POS.backend.additional_fee.AdditionalFee;
 import org.POS.backend.code_generator.CodeGeneratorService;
+import org.POS.backend.exception.CustomException;
 import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.global_variable.GlobalVariable;
 import org.POS.backend.global_variable.UserActionPrefixes;
 import org.POS.backend.invoice.Invoice;
-import org.POS.backend.invoice.InvoiceStatus;
 import org.POS.backend.order.Order;
 import org.POS.backend.order.OrderStatus;
+import org.POS.backend.payment.AddPaymentRequestDto;
+import org.POS.backend.payment.PaymentMapper;
+import org.POS.backend.payment.TransactionType;
 import org.POS.backend.person.PersonDAO;
-import org.POS.backend.product.Product;
 import org.POS.backend.product.ProductDAO;
-import org.POS.backend.sale_item.AddSaleItemRequestDto;
-import org.POS.backend.sale_item.SaleItem;
-import org.POS.backend.sale_item.SaleItemMapper;
+import org.POS.backend.product.ProductType;
+import org.POS.backend.sale_product.AddSaleProductRequestDto;
+import org.POS.backend.sale_product.SaleProduct;
+import org.POS.backend.sale_product.SaleProductMapper;
+import org.POS.backend.shipping.AddShippingRequestDto;
+import org.POS.backend.shipping.ShippingAddressMapper;
 import org.POS.backend.stock.Stock;
 import org.POS.backend.stock.StockType;
 import org.POS.backend.user.UserDAO;
 import org.POS.backend.user_log.UserLog;
+import org.POS.backend.user_log.UserLogMapper;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,173 +36,208 @@ import java.util.Set;
 public class SaleService {
 
     private CodeGeneratorService codeGeneratorService;
-
     private SaleDAO saleDAO;
-
     private SaleMapper saleMapper;
-
     private PersonDAO personDAO;
-
     private UserDAO userDAO;
-
-    private SaleItemMapper saleItemMapper;
-
+    private SaleProductMapper saleProductMapper;
     private ProductDAO productDAO;
+    private ShippingAddressMapper shippingAddressMapper;
+    private PaymentMapper paymentMapper;
+    private UserLogMapper userLogMapper;
 
     public SaleService() {
         this.saleDAO = new SaleDAO();
         this.saleMapper = new SaleMapper();
         this.personDAO = new PersonDAO();
         this.userDAO = new UserDAO();
-        this.saleItemMapper = new SaleItemMapper();
+        this.saleProductMapper = new SaleProductMapper();
         this.productDAO = new ProductDAO();
         this.codeGeneratorService = new CodeGeneratorService();
+        this.shippingAddressMapper = new ShippingAddressMapper();
+        this.paymentMapper = new PaymentMapper();
+        this.userLogMapper = new UserLogMapper();
     }
 
-    public int add(AddSaleRequestDto dto, Set<AddSaleItemRequestDto> saleItemDtos) {
-        var customer = this.personDAO.getValidPersonById(dto.customerId());
-        var user = this.userDAO.getUserById(CurrentUser.id);
+    public void add(
+            AddSaleRequestDto dto,
+            List<AddSaleProductRequestDto> saleProductRequestDtoList,
+            AddShippingRequestDto shippingRequestDto,
+            AddPaymentRequestDto paymentRequestDto,
+            List<AdditionalFee> additionalFees
+    ) {
+        try {
+            var customer = this.personDAO.getValidPersonById(dto.customerId());
+            var user = this.userDAO.getUserById(CurrentUser.id);
 
-        // get all product ids
-        Set<Integer> productIds = new HashSet<>();
-        for (var saleItemDto : saleItemDtos) {
-            productIds.add(saleItemDto.productId());
-        }
+            if (user == null)
+                throw new RuntimeException("Invalid Cashier");
 
-        if (customer != null && user != null) {
-            var sale = this.saleMapper.toSale(dto);
-            sale.setReceiptNumber(this.codeGeneratorService.generateProductCode(GlobalVariable.SALE_PREFIX));
-            sale.setVatSales(sale.getNetTotal().multiply(BigDecimal.valueOf(0.12)).setScale(2, RoundingMode.HALF_UP));
-            customer.addSale(sale);
-            user.addSale(sale);
+            if (customer == null)
+                throw new RuntimeException("Invalid Customer");
 
+            Sale sale = new Sale();
+
+            // get all product id
+            Set<Integer> productIds = new HashSet<>();
+            for (var saleProductDto : saleProductRequestDtoList) {
+                productIds.add(saleProductDto.productId());
+            }
+
+            // fetch all the added product
             var products = this.productDAO.getAllValidProductsByProductIds(productIds);
-            List<Product> updatedProducts = new ArrayList<>();
-            List<SaleItem> saleItems = new ArrayList<>();
-            List<Stock> stocks = new ArrayList<>();
+            BigDecimal netTotal = BigDecimal.ZERO;
             for (var product : products) {
-                for (var saleItemDto : saleItemDtos) {
-                    if (saleItemDto.productId() == product.getId()) {
-                        var saleItem = this.saleItemMapper.toSaleItem(saleItemDto);
-                        product.addSaleItem(saleItem);
-                        sale.addSaleItem(saleItem);
+                for (var saleProductDto : saleProductRequestDtoList) {
+                    if (product.getId().equals(saleProductDto.productId())) {
+                        if(product.getProductType().equals(ProductType.VARIABLE)){
+                            for(var attribute : product.getProductAttributes()){
+                                for(var variation : attribute.getProductVariations()){
+                                    if(variation.getId().equals(saleProductDto.variationId())){
+                                        SaleProduct saleProduct = this.saleProductMapper.toSaleItem(saleProductDto, product);
+                                        saleProduct.setPrice(variation.getSrp());
+                                        saleProduct.setSubtotal(variation.getSrp().multiply(BigDecimal.valueOf(saleProduct.getQuantity())));
 
-                        product.setStock(product.getStock() - saleItem.getQuantity());
+                                        // add the sale product to the variation
+                                        variation.addSaleProduct(saleProduct);
 
-                        Stock stock = new Stock();
-                        stock.setDate(LocalDate.now());
-                        stock.setStockInOrOut(saleItem.getQuantity());
-                        stock.setPrice(saleItem.getPrice());
-                        stock.setType(StockType.OUT);
-                        stock.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.STOCK_IN_PREFIX));
+                                        variation.setQuantity(variation.getQuantity() - saleProductDto.quantity());
 
-                        customer.addStock(stock);
-                        user.addStock(stock);
-                        product.addStock(stock);
+                                        saleProduct.setProduct(product);
+                                        sale.addSaleProduct(saleProduct);
 
-                        saleItems.add(saleItem);
-                        updatedProducts.add(product);
-                        stocks.add(stock);
+                                        Stock stock = new Stock();
+                                        stock.setUser(user);
+                                        stock.setStockInOrOut(saleProduct.getQuantity());
+                                        stock.setPrice(saleProduct.getSubtotal());
+                                        stock.setDate(LocalDate.now());
+                                        stock.setType(StockType.OUT);
+                                        stock.setCode(product.getProductCode());
+                                        product.addStock(stock);
+
+                                        netTotal = netTotal.add(variation.getSrp().multiply(BigDecimal.valueOf(saleProductDto.quantity())));
+                                        break;
+                                    }
+                                }
+
+                            }
+                        }else{
+                            SaleProduct saleProduct = this.saleProductMapper.toSaleItem(saleProductDto, product);
+                            product.setStock(product.getStock() - saleProductDto.quantity());
+                            saleProduct.setProduct(product);
+                            sale.addSaleProduct(saleProduct);
+
+                            Stock stock = new Stock();
+                            stock.setUser(user);
+                            stock.setStockInOrOut(saleProduct.getQuantity());
+                            stock.setPrice(saleProduct.getSubtotal());
+                            stock.setDate(LocalDate.now());
+                            stock.setType(StockType.OUT);
+                            stock.setCode(product.getProductCode());
+                            product.addStock(stock);
+
+                            netTotal = netTotal.add(product.getSellingPrice().multiply(BigDecimal.valueOf(saleProductDto.quantity())));
+                        }
                     }
+
                 }
             }
 
-            String orderInvoiceCode = this.codeGeneratorService.generateProductCode();
+            BigDecimal totalAdditionalFees = BigDecimal.ZERO;
+            for (var additionalFee : additionalFees) {
+                AdditionalFee tempAdditional = new AdditionalFee();
+                tempAdditional.setTitle(additionalFee.getTitle());
+                tempAdditional.setAmount(additionalFee.getAmount());
+                totalAdditionalFees = totalAdditionalFees.add(additionalFee.getAmount());
+                sale.addAdditionalFee(tempAdditional);
+            }
+
+            if (!(shippingRequestDto.name() == null)
+                    && !(shippingRequestDto.shippingAddress() == null)
+                    && !(shippingRequestDto.phoneNumber() == null)) {
+                // create shipping instance
+                var shippingAddress = this.shippingAddressMapper.toShippingAddress(shippingRequestDto);
+                shippingAddress.setSale(sale);
+                sale.setShippingAddress(shippingAddress);
+            }
+
+            UserLog userLog = this.userLogMapper.toUserLog(UserActionPrefixes.POS_TRANSACTION_ACTION_LOG_PREFIX, sale.getSaleNumber());
+            user.addUserLog(userLog);
+
+            String codeForOrderAndInvoice = this.codeGeneratorService.generateProductCode();
 
             Order order = new Order();
             order.setSale(sale);
-            order.setOrderDate(LocalDate.now());
-            order.setCode(GlobalVariable.ORDER_PREFIX + orderInvoiceCode);
-            customer.addOrder(order);
+            order.setOrderNumber(GlobalVariable.ORDER_PREFIX + codeForOrderAndInvoice);
 
             Invoice invoice = new Invoice();
             invoice.setSale(sale);
-            invoice.setCode(GlobalVariable.INVOICE_PREFIX + orderInvoiceCode);
-            invoice.setDate(LocalDate.now());
-            customer.addInvoice(invoice);
+            invoice.setInvoiceNumber(GlobalVariable.INVOICE_PREFIX + codeForOrderAndInvoice);
 
-            UserLog userLog = new UserLog();
-            userLog.setCode(sale.getCode());
-            userLog.setDate(LocalDate.now());
-            userLog.setAction(UserActionPrefixes.POS_TRANSACTION_ACTION_LOG_PREFIX);
-            user.addUserLog(userLog);
+            // sale
+            sale.setSaleNumber(this.codeGeneratorService.generateProductCode(GlobalVariable.SALE_PREFIX));
+            sale.setNetTotal(netTotal.add(totalAdditionalFees));
+            sale.setTotalTax(sale.getNetTotal().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP));
+            sale.setDate(LocalDate.now());
+            sale.setVatSale(sale.getNetTotal().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP));
 
-            if (dto.paymentMethod().equals(TransactionPaymentMethod.CASH_PAYMENT)) {
-                // cash transaction
-                CashTransaction cashTransaction = new CashTransaction();
-                cashTransaction.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.CASH_TRANSACTION_PREFIX));
-                cashTransaction.setReference(sale.getNote());
-                cashTransaction.setCashIn(sale.getNetTotal());
-                cashTransaction.setCashOut(sale.getAmount().subtract(sale.getNetTotal()));
-                cashTransaction.setTransactionPaymentMethod(dto.paymentMethod());
-                cashTransaction.setDateTime(LocalDateTime.now());
-
-                order.setStatus(OrderStatus.COMPLETED);
-                invoice.setStatus(InvoiceStatus.COMPLETED);
-
-                user.addCashTransaction(cashTransaction);
-
-                sale.setTransactionMethod(SaleTransactionMethod.CASH_PAYMENT);
-                sale.setAmountDue(BigDecimal.ZERO);
-                sale.setReference(this.codeGeneratorService.generateProductCode(GlobalVariable.REFERENCE_PREFIX));
-
-
-                var savedSale = this.saleDAO.add(sale, saleItems, updatedProducts, stocks, cashTransaction, order, invoice, userLog);
-                return savedSale.getId();
-            }else if(dto.paymentMethod().equals(TransactionPaymentMethod.PO_PAYMENT)){
-                // this is PO payment
+            var payment = this.paymentMapper.toPayment(paymentRequestDto);
+            // set up the payment
+            if (paymentRequestDto.transactionType().equals(TransactionType.PO)) {
                 order.setStatus(OrderStatus.PENDING);
-                invoice.setStatus(InvoiceStatus.PENDING);
-                sale.setTransactionMethod(SaleTransactionMethod.PO_PAYMENT);
-                sale.setAmountDue(dto.netTotal().subtract(dto.amount()));
-                sale.setReference(this.codeGeneratorService.generateProductCode(GlobalVariable.REFERENCE_PREFIX));
-
-                var savedSale = this.saleDAO.add(sale, saleItems, updatedProducts, stocks, order, invoice, userLog);
-                return savedSale.getId();
-            }else{
-                // online payment
+                payment.setReferenceNumber(this.codeGeneratorService.generateProductCode(GlobalVariable.SALE_PREFIX));
+                payment.setAmountDue(sale.getNetTotal());
+            } else if(paymentRequestDto.transactionType().equals(TransactionType.CASH)) {
+                payment.setAmountDue(BigDecimal.ZERO);
                 order.setStatus(OrderStatus.COMPLETED);
-                invoice.setStatus(InvoiceStatus.COMPLETED);
-                sale.setCode(dto.poReference());
-                sale.setAmountDue(dto.netTotal().subtract(dto.amount()));
-                sale.setTransactionMethod(SaleTransactionMethod.ONLINE_PAYMENT);
-                sale.setReference(dto.poReference());
-                var savedSale = this.saleDAO.add(sale, saleItems, updatedProducts, stocks, order, invoice, userLog);
-                return savedSale.getId();
+                payment.setReferenceNumber(this.codeGeneratorService.generateProductCode(GlobalVariable.SALE_PREFIX));
+            }else{
+                order.setStatus(OrderStatus.COMPLETED);
+                payment.setAmountDue(BigDecimal.ZERO);
             }
+
+            sale.setPerson(customer);
+            sale.setUser(user);
+            sale.setOrder(order);
+            sale.setInvoice(invoice);
+            sale.setPayment(payment);
+
+            userLog.setCode(sale.getSaleNumber());
+            this.saleDAO.add(sale, userLog, products);
+        }catch (Exception e){
+            throw new CustomException("Error saving", e);
         }
-        return -1;
     }
 
     public List<SaleResponseDto> getAllValidSales(int numberOfSales) {
         return this.saleMapper.toSaleResponseDtoList(this.saleDAO.getAllValidSales(numberOfSales));
     }
 
-    public List<SaleResponseDto> getAllValidSalesByRange(LocalDate start, LocalDate end){
+    public List<SaleResponseDto> getAllValidSalesByRange(LocalDate start, LocalDate end) {
         return this.saleMapper.toSaleResponseDtoList(this.saleDAO.getAllValidSalesByRange(start, end));
     }
 
-    public List<Sale> getAllValidSalesWithoutDto(int numberOfSales){
+    public List<Sale> getAllValidSalesWithoutDto(int numberOfSales) {
         return this.saleDAO.getAllValidSales(numberOfSales);
     }
 
-    public List<Sale> getAllValidSalesByCashTransactionType(TransactionPaymentMethod type){
-        return this.saleDAO.getAllSalesByCashTransactionType(type);
+    public List<Sale> getAllValidCashSales() {
+        return this.saleDAO.getAllCashSales();
     }
 
-    public List<Sale> getAllValidPOSalesWithLimit(int number){
+    public List<Sale> getAllValidPOSalesWithLimit(int number) {
         return this.saleDAO.getAllValidPOSales(number, SaleTransactionMethod.PO_PAYMENT);
     }
 
-    public List<Sale> getAllValidPOSalesWithoutLimit(LocalDate start, LocalDate end){
+    public List<Sale> getAllValidPOSalesWithoutLimit(LocalDate start, LocalDate end) {
         return this.saleDAO.getAllValidPOSales(start, end, SaleTransactionMethod.PO_PAYMENT);
     }
 
-    public List<Sale> getAllValidSalesByRangeAndWithoutDto(LocalDate start, LocalDate end){
-       return this.saleDAO.getAllValidSalesByRangeWithoutDto(start, end);
+    public List<Sale> getAllValidSalesByRangeAndWithoutDto(LocalDate start, LocalDate end) {
+        return this.saleDAO.getAllValidSalesByRangeWithoutDto(start, end);
     }
 
-    public BigDecimal getTotalSales(){
+    public BigDecimal getTotalSales() {
         return this.saleDAO.getTotalSales();
     }
 }

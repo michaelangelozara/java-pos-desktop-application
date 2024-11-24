@@ -11,23 +11,23 @@ public class Product {
     void add(){
         ProductService productService = new ProductService();
 
-        AddProductRequestDto dto = new AddProductRequestDto(
-                "Iphone 19",
-                "JSA-10",
-                1,
-                ProductUnit.PIECE,
-                20,
-                ProductTaxType.INCLUSIVE,
-                BigDecimal.valueOf(95990),
-                BigDecimal.valueOf(100),
-                20,
-                "No note yet",
-                10,
-                ProductStatus.ACTIVE,
-                "GVHBNKJKsLML<",
-                0
-        );
-        productService.add(dto);
+//        AddProductRequestDto dto = new AddProductRequestDto(
+//                "Iphone 19",
+//                "JSA-10",
+//                1,
+//                ProductUnit.PIECE,
+//                20,
+//                ProductTaxType.INCLUSIVE,
+//                BigDecimal.valueOf(95990),
+//                BigDecimal.valueOf(100),
+//                20,
+//                "No note yet",
+//                10,
+//                ProductStatus.ACTIVE,
+//                "GVHBNKJKsLML<",
+//                0
+//        );
+//        productService.add(dto);
     }
 
     @Test

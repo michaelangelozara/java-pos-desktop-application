@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.POS.backend.invoice.Invoice;
-import org.POS.backend.order.Order;
-import org.POS.backend.payment.Payment;
 import org.POS.backend.purchase.Purchase;
 import org.POS.backend.quotation.Quotation;
 import org.POS.backend.sale.Sale;
@@ -38,8 +36,8 @@ public class Person {
     @Column(name = "tax_registration_number")
     private String taxRegistrationNumber;
 
-    @Column(columnDefinition = "VARCHAR(50) NOT NULL")
-    private String code;
+    @Column(name = "person_code", columnDefinition = "VARCHAR(50) NOT NULL")
+    private String personCode;
 
     @Enumerated(EnumType.STRING)
     private PersonType type;
@@ -59,49 +57,17 @@ public class Person {
     private LocalDate deletedAt;
 
     @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Invoice> invoices = new ArrayList<>();
-
-    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Purchase> purchases = new ArrayList<>();
 
-    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "person")
     private List<Sale> sales = new ArrayList<>();
-
-    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Order> orders = new ArrayList<>();
 
     @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Quotation> quotations = new ArrayList<>();
 
-    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Stock> stocks = new ArrayList<>();
-
-    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Payment> payments = new ArrayList<>();
-
-    public void addPayment(Payment payment){
-        payments.add(payment);
-        payment.setPerson(this);
-    }
-
-    public void addStock(Stock stock){
-        stocks.add(stock);
-        stock.setPerson(this);
-    }
-
-    public void addInvoice(Invoice invoice){
-        invoices.add(invoice);
-        invoice.setPerson(this);
-    }
-
     public void addQuotation(Quotation quotation){
         quotations.add(quotation);
         quotation.setPerson(this);
-    }
-
-    public void addOrder(Order order){
-        orders.add(order);
-        order.setPerson(this);
     }
 
     public void addSale(Sale sale){

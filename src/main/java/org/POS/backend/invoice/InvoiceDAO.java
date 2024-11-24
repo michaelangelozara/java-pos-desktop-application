@@ -28,7 +28,7 @@ public class InvoiceDAO {
 
             for (var invoice : invoices) {
                 Hibernate.initialize(invoice.getSale());
-                Hibernate.initialize(invoice.getSale().getSaleItems());
+                Hibernate.initialize(invoice.getSale().getSaleProducts());
             }
 
         } catch (Exception e) {
@@ -45,8 +45,7 @@ public class InvoiceDAO {
                     .setParameter("id", id)
                     .getSingleResult();
 
-            Hibernate.initialize(invoice.getPayments());
-            Hibernate.initialize(invoice.getSale().getSaleItems());
+            Hibernate.initialize(invoice.getSale().getSaleProducts());
         } catch (Exception e) {
             throw new NoResultException("No invoice found");
         }
@@ -55,37 +54,54 @@ public class InvoiceDAO {
 
     public List<Invoice> getAllInvoicesByPersonId(int id) {
         List<Invoice> invoices = new ArrayList<>();
-        try (Session session = sessionFactory.openSession()) {
-
-            invoices = session.createQuery("SELECT i FROM Invoice i WHERE i.person.id = : id", Invoice.class)
-                    .setParameter("id", id)
-                    .getResultList();
-
-            invoices.forEach(i -> {
-                Hibernate.initialize(i.getSale());
-                Hibernate.initialize(i.getSale().getCashTransaction());
-            });
-        } catch (NoResultException e) {
-            throw new RuntimeException("No invoice found");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        try (Session session = sessionFactory.openSession()) {
+//
+//            invoices = session.createQuery("SELECT i FROM Invoice i WHERE i.person.id = : id", Invoice.class)
+//                    .setParameter("id", id)
+//                    .getResultList();
+//
+//            invoices.forEach(i -> {
+//                Hibernate.initialize(i.getSale());
+//            });
+//        } catch (NoResultException e) {
+//            throw new RuntimeException("No invoice found");
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
         return invoices;
     }
 
-    public List<Invoice> getAllValidInvoiceByRange(LocalDate start, LocalDate end, int id) {
+    public List<Invoice> getAllValidInvoiceByRangeAndId(LocalDate start, LocalDate end, int id) {
+        List<Invoice> invoices = new ArrayList<>();
+//        try (Session session = sessionFactory.openSession()) {
+//
+//            invoices = session.createQuery("SELECT i FROM Invoice i WHERE i.person.id = : id AND (i.date >= : start AND i.date <= :end)", Invoice.class)
+//                    .setParameter("start", start)
+//                    .setParameter("end", end)
+//                    .setParameter("id", id)
+//                    .getResultList();
+//
+//            invoices.forEach(i -> {
+//                Hibernate.initialize(i.getSale());
+//                Hibernate.initialize(i.getSale().getCashTransaction());
+//            });
+//        } catch (Exception e){
+//            e.printStackTrace();
+//        }
+        return invoices;
+    }
+
+    public List<Invoice> getAllValidInvoiceByRange(LocalDate start, LocalDate end) {
         List<Invoice> invoices = new ArrayList<>();
         try (Session session = sessionFactory.openSession()) {
 
-            invoices = session.createQuery("SELECT i FROM Invoice i WHERE i.person.id = : id AND (i.date >= : start AND i.date <= :end)", Invoice.class)
+            invoices = session.createQuery("SELECT i FROM Invoice i WHERE i.sale.date >= : start AND i.sale.date <= :end", Invoice.class)
                     .setParameter("start", start)
                     .setParameter("end", end)
-                    .setParameter("id", id)
                     .getResultList();
 
             invoices.forEach(i -> {
                 Hibernate.initialize(i.getSale());
-                Hibernate.initialize(i.getSale().getCashTransaction());
             });
         } catch (Exception e){
             e.printStackTrace();
@@ -95,20 +111,20 @@ public class InvoiceDAO {
 
     public List<Invoice> getAllValidInvoiceByCodeAndPersonId(String code, int id) {
         List<Invoice> invoices = new ArrayList<>();
-        try (Session session = sessionFactory.openSession()) {
-
-            invoices = session.createQuery("SELECT i FROM Invoice i WHERE i.person.id = : id AND i.code LIKE : code", Invoice.class)
-                    .setParameter("code", "%" + code + "%")
-                    .setParameter("id", id)
-                    .getResultList();
-
-            invoices.forEach(i -> {
-                Hibernate.initialize(i.getSale());
-                Hibernate.initialize(i.getSale().getCashTransaction());
-            });
-        } catch (Exception e){
-            e.printStackTrace();
-        }
+//        try (Session session = sessionFactory.openSession()) {
+//
+//            invoices = session.createQuery("SELECT i FROM Invoice i WHERE i.person.id = : id AND i.code LIKE : code", Invoice.class)
+//                    .setParameter("code", "%" + code + "%")
+//                    .setParameter("id", id)
+//                    .getResultList();
+//
+//            invoices.forEach(i -> {
+//                Hibernate.initialize(i.getSale());
+//                Hibernate.initialize(i.getSale().getCashTransaction());
+//            });
+//        } catch (Exception e){
+//            e.printStackTrace();
+//        }
         return invoices;
     }
 
@@ -116,14 +132,13 @@ public class InvoiceDAO {
         List<Invoice> invoices = new ArrayList<>();
         try (Session session = sessionFactory.openSession()) {
 
-            invoices = session.createQuery("SELECT i FROM Invoice i WHERE i.code LIKE : code OR i.person.name LIKE : code", Invoice.class)
+            invoices = session.createQuery("SELECT i FROM Invoice i WHERE i.invoiceNumber LIKE : code OR i.sale.person.name LIKE : code", Invoice.class)
                     .setParameter("code", "%" + code + "%")
                     .getResultList();
 
             invoices.forEach(i -> {
                 Hibernate.initialize(i.getSale());
-                Hibernate.initialize(i.getSale().getCashTransaction());
-                Hibernate.initialize(i.getSale().getSaleItems());
+                Hibernate.initialize(i.getSale().getSaleProducts());
             });
         } catch (Exception e){
             e.printStackTrace();

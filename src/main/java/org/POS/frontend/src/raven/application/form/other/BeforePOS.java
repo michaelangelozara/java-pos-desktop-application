@@ -116,34 +116,41 @@ public class BeforePOS extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void cmdLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmdLoginActionPerformed
-        BigDecimal balance = new BigDecimal(txtUser.getText());
-        String note = txtUser1.getText();
+        try {
+            BigDecimal balance = new BigDecimal(txtUser.getText());
+            String note = txtUser1.getText();
 
-        if(!StringChecker.isNumericOnly(String.valueOf(balance.setScale(2, RoundingMode.HALF_UP)))){
+            if(!StringChecker.isNumericOnly(String.valueOf(balance.setScale(2, RoundingMode.HALF_UP)))){
+                JOptionPane.showMessageDialog(null, "Any letter or special character is not allowed");
+                return;
+            }
+            // save here
+            UserDAO userDAO = new UserDAO();
+            OpenCashDAO openCashDAO = new OpenCashDAO();
+            User user = userDAO.getUserById(CurrentUser.id);
+
+            OpenCash openCash = new OpenCash();
+            openCash.setCash(balance);
+            openCash.setNote(note);
+            openCash.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.OPEN_CASH_PREFIX));
+            openCash.setType(OpenCashType.IN);
+            openCash.setDateTime(LocalDateTime.now());
+            openCash.setUser(user);
+
+            UserLog userLog = new UserLog();
+            userLog.setCode(openCash.getCode());
+            userLog.setDate(LocalDate.now());
+            userLog.setAction(UserActionPrefixes.OPEN_CASH_ACTION_LOG_PREFIX);
+            userLog.setUser(user);
+
+            openCashDAO.add(openCash, userLog);
+            CurrentUser.isPosLoginSetup = true;
+
+            Application.showForm(new POS());
+        }catch (NumberFormatException e){
+            txtUser.setText("");
             JOptionPane.showMessageDialog(null, "Any letter or special character is not allowed");
-            return;
         }
-        // save here
-        UserDAO userDAO = new UserDAO();
-        OpenCashDAO openCashDAO = new OpenCashDAO();
-        User user = userDAO.getUserById(CurrentUser.id);
-        OpenCash openCash = new OpenCash();
-        openCash.setCash(balance);
-        openCash.setNote(note);
-        openCash.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.OPEN_CASH_PREFIX));
-        openCash.setType(OpenCashType.IN);
-        openCash.setDateTime(LocalDateTime.now());
-
-        UserLog userLog = new UserLog();
-        userLog.setCode(openCash.getCode());
-        userLog.setDate(LocalDate.now());
-        userLog.setAction(UserActionPrefixes.OPEN_CASH_ACTION_LOG_PREFIX);
-        user.addUserLog(userLog);
-
-        openCashDAO.add(openCash, user, userLog);
-        CurrentUser.isPosLoginSetup = true;
-
-        Application.showForm(new POS());
     }//GEN-LAST:event_cmdLoginActionPerformed
 
     private void txtUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtUserActionPerformed

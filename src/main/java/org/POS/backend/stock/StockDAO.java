@@ -1,6 +1,7 @@
 package org.POS.backend.stock;
 
 import org.POS.backend.configuration.HibernateUtil;
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
@@ -25,13 +26,30 @@ public class StockDAO {
         }
     }
 
-    public List<Stock> getAllValidStockProductId(StockType type, int productId){
+    public List<Stock> getAllValidStocksByProductId(StockType type, int productId){
         List<Stock> stocks = new ArrayList<>();
         try(Session session = sessionFactory.openSession()){
             stocks = session.createQuery("SELECT s FROM Stock s JOIN FETCH s.product sp WHERE s.type =: type AND (sp.id = :productId AND sp.isDeleted = FALSE) ", Stock.class)
                     .setParameter("productId", productId)
                     .setParameter("type", type)
                     .getResultList();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return stocks;
+    }
+
+    public List<Stock> getAllValidStocks(){
+        List<Stock> stocks = new ArrayList<>();
+        try(Session session = sessionFactory.openSession()){
+            stocks = session.createQuery("SELECT s FROM Stock s", Stock.class)
+                    .setMaxResults(50)
+                    .getResultList();
+            stocks.forEach(s -> {
+                Hibernate.initialize(s.getProduct());
+                Hibernate.initialize(s.getProduct().getProductAttributes());
+                s.getProduct().getProductAttributes().forEach(pa -> Hibernate.initialize(pa.getProductVariations()));
+            });
         }catch (Exception e){
             e.printStackTrace();
         }

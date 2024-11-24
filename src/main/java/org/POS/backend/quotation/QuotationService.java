@@ -103,7 +103,7 @@ public class QuotationService {
             // iterate all the product and save the purchase item
             for (var product : products) {
                 for (var quotedItemDto : newUpdateQuotedItemList) {
-                    if (product.getCode().equals(quotedItemDto.productCode())) {
+                    if (product.getProductCode().equals(quotedItemDto.productCode())) {
                         QuotedItem quotedItem = new QuotedItem();
                         quotedItem.setQuantity(quotedItemDto.quantity());
                         quotedItem.setPurchasePrice(quotedItemDto.purchasePrice());

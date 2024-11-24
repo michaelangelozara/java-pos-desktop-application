@@ -4,13 +4,11 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.POS.backend.cash_transaction.CashTransaction;
-import org.POS.backend.person.Person;
-import org.POS.backend.return_product.ReturnProduct;
+import org.POS.backend.return_product.ReturnOrder;
 import org.POS.backend.sale.Sale;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "orders")
@@ -23,23 +21,17 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(columnDefinition = "VARCHAR(50) NOT NULL")
-    private String code;
-
-    @Column(name = "order_date")
-    private LocalDate orderDate;
+    @Column(name = "order_number", columnDefinition = "VARCHAR(50) NOT NULL")
+    private String orderNumber;
 
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
-    @ManyToOne
-    @JoinColumn(name = "person_id")
-    private Person person;
+    @OneToMany(mappedBy = "order")
+    private List<ReturnOrder> returnOrders = new ArrayList<>();
 
     @OneToOne
     @JoinColumn(name = "sale_id")
     private Sale sale;
 
-    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private ReturnProduct returnProduct;
 }

@@ -2,8 +2,8 @@
 package org.POS.frontend.src.raven.application.form.other;
 
 import org.POS.backend.global_variable.ProhibitedFunction;
-import org.POS.backend.return_product.ReturnProduct;
-import org.POS.backend.return_product.ReturnProductDAO;
+import org.POS.backend.return_product.ReturnOrder;
+import org.POS.backend.return_product.ReturnOrderDAO;
 import org.POS.frontend.src.raven.application.Application;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
@@ -17,7 +17,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -71,8 +70,8 @@ public class Return_List extends javax.swing.JPanel {
                 Application.showForm(new ReturnOrder_Details(returnId));
             }
         };
-        table.getColumnModel().getColumn(8).setCellRenderer(new TableActionCellRender());
-        table.getColumnModel().getColumn(8).setCellEditor(new TableActionCellEditor(event));
+        table.getColumnModel().getColumn(7).setCellRenderer(new TableActionCellRender());
+        table.getColumnModel().getColumn(7).setCellEditor(new TableActionCellEditor(event));
         loadReturnList();
         jTextField1.getDocument().addDocumentListener(new DocumentListener() {
             @Override
@@ -116,31 +115,29 @@ public class Return_List extends javax.swing.JPanel {
             return;
         }
 
-        ReturnProductDAO returnProductDAO = new ReturnProductDAO();
-        SwingWorker<List<ReturnProduct>, Void> worker = new SwingWorker<>() {
+        ReturnOrderDAO returnOrderDAO = new ReturnOrderDAO();
+        SwingWorker<List<ReturnOrder>, Void> worker = new SwingWorker<>() {
             @Override
-            protected List<ReturnProduct> doInBackground() throws Exception {
-                return returnProductDAO.getAllValidReturnProductsByCode(query);
+            protected List<ReturnOrder> doInBackground() {
+                return returnOrderDAO.getAllValidReturnProductsByCode(query);
             }
 
             @Override
             protected void done() {
                 try {
                     var returnedProducts = get();
-
-                    for (int i = 0; i < returnedProducts.size(); i++) {
-                        for (var saleItem : returnedProducts.get(i).getReturnedSaleItems()) {
-                            model.addRow(new Object[]{
-                                    i + 1,
-                                    returnedProducts.get(i).getId(),
-                                    returnedProducts.get(i).getCode(),
-                                    saleItem.getSale().getPerson().getName(),
-                                    returnedProducts.get(i).getReturnReason(),
-                                    returnedProducts.get(i).getCostOfReturnProducts(),
-                                    saleItem.getReturnedAt(),
-                                    saleItem.getProduct().getName()
-                            });
-                        }
+                    int n = 1;
+                    for (var returnProduct : returnedProducts) {
+                        model.addRow(new Object[]{
+                                n,
+                                returnProduct.getId(),
+                                returnProduct.getCode(),
+                                returnProduct.getOrder().getSale().getPerson().getName(),
+                                returnProduct.getReturnReason(),
+                                returnProduct.getCostOfReturnProducts(),
+                                returnProduct.getReturnedAt()
+                        });
+                        n++;
                     }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
@@ -156,11 +153,11 @@ public class Return_List extends javax.swing.JPanel {
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         model.setRowCount(0);
 
-        ReturnProductDAO returnProductDAO = new ReturnProductDAO();
-        SwingWorker<java.util.List<ReturnProduct>, Void> worker = new SwingWorker<>() {
+        ReturnOrderDAO returnOrderDAO = new ReturnOrderDAO();
+        SwingWorker<java.util.List<ReturnOrder>, Void> worker = new SwingWorker<>() {
             @Override
-            protected java.util.List<ReturnProduct> doInBackground() {
-                var returnProducts = returnProductDAO.getAllValidReturnedProducts(50);
+            protected java.util.List<ReturnOrder> doInBackground() {
+                var returnProducts = returnOrderDAO.getAllValidReturnedProducts(50);
                 return returnProducts;
             }
 
@@ -169,19 +166,18 @@ public class Return_List extends javax.swing.JPanel {
                 try {
                     var returnedProducts = get();
 
-                    for (int i = 0; i < returnedProducts.size(); i++) {
-                        for (var saleItem : returnedProducts.get(i).getReturnedSaleItems()) {
-                            model.addRow(new Object[]{
-                                    i + 1,
-                                    returnedProducts.get(i).getId(),
-                                    returnedProducts.get(i).getCode(),
-                                    saleItem.getSale().getPerson().getName(),
-                                    returnedProducts.get(i).getReturnReason(),
-                                    returnedProducts.get(i).getCostOfReturnProducts(),
-                                    saleItem.getReturnedAt(),
-                                    saleItem.getProduct().getName()
-                            });
-                        }
+                    int n = 1;
+                    for (var returnProduct : returnedProducts) {
+                        model.addRow(new Object[]{
+                                n,
+                                returnProduct.getId(),
+                                returnProduct.getCode(),
+                                returnProduct.getOrder().getSale().getPerson().getName(),
+                                returnProduct.getReturnReason(),
+                                returnProduct.getCostOfReturnProducts(),
+                                returnProduct.getReturnedAt()
+                        });
+                        n++;
                     }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
@@ -231,11 +227,11 @@ public class Return_List extends javax.swing.JPanel {
                 new Object[][]{
                 },
                 new String[]{
-                        "#", "ID", "Return No", "Customer", "Return Reason", "Cost of Return Products", "Date", "Product Name", "Action"
+                        "#", "ID", "Return No", "Customer", "Return Reason", "Cost of Return Products", "Date", "Action"
                 }
         ) {
             boolean[] canEdit = new boolean[]{
-                    false, false, false, false, false, false, false, false, true
+                    false, false, false, false, false, false, false, true
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -252,7 +248,6 @@ public class Return_List extends javax.swing.JPanel {
             table.getColumnModel().getColumn(4).setResizable(false);
             table.getColumnModel().getColumn(5).setResizable(false);
             table.getColumnModel().getColumn(6).setResizable(false);
-            table.getColumnModel().getColumn(7).setResizable(false);
         }
 
         jButton2.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
@@ -412,31 +407,29 @@ public class Return_List extends javax.swing.JPanel {
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         model.setRowCount(0);
 
-        ReturnProductDAO returnProductDAO = new ReturnProductDAO();
-        SwingWorker<List<ReturnProduct>, Void> worker = new SwingWorker<>() {
+        ReturnOrderDAO returnOrderDAO = new ReturnOrderDAO();
+        SwingWorker<List<ReturnOrder>, Void> worker = new SwingWorker<>() {
             @Override
-            protected List<ReturnProduct> doInBackground() throws Exception {
-                return returnProductDAO.getAllValidReturnProductsByRange(fromDate, toDate);
+            protected List<ReturnOrder> doInBackground() throws Exception {
+                return returnOrderDAO.getAllValidReturnProductsByRange(fromDate, toDate);
             }
 
             @Override
             protected void done() {
                 try {
                     var returnedProducts = get();
-
-                    for (int i = 0; i < returnedProducts.size(); i++) {
-                        for (var saleItem : returnedProducts.get(i).getReturnedSaleItems()) {
-                            model.addRow(new Object[]{
-                                    i + 1,
-                                    returnedProducts.get(i).getId(),
-                                    returnedProducts.get(i).getCode(),
-                                    saleItem.getSale().getPerson().getName(),
-                                    returnedProducts.get(i).getReturnReason(),
-                                    returnedProducts.get(i).getCostOfReturnProducts(),
-                                    saleItem.getReturnedAt(),
-                                    saleItem.getProduct().getName()
-                            });
-                        }
+                    int n = 1;
+                    for (var returnProduct : returnedProducts) {
+                        model.addRow(new Object[]{
+                                n,
+                                returnProduct.getId(),
+                                returnProduct.getCode(),
+                                returnProduct.getOrder().getSale().getPerson().getName(),
+                                returnProduct.getReturnReason(),
+                                returnProduct.getCostOfReturnProducts(),
+                                returnProduct.getReturnedAt()
+                        });
+                        n++;
                     }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);

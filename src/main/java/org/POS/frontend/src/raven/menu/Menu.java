@@ -9,6 +9,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.LayoutManager;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.ImageIcon;
@@ -29,14 +30,14 @@ public class Menu extends JPanel {
             {"Dashboard"},
             {"~ACTIVITIES~"},
             {"Expenses", "Categories", "Sub Categories", "Expense List"},
-            {"Purchases", "Purchase List", "Brand List", "Return List"},
+            {"Purchases", "Purchase List"},
             {"Sales", "Quotation List", "Invoices List","Order List", "Returned Order List", "Cash Transaction","POS",},
             {"~PEOPLE~"},
             {"Clients"},
             {"Suppliers"},
             {"User Management"},
             {"~INVENTORY~"},
-            {"Products", "Categories","Sub Categories", "Product List"},
+            {"Products", "Categories","Product List"},
             {"Inventory", "View Inventory", "Inventory Adjustment"},
             {"~REPORTS~"},
             {"Sales Report"},
@@ -45,6 +46,7 @@ public class Menu extends JPanel {
             {"Collection By User Report"},
             {"Inventory Report"},
             {"Current Stock Value and Stock Control"},
+            {"Setting"},
             {"Logout"}
     };
 
@@ -147,7 +149,7 @@ public class Menu extends JPanel {
         return lbTitle;
     }
 
-    public void setSelectedMenu(int index, int subIndex) {
+    public void setSelectedMenu(int index, int subIndex) throws IOException {
         runEvent(index, subIndex);
     }
 
@@ -166,7 +168,7 @@ public class Menu extends JPanel {
         }
     }
 
-    protected void runEvent(int index, int subIndex) {
+    protected void runEvent(int index, int subIndex) throws IOException {
         MenuAction menuAction = new MenuAction();
         for (MenuEvent event : events) {
             event.menuSelected(index, subIndex, menuAction);

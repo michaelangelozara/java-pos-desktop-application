@@ -3,10 +3,11 @@ package org.POS.backend.product_category;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.POS.backend.product_subcategory.ProductSubcategory;
+import org.POS.backend.product.Product;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "product_categories")
@@ -35,5 +36,10 @@ public class ProductCategory {
     private LocalDate deletedAt;
 
     @OneToMany(mappedBy = "productCategory")
-    private List<ProductSubcategory> subcategories;
+    private Set<Product> products = new HashSet<>();
+
+    public void addProduct(Product product){
+        products.add(product);
+        product.setProductCategory(this);
+    }
 }

@@ -36,16 +36,16 @@ public class Order_Details extends JPanel {
             protected void done() {
                 try {
                     var order = get();
-                    model.addRow(new Object[]{
-                            order.getCode(),
-                            order.getOrderDate(),
-                            order.getSale().getReference(),
-                            order.getSale().getTransactionMethod().name(),
-                            order.getSale().getDeliveryPlace(),
-                            order.getSale().getNote(),
-                            order.getStatus().name(),
-                            order.getSale().getUser().getName()
-                    });
+//                    model.addRow(new Object[]{
+//                            order.getOrderNumber(),
+//                            order.getOrderDate(),
+//                            order.getSale().getReference(),
+//                            order.getSale().getTransactionMethod().name(),
+//                            order.getSale().getDeliveryPlace(),
+//                            order.getSale().getNote(),
+//                            order.getStatus().name(),
+//                            order.getSale().getUser().getName()
+//                    });
                     fetchedOrder = order;
                     loadProducts();
                 } catch (InterruptedException e) {
@@ -62,29 +62,29 @@ public class Order_Details extends JPanel {
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         model.setRowCount(0);
 
-        var saleItems = fetchedOrder.getSale().getSaleItems();
+        var saleItems = fetchedOrder.getSale().getSaleProducts();
         int i = 1;
 
         BigDecimal subtotal = BigDecimal.ZERO;
-        BigDecimal transportCost = fetchedOrder.getSale().getTransportCost();
+//        BigDecimal transportCost = fetchedOrder.getSale().getTransportCost();
         BigDecimal tax = BigDecimal.ZERO;
-        for (var saleItem : saleItems) {
-            model.addRow(new Object[]{
-                    i,
-                    saleItem.getProduct().getCode(),
-                    saleItem.getProduct().getName(),
-                    saleItem.getQuantity(),
-                    saleItem.getPrice(),
-                    saleItem.getPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP),
-                    fetchedOrder.getSale().getTransportCost(),
-                    saleItem.getPrice().multiply(BigDecimal.valueOf(saleItem.getQuantity()))
-            });
-            subtotal = subtotal.add(saleItem.getPrice().multiply(BigDecimal.valueOf(saleItem.getQuantity())));
-            tax = tax.add(saleItem.getPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP));
-            i++;
-        }
-        BigDecimal total = subtotal.add(transportCost).add(tax);
-        loadSummaries(subtotal, transportCost, tax, total);
+//        for (var saleItem : saleItems) {
+//            model.addRow(new Object[]{
+//                    i,
+//                    saleItem.getProduct().getCode(),
+//                    saleItem.getProduct().getName(),
+//                    saleItem.getQuantity(),
+//                    saleItem.getPrice(),
+//                    saleItem.getPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP),
+//                    fetchedOrder.getSale().getTransportCost(),
+//                    saleItem.getPrice().multiply(BigDecimal.valueOf(saleItem.getQuantity()))
+//            });
+//            subtotal = subtotal.add(saleItem.getPrice().multiply(BigDecimal.valueOf(saleItem.getQuantity())));
+//            tax = tax.add(saleItem.getPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12)).setScale(2, RoundingMode.HALF_UP));
+//            i++;
+//        }
+//        BigDecimal total = subtotal.add(transportCost).add(tax);
+//        loadSummaries(subtotal, transportCost, tax, total);
     }
 
     private void loadSummaries(
@@ -97,7 +97,7 @@ public class Order_Details extends JPanel {
         jLabel40.setText(String.valueOf(transportCost));
         jLabel42.setText(String.valueOf(tax));
         jLabel43.setText(String.valueOf(total));
-        jLabel41.setText(String.valueOf(fetchedOrder.getSale().getDiscount()));
+//        jLabel41.setText(String.valueOf(fetchedOrder.getSale().getDiscount()));
     }
 
     @SuppressWarnings("unchecked")

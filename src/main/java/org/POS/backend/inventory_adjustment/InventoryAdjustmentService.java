@@ -26,25 +26,77 @@ public class InventoryAdjustmentService {
         this.inventoryAdjustmentMapper = new InventoryAdjustmentMapper();
     }
 
-    public void add(AddInventoryAdjustmentDto dto) {
+    public void addSimpleProduct(AddInventoryAdjustmentDtoForSimpleProduct dto) {
         var user = this.userDAO.getUserById(CurrentUser.id);
-        var product = this.productDAO.getValidProduct(dto.productId());
+        var product = this.productDAO.getValidProductById(dto.productId());
 
         if (user != null && product != null) {
-            var inventoryAdjustment = this.inventoryAdjustmentMapper.toInventoryAdjustment(dto);
+            var inventoryAdjustment = this.inventoryAdjustmentMapper.toInventoryAdjustmentForSimpleProduct(dto);
             user.addInventoryAdjustment(inventoryAdjustment);
             product.addInventoryAdjustment(inventoryAdjustment);
 
             if (dto.type().equals(InventoryAdjustmentType.INCREMENT)) {
                 product.setStock(product.getStock() + dto.quantity());
+                inventoryAdjustment.setType(InventoryAdjustmentType.INCREMENT);
             } else {
                 product.setStock(product.getStock() - dto.quantity());
+                inventoryAdjustment.setType(InventoryAdjustmentType.DECREMENT);
+
             }
 
             UserLog userLog = new UserLog();
             userLog.setCode(inventoryAdjustment.getCode());
             userLog.setDate(LocalDate.now());
             userLog.setAction(UserActionPrefixes.INVENTORY_ADJUSTMENT_ADD_ACTION_LOG_PREFIX);
+            user.addUserLog(userLog);
+
+            this.inventoryAdjustmentDAO.add(inventoryAdjustment, product, userLog);
+        }
+    }
+
+    public void addVariableProduct(AddInventoryAdjustmentDtoForVariableProduct dto) {
+        var user = this.userDAO.getUserById(CurrentUser.id);
+        var product = this.productDAO.getValidProductById(dto.productId());
+
+        if (user != null && product != null) {
+            var inventoryAdjustment = this.inventoryAdjustmentMapper.toInventoryAdjustmentForVariableProduct(dto);
+            user.addInventoryAdjustment(inventoryAdjustment);
+            product.addInventoryAdjustment(inventoryAdjustment);
+
+            UserLog userLog = new UserLog();
+
+            int quantityUpdated = 0;
+            if (dto.type().equals(InventoryAdjustmentType.INCREMENT)) {
+                inventoryAdjustment.setType(InventoryAdjustmentType.INCREMENT);
+                userLog.setAction(UserActionPrefixes.INVENTORY_ADJUSTMENT_ADD_ACTION_LOG_PREFIX);
+                for(int i = 0; i < product.getProductAttributes().size(); i++){
+                    for(int j = 0; j < product.getProductAttributes().get(i).getProductVariations().size(); j++){
+                        // quantity coming from the dto
+                        int variationQuantityFromDto = dto.productAttributes().get(i).getProductVariations().get(j).getQuantity();
+
+                        var tempVar = product.getProductAttributes().get(i).getProductVariations().get(j);
+                        tempVar.setQuantity(tempVar.getQuantity() + variationQuantityFromDto);
+                        quantityUpdated += variationQuantityFromDto;
+                    }
+                }
+            } else {
+                inventoryAdjustment.setType(InventoryAdjustmentType.DECREMENT);
+                userLog.setAction(UserActionPrefixes.INVENTORY_ADJUSTMENT_DEDUCT_ACTION_LOG_PREFIX);
+                for(int i = 0; i < product.getProductAttributes().size(); i++){
+                    for(int j = 0; j < product.getProductAttributes().get(i).getProductVariations().size(); j++){
+                        // quantity coming from the dto
+                        int variationQuantityFromDto = dto.productAttributes().get(i).getProductVariations().get(j).getQuantity();
+                        var tempVar = product.getProductAttributes().get(i).getProductVariations().get(j);
+                        tempVar.setQuantity(tempVar.getQuantity() - variationQuantityFromDto);
+                        quantityUpdated += variationQuantityFromDto;
+                    }
+                }
+            }
+
+            inventoryAdjustment.setQuantity(quantityUpdated);
+
+            userLog.setCode(inventoryAdjustment.getCode());
+            userLog.setDate(LocalDate.now());
             user.addUserLog(userLog);
 
             this.inventoryAdjustmentDAO.add(inventoryAdjustment, product, userLog);
@@ -82,7 +134,7 @@ public class InventoryAdjustmentService {
             UserLog userLog = new UserLog();
             userLog.setCode(inventoryAdjustment.getCode());
             userLog.setDate(LocalDate.now());
-            userLog.setAction(UserActionPrefixes.INVENTORY_ADJUSTMENT_EDIT_ACTION_LOG_PREFIX);
+            userLog.setAction(UserActionPrefixes.INVENTORY_ADJUSTMENT_DEDUCT_ACTION_LOG_PREFIX);
             user.addUserLog(userLog);
 
             this.inventoryAdjustmentDAO.update(inventoryAdjustment, user, product);
@@ -99,11 +151,11 @@ public class InventoryAdjustmentService {
         return this.inventoryAdjustmentMapper.toInventoryAdjustmentResponseDto(this.inventoryAdjustmentDAO.getValidInventoryAdjustmentById(id));
     }
 
-    public List<InventoryAdjustmentResponseDto> getAllValidInventoryAdjustment(){
+    public List<InventoryAdjustmentResponseDto> getAllValidInventoryAdjustment() {
         return this.inventoryAdjustmentMapper.toInventoryAdjustmentResponseDtoList(this.inventoryAdjustmentDAO.getAllValidInventoryAdjustment());
     }
 
-    public List<InventoryAdjustmentResponseDto> getAllValidInventoryAdjustmentByQuery(String query){
+    public List<InventoryAdjustmentResponseDto> getAllValidInventoryAdjustmentByQuery(String query) {
         return this.inventoryAdjustmentMapper.toInventoryAdjustmentResponseDtoList(this.inventoryAdjustmentDAO.getAllValidInventoryAdjustmentByQuery(query));
     }
 }

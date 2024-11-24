@@ -61,8 +61,7 @@ public class UserActionPrefixes {
     public static String PRODUCT_SUB_CATEGORIES_EDIT_ACTION_LOG_PREFIX = "Product Sub Categories Edited";
 
     public static String INVENTORY_ADJUSTMENT_ADD_ACTION_LOG_PREFIX = "Inventory Adjustment Added";
-    public static String INVENTORY_ADJUSTMENT_REMOVE_ACTION_LOG_PREFIX = "Inventory Adjustment Removed";
-    public static String INVENTORY_ADJUSTMENT_EDIT_ACTION_LOG_PREFIX = "Inventory Adjustment Edited";
+    public static String INVENTORY_ADJUSTMENT_DEDUCT_ACTION_LOG_PREFIX = "Inventory Adjustment Deducted";
 
     public static String USER_LOGIN_ACTION_LOG_PREFIX = "User Logged In";
     public static String USER_LOGOUT_ACTION_LOG_PREFIX = "User Logged Out";

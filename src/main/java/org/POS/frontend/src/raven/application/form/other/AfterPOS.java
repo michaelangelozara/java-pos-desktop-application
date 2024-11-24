@@ -135,6 +135,7 @@ public class AfterPOS extends JPanel {
             openCash.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.OPEN_CASH_PREFIX));
             openCash.setType(OpenCashType.OUT);
             openCash.setDateTime(LocalDateTime.now());
+            user.addOpenCash(openCash);
 
             UserLog userLog = new UserLog();
             userLog.setCode(openCash.getCode());
@@ -142,7 +143,7 @@ public class AfterPOS extends JPanel {
             userLog.setAction(UserActionPrefixes.CLOSE_CASH_ACTION_LOG_PREFIX);
             user.addUserLog(userLog);
 
-            openCashDAO.add(openCash, user, userLog);
+            openCashDAO.add(openCash, userLog);
             CurrentUser.isPosLoginSetup = false;
             Application.logout();
 

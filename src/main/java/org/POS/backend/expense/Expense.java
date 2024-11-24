@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.POS.backend.expense_subcategory.ExpenseSubcategory;
-import org.POS.backend.product_subcategory.ProductSubcategory;
 import org.POS.backend.user.User;
 
 import java.math.BigDecimal;

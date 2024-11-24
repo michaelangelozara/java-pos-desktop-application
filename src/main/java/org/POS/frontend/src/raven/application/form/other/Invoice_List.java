@@ -15,9 +15,9 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -47,18 +47,20 @@ public class Invoice_List extends javax.swing.JPanel {
             }
 
             @Override
-
             public void onView(int row) {
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
                 int invoiceId = (Integer) model.getValueAt(row, 1);
                 Application.showForm(new Invoice_Details(invoiceId));
             }
 
-
         };
-        table.getColumnModel().getColumn(13).setCellRenderer(new TableActionCellRender());
-        table.getColumnModel().getColumn(13).setCellEditor(new TableActionCellEditor(event));
+        table.getColumnModel().getColumn(9).setCellRenderer(new TableActionCellRender());
+        table.getColumnModel().getColumn(9).setCellEditor(new TableActionCellEditor(event));
+        activateSearch();
         loadInvoices();
+    }
+
+    private void activateSearch() {
         jTextField1.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -113,30 +115,26 @@ public class Invoice_List extends javax.swing.JPanel {
             protected void done() {
                 try {
                     var invoices = get();
-
-                    for (int i = 0; i < invoices.size(); i++) {
+                    int n = 1;
+                    for (var invoice : invoices) {
                         BigDecimal subTotal = BigDecimal.ZERO;
-                        for (var itemSale : invoices.get(i).getSale().getSaleItems()) {
+                        for (var itemSale : invoice.getSale().getSaleProducts()) {
                             subTotal = subTotal.add(itemSale.getSubtotal());
                         }
                         model.addRow(new Object[]{
-                                i + 1,
-                                invoices.get(i).getId(),
-                                invoices.get(i).getCode(),
-                                invoices.get(i).getDate(),
-                                invoices.get(i).getSale().getPerson().getName(),
+                                n,
+                                invoice.getId(),
+                                invoice.getInvoiceNumber(),
+                                invoice.getSale().getDate(),
+                                invoice.getSale().getPerson().getName(),
                                 subTotal,
-                                invoices.get(i).getSale().getTransportCost(),
-                                invoices.get(i).getSale().getDiscount(),
-                                invoices.get(i).getSale().getTotalTax(),
-                                invoices.get(i).getSale().getNetTotal(),
-                                invoices.get(i).getSale().getAmount(),
-                                invoices.get(i).getSale().getAmountDue(),
-                                invoices.get(i).getStatus().name()
+                                invoice.getSale().getPayment().getDiscount(),
+                                invoice.getSale().getNetTotal().multiply(BigDecimal.valueOf(0.12).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP)),
+                                invoice.getSale().getNetTotal()
                         });
+                        n++;
+
                     }
-
-
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 } catch (ExecutionException e) {
@@ -165,28 +163,26 @@ public class Invoice_List extends javax.swing.JPanel {
                 try {
                     var invoices = get();
 
-                    for (int i = 0; i < invoices.size(); i++) {
+                    int n = 1;
+                    for (var invoice : invoices) {
                         BigDecimal subTotal = BigDecimal.ZERO;
-                        for (var itemSale : invoices.get(i).getSale().getSaleItems()) {
+                        for (var itemSale : invoice.getSale().getSaleProducts()) {
                             subTotal = subTotal.add(itemSale.getSubtotal());
                         }
                         model.addRow(new Object[]{
-                                i + 1,
-                                invoices.get(i).getId(),
-                                invoices.get(i).getCode(),
-                                invoices.get(i).getDate(),
-                                invoices.get(i).getSale().getPerson().getName(),
+                                n,
+                                invoice.getId(),
+                                invoice.getInvoiceNumber(),
+                                invoice.getSale().getDate(),
+                                invoice.getSale().getPerson().getName(),
                                 subTotal,
-                                invoices.get(i).getSale().getTransportCost(),
-                                invoices.get(i).getSale().getDiscount(),
-                                invoices.get(i).getSale().getTotalTax(),
-                                invoices.get(i).getSale().getNetTotal(),
-                                invoices.get(i).getSale().getAmount(),
-                                invoices.get(i).getSale().getAmountDue(),
-                                invoices.get(i).getStatus().name()
+                                invoice.getSale().getPayment().getDiscount(),
+                                invoice.getSale().getNetTotal().multiply(BigDecimal.valueOf(0.12).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP)),
+                                invoice.getSale().getNetTotal()
                         });
-                    }
+                        n++;
 
+                    }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 } catch (ExecutionException e) {
@@ -225,11 +221,11 @@ public class Invoice_List extends javax.swing.JPanel {
 
                 },
                 new String[]{
-                        "#", "ID", "Invoice No	", "Invoice Date	", "Client	", "Subtotal	", "Transport", "Discount", "Tax	", "Net Total	", "Total Paid", "Total Due", "Status", "Action"
+                        "#", "ID", "Invoice No	", "Invoice Date	", "Client	", "Subtotal	", "Discount", "Tax	", "Net Total	", "Action"
                 }
         ) {
             boolean[] canEdit = new boolean[]{
-                    false, false, false, false, false, false, false, false, false, false, false, true, false, true
+                    false, false, false, false, false, false, false, true, false, true
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -248,9 +244,6 @@ public class Invoice_List extends javax.swing.JPanel {
             table.getColumnModel().getColumn(6).setResizable(false);
             table.getColumnModel().getColumn(7).setResizable(false);
             table.getColumnModel().getColumn(8).setResizable(false);
-            table.getColumnModel().getColumn(9).setResizable(false);
-            table.getColumnModel().getColumn(10).setResizable(false);
-            table.getColumnModel().getColumn(11).setResizable(false);
         }
 
         jButton2.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
@@ -394,25 +387,47 @@ public class Invoice_List extends javax.swing.JPanel {
     // End of variables declaration//GEN-END:variables
 
     private void filterTableByDateRange(LocalDate fromDate, LocalDate toDate) {
-        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>((DefaultTableModel) table.getModel());
-        table.setRowSorter(sorter);
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
 
-        sorter.setRowFilter(new RowFilter<DefaultTableModel, Integer>() {
+        InvoiceService invoiceService = new InvoiceService();
+        SwingWorker<List<Invoice>, Void> worker = new SwingWorker<List<Invoice>, Void>() {
             @Override
-            public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
-                // Assuming the createdAt is in the 3rd column (index 2), change as per your table
-                String dateStr = (String) entry.getValue(2);
-                try {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                    LocalDate rowDate = LocalDate.parse(dateStr, formatter);
+            protected List<Invoice> doInBackground() throws Exception {
+                return invoiceService.getALlValidInvoicesByRange(fromDate, toDate);
+            }
 
-                    // Return true if the createdAt is within the selected range
-                    return !rowDate.isBefore(fromDate) && !rowDate.isAfter(toDate);
-                } catch (Exception e) {
-                    // Skip rows with invalid dates
-                    return false;
+            @Override
+            protected void done() {
+                try {
+                    var invoices = get();
+                    int n = 1;
+                    for (var invoice : invoices) {
+                        BigDecimal subTotal = BigDecimal.ZERO;
+                        for (var itemSale : invoice.getSale().getSaleProducts()) {
+                            subTotal = subTotal.add(itemSale.getSubtotal());
+                        }
+                        model.addRow(new Object[]{
+                                n,
+                                invoice.getId(),
+                                invoice.getInvoiceNumber(),
+                                invoice.getSale().getDate(),
+                                invoice.getSale().getPerson().getName(),
+                                subTotal,
+                                invoice.getSale().getPayment().getDiscount(),
+                                invoice.getSale().getNetTotal().multiply(BigDecimal.valueOf(0.12).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP)),
+                                invoice.getSale().getNetTotal()
+                        });
+                        n++;
+
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
                 }
             }
-        });
+        };
+        worker.execute();
     }
 }

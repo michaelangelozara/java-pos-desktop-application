@@ -2,25 +2,14 @@
 package org.POS.frontend.src.raven.application.form.other;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import lombok.Value;
-import org.POS.backend.product.Product;
 import org.POS.backend.quotation.Quotation;
 import org.POS.backend.quotation.QuotationService;
-import org.POS.backend.quoted_item.QuotedItem;
-import org.POS.frontend.src.raven.cell.TableActionCellRender;
 
 import javax.swing.table.DefaultTableModel;
-
-import org.POS.frontend.src.raven.cell.TableActionCellEditor;
-import org.POS.frontend.src.raven.cell.TableActionEvent;
 
 public class Quotation_Details extends javax.swing.JPanel {
 
@@ -53,7 +42,7 @@ public class Quotation_Details extends javax.swing.JPanel {
                     for (int i = 0; i < quotation.getQuotedItems().size(); i++) {
                         model.addRow(new Object[]{
                                 i + 1,
-                                quotation.getQuotedItems().get(i).getProduct().getCode(),
+                                quotation.getQuotedItems().get(i).getProduct().getProductCode(),
                                 quotation.getQuotedItems().get(i).getProduct().getName(),
                                 quotation.getQuotedItems().get(i).getQuantity(),
                                 quotation.getQuotedItems().get(i).getSellingPrice(),
@@ -128,7 +117,7 @@ public class Quotation_Details extends javax.swing.JPanel {
         // set up client's information
         var client = quotation.getPerson();
         jLabel15.setText(client.getName());
-        jLabel14.setText(client.getCode());
+        jLabel14.setText(client.getPersonCode());
         jLabel17.setText(client.getCompanyName());
         jLabel19.setText(client.getContactNumber());
     }

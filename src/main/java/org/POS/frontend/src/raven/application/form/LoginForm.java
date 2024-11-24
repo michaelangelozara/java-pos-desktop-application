@@ -9,6 +9,7 @@ import org.POS.backend.user.UserService;
 import org.POS.frontend.src.raven.application.Application;
 
 import javax.swing.*;
+import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 public class LoginForm extends javax.swing.JPanel {
@@ -138,6 +139,8 @@ public class LoginForm extends javax.swing.JPanel {
                 } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
                     JOptionPane.showMessageDialog(null, "An error occurred during login.", "Login Error", JOptionPane.ERROR_MESSAGE);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
             }
         };

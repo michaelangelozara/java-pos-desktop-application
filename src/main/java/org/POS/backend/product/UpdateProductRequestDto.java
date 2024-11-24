@@ -4,18 +4,15 @@ import java.math.BigDecimal;
 
 public record UpdateProductRequestDto(
         int productId,
+        int categoryId,
         String name,
-        String model,
-        int brandId,
         ProductUnit unit,
-        int tax,
-        ProductTaxType taxType,
-        int discount,
         String note,
         int alertQuantity,
         ProductStatus status,
         String image,
         BigDecimal purchasePrice,
+        BigDecimal sellingPrice,
         int stock
 ) {
 }

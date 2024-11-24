@@ -28,8 +28,6 @@ public class InventoryHistory extends javax.swing.JPanel {
     private void loadProductInformation() {
         jLabel14.setText(this.product.code());
         jLabel15.setText(this.product.name());
-        jLabel17.setText(this.product.brand().categoryResponseDto().getName());
-        jLabel19.setText(this.product.brand().productSubcategory().getName());
         loadStockIn();
         loadStockOut();
     }
@@ -55,8 +53,7 @@ public class InventoryHistory extends javax.swing.JPanel {
                                 stocks.get(i).getDate(),
                                 stocks.get(i).getStockInOrOut(),
                                 stocks.get(i).getPrice(),
-                                stocks.get(i).getCode(),
-                                stocks.get(i).getPerson().getName()
+                                stocks.get(i).getCode()
                         });
                     }
                 } catch (InterruptedException e) {
@@ -90,8 +87,7 @@ public class InventoryHistory extends javax.swing.JPanel {
                                 stocks.get(i).getDate(),
                                 stocks.get(i).getStockInOrOut(),
                                 stocks.get(i).getPrice(),
-                                stocks.get(i).getCode(),
-                                stocks.get(i).getPerson().getName()
+                                stocks.get(i).getCode()
                         });
                     }
                 } catch (InterruptedException e) {
@@ -278,13 +274,13 @@ public class InventoryHistory extends javax.swing.JPanel {
         jLabel16.setText("Name:");
 
         jLabel17.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
-        jLabel17.setText(this.product.brand().productSubcategory().getProductCategory().getName());
+        jLabel17.setText("");
 
         jLabel18.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel18.setText("Category:");
 
         jLabel19.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
-        jLabel19.setText(this.product.brand().productSubcategory().getName());
+        jLabel19.setText("");
 
         jLabel20.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel20.setText("Sub Category:");

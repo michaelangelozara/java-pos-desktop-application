@@ -1,8 +1,8 @@
 
 package org.POS.frontend.src.raven.application.form.other;
 
-import org.POS.backend.cash_transaction.CashTransactionResponseDto;
-import org.POS.backend.cash_transaction.CashTransactionService;
+import org.POS.backend.payment.Payment;
+import org.POS.backend.payment.PaymentService;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
@@ -13,7 +13,6 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Properties;
@@ -35,20 +34,40 @@ public class Cash_Transaction extends javax.swing.JPanel {
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         model.setRowCount(0);
 
-        CashTransactionService cashTransactionService = new CashTransactionService();
-        var cashTransactions = cashTransactionService.getAllValidCashTransactions(50);
-        for (int i = 0; i < cashTransactions.size(); i++) {
-            model.addRow(new Object[]{
-                    i + 1,
-                    cashTransactions.get(i).id(),
-                    cashTransactions.get(i).reference(),
-                    cashTransactions.get(i).cashIn(),
-                    cashTransactions.get(i).cashOut(),
-                    cashTransactions.get(i).paymentMethod(),
-                    cashTransactions.get(i).username(),
-                    cashTransactions.get(i).dateTime()
-            });
-        }
+        PaymentService paymentService = new PaymentService();
+        SwingWorker<List<Payment>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<Payment> doInBackground() {
+                return paymentService.getAllCashPayments();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var payments = get();
+
+                    int n = 1;
+                    for (var payment : payments) {
+                        model.addRow(new Object[]{
+                                n,
+                                payment.getId(),
+                                payment.getSale().getSaleNumber(),
+                                payment.getPaidAmount(),
+                                payment.getChangeAmount(),
+                                payment.getTransactionType().name(),
+                                payment.getSale().getUser().getName(),
+                                payment.getDate()
+                        });
+                        n++;
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
     }
 
     @SuppressWarnings("unchecked")
@@ -235,21 +254,40 @@ public class Cash_Transaction extends javax.swing.JPanel {
             return;
         }
 
-        CashTransactionService cashTransactionService = new CashTransactionService();
-        var cashTransactions = cashTransactionService.getAllValidCashTransactionsByUserName(name);
+        PaymentService paymentService = new PaymentService();
+        SwingWorker<List<Payment>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<Payment> doInBackground() {
+                return paymentService.getAllCashPaymentsByUsername(name);
+            }
 
-        for (int i = 0; i < cashTransactions.size(); i++) {
-            model.addRow(new Object[]{
-                    i + 1,
-                    cashTransactions.get(i).id(),
-                    cashTransactions.get(i).reference(),
-                    cashTransactions.get(i).cashIn(),
-                    cashTransactions.get(i).cashOut(),
-                    cashTransactions.get(i).paymentMethod(),
-                    cashTransactions.get(i).username(),
-                    cashTransactions.get(i).dateTime()
-            });
-        }
+            @Override
+            protected void done() {
+                try {
+                    var payments = get();
+
+                    int n = 1;
+                    for (var payment : payments) {
+                        model.addRow(new Object[]{
+                                n,
+                                payment.getId(),
+                                payment.getSale().getSaleNumber(),
+                                payment.getPaidAmount(),
+                                payment.getChangeAmount(),
+                                payment.getTransactionType().name(),
+                                payment.getSale().getUser().getName(),
+                                payment.getDate()
+                        });
+                        n++;
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
     }
 
     // Method to create createdAt pickers with the current createdAt
@@ -302,11 +340,8 @@ public class Cash_Transaction extends javax.swing.JPanel {
             LocalDate fromDate = LocalDate.parse(fromDateStr, formatter);
             LocalDate toDate = LocalDate.parse(toDateStr, formatter);
 
-            LocalDateTime fromDateTime = fromDate.atStartOfDay(); // 00:00
-            LocalDateTime toDateTime = toDate.atTime(23, 59, 59); // 23:59:59
-
             // Now, filter the table rows based on the selected createdAt range
-            filterTableByDateRange(fromDateTime, toDateTime);
+            filterTableByDateRange(fromDate, toDate);
         }
     }//GEN-LAST:event_jButton2ActionPerformed
 
@@ -323,34 +358,35 @@ public class Cash_Transaction extends javax.swing.JPanel {
     private javax.swing.JTable table;
     // End of variables declaration//GEN-END:variables
 
-    private void filterTableByDateRange(LocalDateTime fromDate, LocalDateTime toDate) {
+    private void filterTableByDateRange(LocalDate fromDate, LocalDate toDate) {
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         model.setRowCount(0);
 
-        CashTransactionService cashTransactionService = new CashTransactionService();
-        SwingWorker<List<CashTransactionResponseDto>, Void> worker = new SwingWorker<>() {
+        PaymentService paymentService = new PaymentService();
+        SwingWorker<List<Payment>, Void> worker = new SwingWorker<>() {
             @Override
-            protected List<CashTransactionResponseDto> doInBackground() {
-                var cashTransactions = cashTransactionService.getAllValidCashTransactionsByRange(fromDate, toDate);
-                return cashTransactions;
+            protected List<Payment> doInBackground() {
+                return paymentService.getAllCashPaymentsByRange(fromDate, toDate);
             }
 
             @Override
             protected void done() {
                 try {
-                    var cashTransactions = get();
+                    var payments = get();
 
-                    for (int i = 0; i < cashTransactions.size(); i++) {
+                    int n = 1;
+                    for (var payment : payments) {
                         model.addRow(new Object[]{
-                                i + 1,
-                                cashTransactions.get(i).id(),
-                                cashTransactions.get(i).reference(),
-                                cashTransactions.get(i).cashIn(),
-                                cashTransactions.get(i).cashOut(),
-                                cashTransactions.get(i).paymentMethod(),
-                                cashTransactions.get(i).username(),
-                                cashTransactions.get(i).dateTime()
+                                n,
+                                payment.getId(),
+                                payment.getSale().getSaleNumber(),
+                                payment.getPaidAmount(),
+                                payment.getChangeAmount(),
+                                payment.getTransactionType().name(),
+                                payment.getSale().getUser().getName(),
+                                payment.getDate()
                         });
+                        n++;
                     }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);

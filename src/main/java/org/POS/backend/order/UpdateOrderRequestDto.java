@@ -1,14 +1,13 @@
 package org.POS.backend.order;
 
-import java.math.BigDecimal;
+import org.POS.backend.return_product.AddReturnItemRequestDto;
+
 import java.util.List;
 
 public record UpdateOrderRequestDto(
         int orderId,
-        List<Integer> returnedProductIds,
+        List<AddReturnItemRequestDto> returnItems,
         String note,
-        String deliveryAddress,
-        String reason,
-        BigDecimal amount
+        String reason
 ) {
 }

@@ -58,7 +58,7 @@ public class PersonDAO {
             person.setDeletedAt(LocalDate.now());
             session.merge(person);
 
-            userLog.setCode(person.getCode());
+            userLog.setCode(person.getPersonCode());
             userLog.setAction(person.getType().equals(PersonType.CLIENT) ? UserActionPrefixes.CLIENTS_REMOVE_ACTION_LOG_PREFIX : UserActionPrefixes.SUPPLIERS_REMOVE_ACTION_LOG_PREFIX);
             session.persist(userLog);
 
@@ -83,10 +83,6 @@ public class PersonDAO {
             if(person.getType().equals(PersonType.CLIENT)){
                 Hibernate.initialize(person.getSales());
             }
-
-            Hibernate.initialize(person.getOrders());
-            Hibernate.initialize(person.getInvoices());
-            Hibernate.initialize(person.getStocks());
 
         }catch (Exception e){
             System.out.println(e.getMessage());
@@ -122,7 +118,6 @@ public class PersonDAO {
 
             Hibernate.initialize(person.getPurchases());
             Hibernate.initialize(person.getQuotations());
-            Hibernate.initialize(person.getStocks());
             session.getTransaction().commit();
         }catch (Exception e){
             e.printStackTrace();

@@ -95,20 +95,20 @@ public class Inventory extends javax.swing.JPanel {
 
         ProductService productService = new ProductService();
         var products = productService.getAllValidProductsWithLimit();
-        for (int i = 0; i < products.size(); i++) {
-            model.addRow(new Object[]{
-                    i + 1,
-                    products.get(i).id(),
-                    StringChecker.getImageTypeFromBase64(products.get(i).image()),
-                    products.get(i).code(),
-                    products.get(i).name(),
-                    products.get(i).model(),
-                    products.get(i).stock(),
-                    products.get(i).purchasePrice(),
-                    products.get(i).sellingPrice(),
-                    products.get(i).status().name()
-            });
-        }
+//        for (int i = 0; i < products.size(); i++) {
+//            model.addRow(new Object[]{
+//                    i + 1,
+//                    products.get(i).id(),
+//                    StringChecker.getImageTypeFromBase64(products.get(i).image()),
+//                    products.get(i).code(),
+//                    products.get(i).name(),
+//                    products.get(i).model(),
+//                    products.get(i).stock(),
+//                    products.get(i).purchasePrice(),
+//                    products.get(i).sellingPrice(),
+//                    products.get(i).status().name()
+//            });
+//        }
     }
 
 
@@ -286,20 +286,20 @@ public class Inventory extends javax.swing.JPanel {
 
         ProductService productService = new ProductService();
         var products = productService.getAllValidProductByName(name);
-        for (int i = 0; i < products.size(); i++) {
-            model.addRow(new Object[]{
-                    i + 1,
-                    products.get(i).id(),
-                    StringChecker.getImageTypeFromBase64(products.get(i).image()),
-                    products.get(i).code(),
-                    products.get(i).name(),
-                    products.get(i).model(),
-                    products.get(i).stock(),
-                    products.get(i).purchasePrice(),
-                    products.get(i).sellingPrice(),
-                    products.get(i).status().name()
-            });
-        }
+//        for (int i = 0; i < products.size(); i++) {
+//            model.addRow(new Object[]{
+//                    i + 1,
+//                    products.get(i).id(),
+//                    StringChecker.getImageTypeFromBase64(products.get(i).image()),
+//                    products.get(i).code(),
+//                    products.get(i).name(),
+//                    products.get(i).model(),
+//                    products.get(i).stock(),
+//                    products.get(i).purchasePrice(),
+//                    products.get(i).sellingPrice(),
+//                    products.get(i).status().name()
+//            });
+//        }
     }
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed

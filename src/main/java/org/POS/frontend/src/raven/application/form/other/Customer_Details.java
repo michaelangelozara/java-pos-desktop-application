@@ -146,17 +146,17 @@ public class Customer_Details extends javax.swing.JPanel {
                 try {
                     var invoices = get();
 
-                    for (int i = 0; i < invoices.size(); i++) {
-                        model.addRow(new Object[]{
-                                i + 1,
-                                invoices.get(i).getCode(),
-                                invoices.get(i).getDate(),
-                                invoices.get(i).getSale().getNetTotal(),
-                                invoices.get(i).getSale().getAmount(),
-                                invoices.get(i).getSale().getAmountDue(),
-                                invoices.get(i).getStatus().name()
-                        });
-                    }
+//                    for (int i = 0; i < invoices.size(); i++) {
+//                        model.addRow(new Object[]{
+//                                i + 1,
+//                                invoices.get(i).getInvoiceNumber(),
+//                                invoices.get(i).getDate(),
+//                                invoices.get(i).getSale().getNetTotal(),
+//                                invoices.get(i).getSale().getAmount(),
+//                                invoices.get(i).getSale().getAmountDue(),
+//                                invoices.get(i).getStatus().name()
+//                        });
+//                    }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 } catch (ExecutionException e) {
@@ -169,17 +169,17 @@ public class Customer_Details extends javax.swing.JPanel {
 
     private BigDecimal computeInvoiceTotal(List<Invoice> invoices) {
         BigDecimal totalInvoice = BigDecimal.ZERO;
-        for (var invoice : invoices) {
-            totalInvoice = totalInvoice.add(invoice.getSale().getAmount());
-        }
+//        for (var invoice : invoices) {
+//            totalInvoice = totalInvoice.add(invoice.getSale().getAmount());
+//        }
         return totalInvoice;
     }
 
     private BigDecimal computeInvoiceDue(List<Invoice> invoices) {
         BigDecimal totalDue = BigDecimal.ZERO;
-        for (var invoice : invoices) {
-            totalDue = totalDue.add(invoice.getSale().getAmountDue());
-        }
+//        for (var invoice : invoices) {
+//            totalDue = totalDue.add(invoice.getSale().getAmountDue());
+//        }
         return totalDue;
     }
 
@@ -187,17 +187,17 @@ public class Customer_Details extends javax.swing.JPanel {
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         model.setRowCount(0);
 
-        for (int i = 0; i < invoices.size(); i++) {
-            model.addRow(new Object[]{
-                    i + 1,
-                    invoices.get(i).getCode(),
-                    invoices.get(i).getDate(),
-                    invoices.get(i).getSale().getNetTotal(),
-                    invoices.get(i).getSale().getAmount(),
-                    invoices.get(i).getSale().getAmountDue(),
-                    invoices.get(i).getStatus().name()
-            });
-        }
+//        for (int i = 0; i < invoices.size(); i++) {
+//            model.addRow(new Object[]{
+//                    i + 1,
+//                    invoices.get(i).getInvoiceNumber(),
+//                    invoices.get(i).getDate(),
+//                    invoices.get(i).getSale().getNetTotal(),
+//                    invoices.get(i).getSale().getAmount(),
+//                    invoices.get(i).getSale().getAmountDue(),
+//                    invoices.get(i).getStatus().name()
+//            });
+//        }
     }
 
     private void clientProfileInit(String imageBase64) {
@@ -929,7 +929,7 @@ public class Customer_Details extends javax.swing.JPanel {
                     jButton2.setText("Loading...");
                     jButton2.setEnabled(false);
                 });
-                var invoices = invoiceService.getALlValidInvoicesByRange(fromDate, toDate, id);
+                var invoices = invoiceService.getALlValidInvoicesByRangeAndId(fromDate, toDate, id);
                 return invoices;
             }
 
@@ -938,17 +938,17 @@ public class Customer_Details extends javax.swing.JPanel {
                 try {
                     var invoices = get();
 
-                    for (int i = 0; i < invoices.size(); i++) {
-                        model.addRow(new Object[]{
-                                i + 1,
-                                invoices.get(i).getCode(),
-                                invoices.get(i).getDate(),
-                                invoices.get(i).getSale().getNetTotal(),
-                                invoices.get(i).getSale().getAmount(),
-                                invoices.get(i).getSale().getAmountDue(),
-                                invoices.get(i).getStatus().name()
-                        });
-                    }
+//                    for (int i = 0; i < invoices.size(); i++) {
+//                        model.addRow(new Object[]{
+//                                i + 1,
+//                                invoices.get(i).getInvoiceNumber(),
+//                                invoices.get(i).getDate(),
+//                                invoices.get(i).getSale().getNetTotal(),
+//                                invoices.get(i).getSale().getAmount(),
+//                                invoices.get(i).getSale().getAmountDue(),
+//                                invoices.get(i).getStatus().name()
+//                        });
+//                    }
 
                     SwingUtilities.invokeLater(() -> {
                         jButton2.setText("From - To");

@@ -1,10 +1,10 @@
 package product_category;
 
-import org.POS.backend.product_category.*;
-import org.POS.backend.product_subcategory.ProductSubcategory;
+import org.POS.backend.product_category.AddProductCategoryRequestDto;
+import org.POS.backend.product_category.ProductCategoryService;
+import org.POS.backend.product_category.ProductCategoryStatus;
+import org.POS.backend.product_category.UpdateProductCategoryRequestDto;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 public class ProductCategory {
     
