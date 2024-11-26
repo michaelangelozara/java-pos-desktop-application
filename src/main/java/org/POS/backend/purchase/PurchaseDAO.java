@@ -32,7 +32,7 @@ public class PurchaseDAO {
             if (transaction != null) {
                 transaction.rollback();
             }
-            e.printStackTrace();
+            throw e;
         }
     }
 

@@ -14,6 +14,7 @@ import org.jdatepicker.impl.UtilDateModel;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.math.BigDecimal;
@@ -54,10 +55,20 @@ public class Invoice_List extends javax.swing.JPanel {
             }
 
         };
+        makeCellCenter(table);
         table.getColumnModel().getColumn(9).setCellRenderer(new TableActionCellRender());
         table.getColumnModel().getColumn(9).setCellEditor(new TableActionCellEditor(event));
         activateSearch();
         loadInvoices();
+    }
+
+    private void makeCellCenter(JTable table) {
+        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(defaultTableCellRenderer);
+        }
     }
 
     private void activateSearch() {

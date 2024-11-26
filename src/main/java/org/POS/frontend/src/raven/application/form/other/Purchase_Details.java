@@ -4,6 +4,7 @@ package org.POS.frontend.src.raven.application.form.other;
 import org.POS.backend.purchase.Purchase;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -20,36 +21,50 @@ public class Purchase_Details extends JPanel {
         initComponents();
         loadPurchase();
         loadProducts();
+
+        for(int i = 0; i < table4.getColumnCount(); i++){
+            table4.getColumnModel().getColumn(i).setCellRenderer(getRenderer());
+        }
+
+        for(int i = 0; i < table.getColumnCount(); i++){
+            table.getColumnModel().getColumn(i).setCellRenderer(getRenderer());
+        }
+
     }
 
     private void loadPurchase() {
         DefaultTableModel model = (DefaultTableModel) table4.getModel();
         model.setRowCount(0);
 
-//        model.addRow(new Object[]{
-//                purchase.getCode(),
-//                purchase.getCreatedDate(),
-//                purchase.getNote(),
-//                purchase.getStatus().name(),
-//                purchase.getUser().getName()
-//        });
+        model.addRow(new Object[]{
+                purchase.getCode(),
+                purchase.getCreatedDate(),
+                purchase.getNote(),
+                purchase.getCreatedDate(),
+                purchase.getUser().getName()
+        });
+    }
+
+    private DefaultTableCellRenderer getRenderer(){
+        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        return defaultTableCellRenderer;
     }
 
     private void loadProducts() {
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         model.setRowCount(0);
 
-        var purchaseItem = purchase.getPurchaseItems();
-        for (int i = 0; i < purchaseItem.size(); i++) {
-//            model.addRow(new Object[]{
-//                    i + 1,
-//                    purchaseItem.get(i).getProduct().getProductCode(),
-//                    purchaseItem.get(i).getProduct().getName(),
-//                    purchaseItem.get(i).getQuantity(),
-//                    purchaseItem.get(i).getProduct().getSellingPrice(),
-//                    purchaseItem.get(i).getProduct().getSellingPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP),
-//                    purchaseItem.get(i).getProduct().getSellingPrice().multiply(BigDecimal.valueOf(purchaseItem.get(i).getQuantity()))
-//            });
+        var purchaseItems = purchase.getPurchaseItems();
+        int n = 1;
+        for (var purchaseItem : purchaseItems) {
+            model.addRow(new Object[]{
+                    n,
+                    purchaseItem.getCode(),
+                    purchaseItem.getName(),
+                    purchaseItem.getQuantity()
+            });
+            n++;
         }
     }
 
@@ -109,7 +124,7 @@ public class Purchase_Details extends JPanel {
                 new Object[][]{
                 },
                 new String[]{
-                        "Purchase No	", "Purchase Date", "Note	", "Status	", "Created By "
+                        "Purchase No", "Purchase Date", "Note	", "Date", "Created By "
                 }
         ) {
             boolean[] canEdit = new boolean[]{
@@ -153,11 +168,11 @@ public class Purchase_Details extends JPanel {
                 new Object[][]{
                 },
                 new String[]{
-                        "#", "Code", "Product Name	", "Product Quantity	", "Selling Price", "Product Tax", "Subtotal"
+                        "#", "Code", "Product Name	", "Product Quantity"
                 }
         ) {
             boolean[] canEdit = new boolean[]{
-                    false, false, false, false, false, false, false
+                    false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -171,9 +186,6 @@ public class Purchase_Details extends JPanel {
             table.getColumnModel().getColumn(1).setResizable(false);
             table.getColumnModel().getColumn(2).setResizable(false);
             table.getColumnModel().getColumn(3).setResizable(false);
-            table.getColumnModel().getColumn(4).setResizable(false);
-            table.getColumnModel().getColumn(5).setResizable(false);
-            table.getColumnModel().getColumn(6).setResizable(false);
         }
 
         jLabel25.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N

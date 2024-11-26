@@ -3,6 +3,7 @@ package org.POS.frontend.src.raven.application.form.other;
 
 import org.POS.backend.product.ProductResponseDto;
 import org.POS.backend.product.ProductService;
+import org.POS.backend.product.ProductType;
 import org.POS.backend.string_checker.StringChecker;
 import org.POS.frontend.src.raven.application.Application;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
@@ -12,10 +13,13 @@ import org.POS.frontend.src.raven.cell.TableActionEvent;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
@@ -82,11 +86,19 @@ public class Inventory extends javax.swing.JPanel {
                 worker.execute();
             }
         };
-
-
-        table.getColumnModel().getColumn(10).setCellRenderer(new TableActionCellRender());
-        table.getColumnModel().getColumn(10).setCellEditor(new TableActionCellEditor(event));
+        makeCellCenter(table);
+        table.getColumnModel().getColumn(9).setCellRenderer(new TableActionCellRender());
+        table.getColumnModel().getColumn(9).setCellEditor(new TableActionCellEditor(event));
         loadInventory();
+    }
+
+    private void makeCellCenter(JTable table) {
+        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(defaultTableCellRenderer);
+        }
     }
 
     private void loadInventory() {
@@ -94,21 +106,64 @@ public class Inventory extends javax.swing.JPanel {
         model.setRowCount(0);
 
         ProductService productService = new ProductService();
-        var products = productService.getAllValidProductsWithLimit();
-//        for (int i = 0; i < products.size(); i++) {
-//            model.addRow(new Object[]{
-//                    i + 1,
-//                    products.get(i).id(),
-//                    StringChecker.getImageTypeFromBase64(products.get(i).image()),
-//                    products.get(i).code(),
-//                    products.get(i).name(),
-//                    products.get(i).model(),
-//                    products.get(i).stock(),
-//                    products.get(i).purchasePrice(),
-//                    products.get(i).sellingPrice(),
-//                    products.get(i).status().name()
-//            });
-//        }
+        SwingWorker<List<ProductResponseDto>, Void> worker = new SwingWorker<List<ProductResponseDto>, Void>() {
+            @Override
+            protected List<ProductResponseDto> doInBackground() throws Exception {
+                return productService.getAllValidProductsWithLimit();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var products = get();
+
+                    for (int i = 0; i < products.size(); i++) {
+
+                        if(products.get(i).type().equals(ProductType.SIMPLE)){
+                            model.addRow(new Object[]{
+                                    i + 1,
+                                    products.get(i).id(),
+                                    StringChecker.getImageTypeFromBase64(products.get(i).image()),
+                                    products.get(i).code(),
+                                    products.get(i).name(),
+                                    products.get(i).stock(),
+                                    products.get(i).purchasePrice(),
+                                    products.get(i).sellingPrice(),
+                                    products.get(i).status().name()
+                            });
+                            continue;
+                        }
+                        int quantity = 0;
+                        BigDecimal purchasePrice = BigDecimal.ZERO;
+                        BigDecimal sellingPrice = BigDecimal.ZERO;
+                        for(var attribute : products.get(i).productAttributes()){
+                            for(var variation : attribute.getProductVariations()){
+                                quantity += variation.getQuantity();
+                                purchasePrice = purchasePrice.add(variation.getPurchasePrice());
+                                sellingPrice = sellingPrice.add(variation.getSrp());
+                            }
+                        }
+
+                        model.addRow(new Object[]{
+                                i + 1,
+                                products.get(i).id(),
+                                StringChecker.getImageTypeFromBase64(products.get(i).image()),
+                                products.get(i).code(),
+                                products.get(i).name(),
+                                quantity,
+                                purchasePrice,
+                                sellingPrice,
+                                products.get(i).status().name()
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
     }
 
 
@@ -167,14 +222,14 @@ public class Inventory extends javax.swing.JPanel {
 
                 },
                 new String[]{
-                        "#", "ID", "Image", "Code", "Name", "Item Model", "Stocks", "Purchase Price", "Selling Price", "Status", "Action"
+                        "#", "ID", "Image", "Code", "Name",  "Stocks", "Purchase Price", "Selling Price", "Status", "Action"
                 }
         ) {
             Class[] types = new Class[]{
                     java.lang.Object.class, java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
             };
             boolean[] canEdit = new boolean[]{
-                    false, true, false, false, false, true, true, true, true, true, true
+                    false, true, false, false, false, true, true, true, true, true
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -192,7 +247,6 @@ public class Inventory extends javax.swing.JPanel {
             table.getColumnModel().getColumn(2).setResizable(false);
             table.getColumnModel().getColumn(3).setResizable(false);
             table.getColumnModel().getColumn(4).setResizable(false);
-            table.getColumnModel().getColumn(9).setResizable(false);
         }
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);

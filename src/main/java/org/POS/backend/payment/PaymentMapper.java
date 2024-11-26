@@ -5,7 +5,7 @@ import java.time.LocalDate;
 
 public class PaymentMapper {
 
-    public Payment toPayment(AddPaymentRequestDto dto){
+    public Payment toPayment(AddPaymentRequestDto dto) {
         Payment payment = new Payment();
         payment.setDiscountType(dto.discountType());
         payment.setTransactionType(dto.transactionType());

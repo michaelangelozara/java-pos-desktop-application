@@ -11,6 +11,7 @@ import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.math.BigDecimal;
@@ -32,6 +33,7 @@ public class ProfitLoss_Report extends javax.swing.JPanel {
      */
     public ProfitLoss_Report() {
         initComponents();
+        makeCellCenter(jTable1);
         loadTable();
         jLabel23.setText("0.00");
         jLabel24.setText("0.00");
@@ -39,6 +41,15 @@ public class ProfitLoss_Report extends javax.swing.JPanel {
         jButton3.addActionListener(e -> {
             createDatePickerPanel();
         });
+    }
+
+    private void makeCellCenter(JTable table) {
+        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(defaultTableCellRenderer);
+        }
     }
 
     private JDatePickerImpl createDatePicker() {

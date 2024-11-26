@@ -14,6 +14,7 @@ import org.jdatepicker.impl.UtilDateModel;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
@@ -226,20 +227,31 @@ public class Suppliers_List extends javax.swing.JPanel {
             @Override
 
             public void onView(int row) {
-                DefaultTableModel model = (DefaultTableModel) table.getModel();
-                int supplierId = (Integer) model.getValueAt(row, 2);
-
-                PersonService personService = new PersonService();
-                var supplier = personService.getValidPersonById(supplierId);
-                Application.showForm(new Supplier_Details(supplier));
+//                DefaultTableModel model = (DefaultTableModel) table.getModel();
+//                int supplierId = (Integer) model.getValueAt(row, 2);
+//
+//                PersonService personService = new PersonService();
+//                var supplier = personService.getValidPersonById(supplierId);
+//                Application.showForm(new Supplier_Details(supplier));
+                JOptionPane.showMessageDialog(null, "You can't Perform this Action");
 
             }
 
 
         };
+        makeCellCenter(table);
         table.getColumnModel().getColumn(9).setCellRenderer(new TableActionCellRender());
         table.getColumnModel().getColumn(9).setCellEditor(new TableActionCellEditor(event));
         loadSuppliers();
+    }
+
+    private void makeCellCenter(JTable table) {
+        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(defaultTableCellRenderer);
+        }
     }
 
     private void loadSuppliers() {

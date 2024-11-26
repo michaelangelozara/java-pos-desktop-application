@@ -10,6 +10,7 @@ import org.jdatepicker.impl.UtilDateModel;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
@@ -27,7 +28,17 @@ public class Cash_Transaction extends javax.swing.JPanel {
 
     public Cash_Transaction() {
         initComponents();
+        makeCellCenter(table);
         loadCashTransactions();
+    }
+
+    private void makeCellCenter(JTable table) {
+        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(defaultTableCellRenderer);
+        }
     }
 
     private void loadCashTransactions() {

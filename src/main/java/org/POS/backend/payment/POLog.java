@@ -24,6 +24,9 @@ public class POLog {
     @Column(name = "paid_amount")
     private BigDecimal paidAmount;
 
+    @Column(name = "amount_due")
+    private BigDecimal recentAmountDue;
+
     @ManyToOne
     @JoinColumn(name = "payment_id")
     private Payment payment;

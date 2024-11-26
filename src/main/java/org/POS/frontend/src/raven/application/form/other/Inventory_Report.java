@@ -15,6 +15,7 @@ import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
@@ -38,6 +39,15 @@ public class Inventory_Report extends javax.swing.JPanel {
      */
     public Inventory_Report() {
         initComponents();
+    }
+
+    private void makeCellCenter(JTable table) {
+        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(defaultTableCellRenderer);
+        }
     }
 
     /**
@@ -276,6 +286,7 @@ public class Inventory_Report extends javax.swing.JPanel {
 
             if (categoryId != null) {
                 recentCategoryId = categoryId;
+                makeCellCenter(jTable1);
                 loadInventories(categoryId);
             }
         });

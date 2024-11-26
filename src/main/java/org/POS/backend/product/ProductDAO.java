@@ -92,6 +92,7 @@ public class ProductDAO {
             for(var product : products){
                 Hibernate.initialize(product.getStocks());
                 Hibernate.initialize(product.getProductAttributes());
+                product.getProductAttributes().forEach(p -> Hibernate.initialize(p.getProductVariations()));
             }
             session.getTransaction().commit();
             return products;

@@ -15,6 +15,7 @@ import org.jdatepicker.impl.UtilDateModel;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import java.awt.*;
@@ -72,6 +73,7 @@ public class Return_List extends javax.swing.JPanel {
         };
         table.getColumnModel().getColumn(7).setCellRenderer(new TableActionCellRender());
         table.getColumnModel().getColumn(7).setCellEditor(new TableActionCellEditor(event));
+        makeCellCenter(table);
         loadReturnList();
         jTextField1.getDocument().addDocumentListener(new DocumentListener() {
             @Override
@@ -89,6 +91,14 @@ public class Return_List extends javax.swing.JPanel {
                 scheduleQuery();
             }
         });
+    }
+    private void makeCellCenter(JTable table) {
+        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(defaultTableCellRenderer);
+        }
     }
 
     private void scheduleQuery() {

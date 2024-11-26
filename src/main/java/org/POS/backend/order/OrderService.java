@@ -64,12 +64,14 @@ public class OrderService {
             try{
                 var sale = order.getSale();
                 var payment = sale.getPayment();
+
                 payment.setAmountDue(payment.getAmountDue().subtract(pay));
 
                 POLog poLog = new POLog();
                 payment.addPOLog(poLog);
                 poLog.setPaidAmount(pay);
                 poLog.setDate(LocalDate.now());
+                poLog.setRecentAmountDue(payment.getAmountDue());
 
                 if (payment.getAmountDue().compareTo(BigDecimal.ZERO) <= 0) {
                     order.setStatus(OrderStatus.COMPLETED);
@@ -118,6 +120,7 @@ public class OrderService {
 
                 BigDecimal costOfReturnedProducts = BigDecimal.ZERO;
                 for (var saleProduct : saleItems) {
+                    boolean isValid = false;
                     for (var returnItemDto : dto.returnItems()) {
 
                         if (saleProduct.getId().equals(returnItemDto.productId())) {
@@ -134,6 +137,11 @@ public class OrderService {
                             if (product.getProductType().equals(ProductType.VARIABLE)) {
                                 var tempVariation = saleProduct.getProductVariation();
                                 tempVariation.setQuantity(tempVariation.getQuantity() + returnItemDto.returnedQuantity());
+
+                                // check if this variation's quantity is equal zero
+                                if(tempVariation.getQuantity() <= 0)
+                                    order.setStatus(OrderStatus.RETURNED);
+
                             } else {
                                 product.setStock(product.getStock() + returnItemDto.returnedQuantity());
                             }
@@ -150,11 +158,26 @@ public class OrderService {
                             costOfReturnedProducts = costOfReturnedProducts.add(stock.getPrice());
 
                             updatedProducts.add(product);
+                            isValid = true;
                             break;
                         }
                     }
 
+                    if(!isValid)
+                        throw new RuntimeException("Invalid Order Operation");
                 }
+
+                // check if all the products' quantity under the current order are 0
+                boolean areQuantitiesZero = true;
+                for(var saleProduct : saleItems){
+                    if(saleProduct.getQuantity() > 0){
+                        areQuantitiesZero = false;
+                        break;
+                    }
+                }
+
+                if(areQuantitiesZero)
+                    order.setStatus(OrderStatus.RETURNED);
 
                 returnOrder.setCostOfReturnProducts(costOfReturnedProducts);
                 var sale = order.getSale();

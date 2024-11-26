@@ -9,6 +9,7 @@ import org.POS.frontend.src.raven.cell.TableActionEvent;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
@@ -224,9 +225,18 @@ public class Expenses_Category extends javax.swing.JPanel {
                 JOptionPane.showMessageDialog(null, panel, "View Category", JOptionPane.INFORMATION_MESSAGE);
             }
         };
+        makeCellCenter(table);
         table.getColumnModel().getColumn(6).setCellRenderer(new TableActionCellRender());
         table.getColumnModel().getColumn(6).setCellEditor(new TableActionCellEditor(event));
         loadCategories();
+    }
+    private void makeCellCenter(JTable table) {
+        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(defaultTableCellRenderer);
+        }
     }
 
     private void loadCategories() {

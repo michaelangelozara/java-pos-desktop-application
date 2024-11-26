@@ -3,7 +3,16 @@ package org.POS.frontend.src.raven.application.form;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.util.UIScale;
+import org.POS.backend.code_generator.CodeGeneratorService;
 import org.POS.backend.global_variable.CurrentUser;
+import org.POS.backend.global_variable.GlobalVariable;
+import org.POS.backend.global_variable.UserActionPrefixes;
+import org.POS.backend.open_cash.OpenCash;
+import org.POS.backend.open_cash.OpenCashDAO;
+import org.POS.backend.open_cash.OpenCashType;
+import org.POS.backend.user.User;
+import org.POS.backend.user.UserDAO;
+import org.POS.backend.user_log.UserLog;
 import org.POS.frontend.src.raven.application.Application;
 import org.POS.frontend.src.raven.application.form.other.*;
 import org.POS.frontend.src.raven.menu.Menu;
@@ -15,6 +24,9 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * @author Raven
@@ -155,9 +167,35 @@ public class MainForm extends JLayeredPane {
                     break;
                 case 16:
                     if (CurrentUser.isPosLoginSetup) {
-                        int result = JOptionPane.showConfirmDialog(null, "Close the Register for Final Cash", "Confirmation", JOptionPane.WARNING_MESSAGE);
-                        if (result == JOptionPane.OK_OPTION) {
-                            Application.showForm(new POS());
+                        try {
+                            String result = JOptionPane.showInputDialog(null, "Close the Register for Final Cash", "Confirmation", JOptionPane.WARNING_MESSAGE);
+                            double cashOut = Double.parseDouble(result);
+
+                            CodeGeneratorService codeGeneratorService = new CodeGeneratorService();
+                            // save here
+                            UserDAO userDAO = new UserDAO();
+                            OpenCashDAO openCashDAO = new OpenCashDAO();
+                            User user = userDAO.getUserById(CurrentUser.id);
+
+                            OpenCash openCash = new OpenCash();
+                            openCash.setCash(BigDecimal.valueOf(cashOut));
+                            openCash.setNote("Log Out");
+                            openCash.setCode(codeGeneratorService.generateProductCode(GlobalVariable.OPEN_CASH_PREFIX));
+                            openCash.setType(OpenCashType.OUT);
+                            openCash.setDateTime(LocalDateTime.now());
+                            openCash.setUser(user);
+
+                            UserLog userLog = new UserLog();
+                            userLog.setCode(openCash.getCode());
+                            userLog.setDate(LocalDate.now());
+                            userLog.setAction(UserActionPrefixes.OPEN_CASH_ACTION_LOG_PREFIX);
+                            userLog.setUser(user);
+
+                            openCashDAO.add(openCash, userLog);
+                            CurrentUser.isPosLoginSetup = false;
+                            Application.logout();
+                        } catch (Exception e) {
+                            JOptionPane.showMessageDialog(null, "Make sure to Enter Number only.");
                         }
                     } else {
                         Application.logout();

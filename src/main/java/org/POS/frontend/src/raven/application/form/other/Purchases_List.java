@@ -18,6 +18,8 @@ import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -232,7 +234,7 @@ public class Purchases_List extends javax.swing.JPanel {
                                 var purchasedItems = purchase.purchaseItems();
                                 int n = 1;
                                 for (var purchaseItem : purchasedItems) {
-                                    if(purchaseItem.isDeleted()) continue;
+                                    if (purchaseItem.isDeleted()) continue;
 
                                     tableModel.addRow(new Object[]{
                                             n,
@@ -257,7 +259,7 @@ public class Purchases_List extends javax.swing.JPanel {
                 int result = JOptionPane.showConfirmDialog(null, panel, "Create Purchase Order", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
                 if (result == JOptionPane.OK_OPTION) {
-                    try{
+                    try {
                         Set<PurchaseItem> purchaseItemList = new HashSet<>();
 
                         var purchaseItems = getAllRows(tableModel);
@@ -275,7 +277,7 @@ public class Purchases_List extends javax.swing.JPanel {
                                 noteArea.getText()
                         );
                         purchaseService.update(dto, purchaseItemList);
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         JOptionPane.showMessageDialog(null, e.getMessage());
                     }
                 }
@@ -417,9 +419,36 @@ public class Purchases_List extends javax.swing.JPanel {
 
         };
 
-        table.getColumnModel().getColumn(6).setCellRenderer(new TableActionCellRender());
-        table.getColumnModel().getColumn(6).setCellEditor(new TableActionCellEditor(event));
+        makeCellCenter(table);
+        table.getColumnModel().getColumn(5).setCellRenderer(new TableActionCellRender());
+        table.getColumnModel().getColumn(5).setCellEditor(new TableActionCellEditor(event));
         loadPurchases();
+
+        jTextField1.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+        });
+    }
+
+    private void makeCellCenter(JTable table) {
+        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(defaultTableCellRenderer);
+        }
     }
 
     private void loadPurchases() {
@@ -429,7 +458,7 @@ public class Purchases_List extends javax.swing.JPanel {
         PurchaseService purchaseService = new PurchaseService();
         SwingWorker<List<PurchaseResponseDto>, Void> worker = new SwingWorker<List<PurchaseResponseDto>, Void>() {
             @Override
-            protected List<PurchaseResponseDto> doInBackground() throws Exception {
+            protected List<PurchaseResponseDto> doInBackground() {
                 var purchases = purchaseService.getAllValidPurchases();
                 return purchases;
             }
@@ -445,8 +474,7 @@ public class Purchases_List extends javax.swing.JPanel {
                                 purchases.get(i).id(),
                                 purchases.get(i).code(),
                                 purchases.get(i).date(),
-                                purchases.get(i).person().getName(),
-                                "Active"
+                                purchases.get(i).person().getName()
                         });
                     }
                 } catch (Exception e) {
@@ -489,17 +517,17 @@ public class Purchases_List extends javax.swing.JPanel {
             }
         });
 
-        jTextField1.setText("Search");
+        jTextField1.setText("");
 
         table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
                 },
                 new String[]{
-                        "#", "ID", "Purchase #", "Date", "Supplier", "Status", "Action"
+                        "#", "ID", "Purchase #", "Date", "Supplier", "Action"
                 }
         ) {
             boolean[] canEdit = new boolean[]{
-                    false, false, false, false, false, false, true
+                    false, false, false, false, false, true
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -513,7 +541,6 @@ public class Purchases_List extends javax.swing.JPanel {
             table.getColumnModel().getColumn(1).setResizable(false);
             table.getColumnModel().getColumn(2).setResizable(false);
             table.getColumnModel().getColumn(3).setResizable(false);
-            table.getColumnModel().getColumn(4).setResizable(false);
             table.getColumnModel().getColumn(4).setResizable(false);
         }
 
@@ -624,7 +651,7 @@ public class Purchases_List extends javax.swing.JPanel {
 
         PurchaseService purchaseService = new PurchaseService();
 
-        SwingWorker<List<PurchaseResponseDto>, Void> worker = new SwingWorker<List<PurchaseResponseDto>, Void>() {
+        SwingWorker<List<PurchaseResponseDto>, Void> worker = new SwingWorker<>() {
             @Override
             protected List<PurchaseResponseDto> doInBackground() throws Exception {
                 var purchases = purchaseService.getAllValidPurchaseByCodeAndSupplierName(query);
@@ -639,10 +666,10 @@ public class Purchases_List extends javax.swing.JPanel {
                     for (int i = 0; i < purchases.size(); i++) {
                         model.addRow(new Object[]{
                                 i + 1,
+                                purchases.get(i).id(),
                                 purchases.get(i).code(),
                                 purchases.get(i).date(),
-                                purchases.get(i).person().getName(),
-                                "Active"
+                                purchases.get(i).person().getName()
                         });
                     }
 
@@ -870,13 +897,21 @@ public class Purchases_List extends javax.swing.JPanel {
             SwingWorker<Void, Void> purchaseWorker = new SwingWorker<>() {
                 @Override
                 protected Void doInBackground() throws Exception {
-                    purchaseService.add(dto, purchaseItemList);
+                    try {
+                        purchaseService.add(dto, purchaseItemList);
+                    } catch (Exception e) {
+                        throw e;
+                    }
                     return null;
                 }
 
                 @Override
                 protected void done() {
-                    JOptionPane.showMessageDialog(null, "Purchase added");
+                    try {
+                        JOptionPane.showMessageDialog(null, "Purchase added");
+                    } catch (Exception e) {
+                        JOptionPane.showMessageDialog(null, "Unable to Create Purchase");
+                    }
                     loadPurchases();
                 }
             };
@@ -888,9 +923,9 @@ public class Purchases_List extends javax.swing.JPanel {
         List<PurchaseListedProduct> rows = new ArrayList<>();
         for (int i = 0; i < model.getRowCount(); i++) {
 
-            Integer id = (Integer) model.getValueAt(i, 1);
-            String name = (String) model.getValueAt(i, 2);
-            int quantity = Integer.parseInt(model.getValueAt(i, 3).toString());
+            Integer id = Integer.parseInt(model.getValueAt(i, 0).toString());
+            String name = (String) model.getValueAt(i, 1);
+            int quantity = Integer.parseInt(model.getValueAt(i, 2).toString());
             // Create a new `PurchaseListedProduct` instance with the parsed values and add it to the list
             PurchaseListedProduct purchaseListedProduct = new PurchaseListedProduct(
                     id,
@@ -1015,7 +1050,7 @@ public class Purchases_List extends javax.swing.JPanel {
         PurchaseService purchaseService = new PurchaseService();
 
 
-        SwingWorker<List<PurchaseResponseDto>, Void> worker = new SwingWorker<List<PurchaseResponseDto>, Void>() {
+        SwingWorker<List<PurchaseResponseDto>, Void> worker = new SwingWorker<>() {
             @Override
             protected List<PurchaseResponseDto> doInBackground() throws Exception {
                 var purchases = purchaseService.getAllValidPurchaseByRange(fromDate, toDate);
@@ -1033,8 +1068,7 @@ public class Purchases_List extends javax.swing.JPanel {
                                 purchases.get(i).id(),
                                 purchases.get(i).code(),
                                 purchases.get(i).date(),
-                                purchases.get(i).person().getName(),
-                                "Active"
+                                purchases.get(i).person().getName()
                         });
                     }
                 } catch (Exception e) {

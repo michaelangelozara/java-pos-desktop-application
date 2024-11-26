@@ -5,6 +5,7 @@
 package org.POS.frontend.src.raven.application.form.other;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 import org.POS.backend.sale.Sale;
@@ -30,10 +31,20 @@ public class CollectionByUser_Report extends javax.swing.JPanel {
      */
     public CollectionByUser_Report() {
         initComponents();
+        makeCellCenter(table);
         loadTable();
         jButton3.addActionListener(e -> {
             openDateRangePanel();
         });
+    }
+
+    private void makeCellCenter(JTable table) {
+        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(defaultTableCellRenderer);
+        }
     }
 
     private void openDateRangePanel(){

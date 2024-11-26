@@ -204,9 +204,19 @@ public class Quotation_List extends javax.swing.JPanel {
 
 
         };
+        makeCellCenter(table);
         table.getColumnModel().getColumn(6).setCellRenderer(new TableActionCellRender());
         table.getColumnModel().getColumn(6).setCellEditor(new TableActionCellEditor(event));
         loadQuotations();
+    }
+
+    private void makeCellCenter(JTable table) {
+        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(defaultTableCellRenderer);
+        }
     }
 
     private void loadQuotations() {

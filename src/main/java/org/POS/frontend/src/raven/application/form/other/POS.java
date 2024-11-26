@@ -1069,100 +1069,101 @@ public class POS extends JPanel {
         saveButton.setForeground(Color.WHITE);
         saveButton.setFont(new Font("Arial", Font.BOLD, 18));
         saveButton.addActionListener(e -> {
-            String referenceNumber = referenceField.getText().trim();
-            if (referenceNumber.isEmpty()) {
-                JOptionPane.showMessageDialog(paymentModal, "Reference Number cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
-            } else {
-                SaleService saleService = new SaleService();
-                if (selectClientId == null) {
-                    JOptionPane.showMessageDialog(null, "Please Select Customer First");
-                    return;
-                }
-                AddSaleRequestDto dto = new AddSaleRequestDto(
-                        selectClientId
-                );
-
-                List<AddSaleProductRequestDto> saleProductDtoList = new ArrayList<>();
-                for (var saleProduct : selectedProductSet) {
-                    for (var row : getAllRows()) {
-                        if (row.getId().equals(saleProduct.getId()) && saleProduct.getType().equals(ProductType.SIMPLE)) {
-                            AddSaleProductRequestDto saleDto = new AddSaleProductRequestDto(
-                                    saleProduct.getId(),
-                                    saleProduct.getPrice(),
-                                    row.getQuantity(),
-                                    saleProduct.getVariationId()
-                            );
-                            saleProductDtoList.add(saleDto);
-                            break;
-                        }
-
-                        if (row.getId().equals(saleProduct.getId()) && saleProduct.getType().equals(ProductType.VARIABLE)) {
-                            AddSaleProductRequestDto saleDto = new AddSaleProductRequestDto(
-                                    saleProduct.getId(),
-                                    saleProduct.getPrice(),
-                                    row.getQuantity(),
-                                    saleProduct.getVariationId()
-                            );
-                            saleProductDtoList.add(saleDto);
-                            break;
-                        }
-                    }
-                }
-                AddShippingRequestDto shippingDto = new AddShippingRequestDto(
-                        shipping.getName(),
-                        shipping.getPhoneNumber(),
-                        shipping.getShippingAddress(),
-                        shipping.getCity(),
-                        shipping.getBarangay(),
-                        shipping.getLandmark(),
-                        shipping.getNote()
-                );
-                AddPaymentRequestDto paymentDto = new AddPaymentRequestDto(
-                        discount.getType(),
-                        discount.getAmount(),
-                        TransactionType.PO,
-                        BigDecimal.ZERO,
-                        ""
-                );
-                List<AdditionalFee> additionalFees = new ArrayList<>();
-                for (var addFee : addFees) {
-                    AdditionalFee additionalFee = new AdditionalFee();
-                    additionalFee.setTitle(addFee.getName());
-                    additionalFee.setAmount(BigDecimal.valueOf(addFee.getAmount()));
-                    additionalFees.add(additionalFee);
-                }
-
-                SwingWorker<Void, Void> worker = new SwingWorker<>() {
-                    @Override
-                    protected Void doInBackground() {
-                        try{
-                            saleService.add(
-                                    dto,
-                                    saleProductDtoList,
-                                    shippingDto,
-                                    paymentDto,
-                                    additionalFees
-                            );
-                        }catch (Exception e){
-                            e.printStackTrace();
-                        }
-                        return null;
-                    }
-
-                    @Override
-                    protected void done() {
-                        try {
-                            JOptionPane.showMessageDialog(paymentDialog, "Payment successful!\n\nCash In : " + totalAmount + "\nDate: " + LocalDate.now(), "Success", JOptionPane.INFORMATION_MESSAGE);
-                            reset();
-                            paymentDialog.dispose();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            JOptionPane.showMessageDialog(paymentDialog, "An error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                        }
-                    }
-                };
-                worker.execute();
+            if(paymentType.equals("Online") && referenceField.getText().isEmpty()){
+                JOptionPane.showMessageDialog(null, "Please Enter the Reference Number");
+                return;
             }
+
+            SaleService saleService = new SaleService();
+            if (selectClientId == null) {
+                JOptionPane.showMessageDialog(null, "Please Select Customer First");
+                return;
+            }
+            AddSaleRequestDto dto = new AddSaleRequestDto(
+                    selectClientId
+            );
+
+            List<AddSaleProductRequestDto> saleProductDtoList = new ArrayList<>();
+            for (var saleProduct : selectedProductSet) {
+                for (var row : getAllRows()) {
+                    if (row.getId().equals(saleProduct.getId()) && saleProduct.getType().equals(ProductType.SIMPLE)) {
+                        AddSaleProductRequestDto saleDto = new AddSaleProductRequestDto(
+                                saleProduct.getId(),
+                                saleProduct.getPrice(),
+                                row.getQuantity(),
+                                saleProduct.getVariationId()
+                        );
+                        saleProductDtoList.add(saleDto);
+                        break;
+                    }
+
+                    if (row.getId().equals(saleProduct.getId()) && saleProduct.getType().equals(ProductType.VARIABLE)) {
+                        AddSaleProductRequestDto saleDto = new AddSaleProductRequestDto(
+                                saleProduct.getId(),
+                                saleProduct.getPrice(),
+                                row.getQuantity(),
+                                saleProduct.getVariationId()
+                        );
+                        saleProductDtoList.add(saleDto);
+                        break;
+                    }
+                }
+            }
+            AddShippingRequestDto shippingDto = new AddShippingRequestDto(
+                    shipping.getName(),
+                    shipping.getPhoneNumber(),
+                    shipping.getShippingAddress(),
+                    shipping.getCity(),
+                    shipping.getBarangay(),
+                    shipping.getLandmark(),
+                    shipping.getNote()
+            );
+            AddPaymentRequestDto paymentDto = new AddPaymentRequestDto(
+                    discount.getType(),
+                    discount.getAmount(),
+                    paymentType.equals("Online") ? TransactionType.ONLINE : TransactionType.PO,
+                    BigDecimal.ZERO,
+                    paymentType.equals("Online") ? referenceField.getText() : ""
+            );
+            List<AdditionalFee> additionalFees = new ArrayList<>();
+            for (var addFee : addFees) {
+                AdditionalFee additionalFee = new AdditionalFee();
+                additionalFee.setTitle(addFee.getName());
+                additionalFee.setAmount(BigDecimal.valueOf(addFee.getAmount()));
+                additionalFees.add(additionalFee);
+            }
+
+            SwingWorker<Void, Void> worker = new SwingWorker<>() {
+                @Override
+                protected Void doInBackground() {
+                    try {
+                        saleService.add(
+                                dto,
+                                saleProductDtoList,
+                                shippingDto,
+                                paymentDto,
+                                additionalFees
+                        );
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        JOptionPane.showMessageDialog(paymentDialog, "Payment successful!\n\nCash In : " + totalAmount + "\nDate: " + LocalDate.now(), "Success", JOptionPane.INFORMATION_MESSAGE);
+                        reset();
+                        paymentDialog.dispose();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        JOptionPane.showMessageDialog(paymentDialog, "An error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            };
+            worker.execute();
+
         });
 
         // Layout
@@ -1175,14 +1176,16 @@ public class POS extends JPanel {
         gbc.gridwidth = 2; // Span across two columns
         paymentModal.add(totalLabel, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.gridwidth = 1; // Reset to single column
-        paymentModal.add(referenceLabel, gbc);
+        if(paymentType.equals("Online")){
+            gbc.gridx = 0;
+            gbc.gridy = 1;
+            gbc.gridwidth = 1; // Reset to single column
+            paymentModal.add(referenceLabel, gbc);
 
-        gbc.gridx = 1;
-        gbc.gridy = 1;
-        paymentModal.add(referenceField, gbc);
+            gbc.gridx = 1;
+            gbc.gridy = 1;
+            paymentModal.add(referenceField, gbc);
+        }
 
         gbc.gridx = 0;
         gbc.gridy = 2;
@@ -1420,7 +1423,7 @@ public class POS extends JPanel {
                         discount.getType(),
                         discount.getAmount(),
                         TransactionType.CASH,
-                        BigDecimal.valueOf(finalSummationOfTotal),
+                        BigDecimal.valueOf(Double.parseDouble(tendered)),
                         ""
                 );
                 List<AdditionalFee> additionalFees = new ArrayList<>();
@@ -1434,7 +1437,7 @@ public class POS extends JPanel {
                 SwingWorker<Void, Void> worker = new SwingWorker<>() {
                     @Override
                     protected Void doInBackground() {
-                        try{
+                        try {
                             saleService.add(
                                     dto,
                                     saleProductDtoList,
@@ -1442,7 +1445,7 @@ public class POS extends JPanel {
                                     paymentDto,
                                     additionalFees
                             );
-                        }catch (Exception e){
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                         return null;
@@ -1763,6 +1766,7 @@ public class POS extends JPanel {
                     discountDialog.dispose();
                 } else {
                     discount.setAmount(0D);
+                    discount.setType(PaymentDiscountType.NO_DISCOUNT);
                     JOptionPane.showMessageDialog(null, "Please Select Discount Type");
                 }
             } catch (Exception ex) {
@@ -1831,7 +1835,7 @@ public class POS extends JPanel {
             fields[i] = textField;
         }
 
-        if(shipping != null){
+        if (shipping != null) {
             fields[0].setText(shipping.getName());
             fields[1].setText(shipping.getPhoneNumber());
             fields[2].setText(shipping.getShippingAddress());

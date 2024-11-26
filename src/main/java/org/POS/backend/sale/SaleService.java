@@ -185,10 +185,12 @@ public class SaleService {
             // set up the payment
             if (paymentRequestDto.transactionType().equals(TransactionType.PO)) {
                 order.setStatus(OrderStatus.PENDING);
+                payment.setChangeAmount(BigDecimal.ZERO);
                 payment.setReferenceNumber(this.codeGeneratorService.generateProductCode(GlobalVariable.SALE_PREFIX));
                 payment.setAmountDue(sale.getNetTotal());
             } else if(paymentRequestDto.transactionType().equals(TransactionType.CASH)) {
                 payment.setAmountDue(BigDecimal.ZERO);
+                payment.setChangeAmount(paymentRequestDto.paidAmount().subtract(sale.getNetTotal()));
                 order.setStatus(OrderStatus.COMPLETED);
                 payment.setReferenceNumber(this.codeGeneratorService.generateProductCode(GlobalVariable.SALE_PREFIX));
             }else{

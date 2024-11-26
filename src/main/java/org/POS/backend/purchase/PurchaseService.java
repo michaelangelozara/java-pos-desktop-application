@@ -48,32 +48,36 @@ public class PurchaseService {
     }
 
     public void add(AddPurchaseRequestDto dto, Set<PurchaseItem> purchaseItemSet) {
-        var supplier = this.personDAO.getValidPersonByTypeAndId(dto.supplierId(), PersonType.SUPPLIER);
-        var admin = this.userDAO.getUserById(CurrentUser.id);
+        try {
+            var supplier = this.personDAO.getValidPersonByTypeAndId(dto.supplierId(), PersonType.SUPPLIER);
+            var admin = this.userDAO.getUserById(CurrentUser.id);
 
-        if (admin == null) throw new RuntimeException("Invalid User");
+            if (admin == null) throw new RuntimeException("Invalid User");
 
-        if (supplier == null) throw new RuntimeException("Invalid Supplier");
+            if (supplier == null) throw new RuntimeException("Invalid Supplier");
 
-        Purchase purchase = new Purchase();
-        purchase.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.PURCHASE_PREFIX));
-        purchase.setNote(dto.note());
-        purchase.setCreatedDate(LocalDate.now());
-        purchase.setPerson(supplier);
-        purchase.setUser(admin);
+            Purchase purchase = new Purchase();
+            purchase.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.PURCHASE_PREFIX));
+            purchase.setNote(dto.note());
+            purchase.setCreatedDate(LocalDate.now());
+            purchase.setPerson(supplier);
+            purchase.setUser(admin);
 
-        for (var purchaseItem : purchaseItemSet) {
-            purchaseItem.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.PURCHASE_ITEM_PREFIX));
-            purchase.addPurchaseItem(purchaseItem);
+            for (var purchaseItem : purchaseItemSet) {
+                purchaseItem.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.PURCHASE_ITEM_PREFIX));
+                purchase.addPurchaseItem(purchaseItem);
+            }
+
+            UserLog userLog = new UserLog();
+            userLog.setCode(purchase.getCode());
+            userLog.setDate(LocalDate.now());
+            userLog.setAction(UserActionPrefixes.PURCHASES_ADD_ACTION_LOG_PREFIX);
+            admin.addUserLog(userLog);
+
+            this.purchaseDAO.add(purchase, userLog);
+        }catch (Exception e){
+            throw e;
         }
-
-        UserLog userLog = new UserLog();
-        userLog.setCode(purchase.getCode());
-        userLog.setDate(LocalDate.now());
-        userLog.setAction(UserActionPrefixes.PURCHASES_ADD_ACTION_LOG_PREFIX);
-        admin.addUserLog(userLog);
-
-        this.purchaseDAO.add(purchase, userLog);
     }
 
     public void update(UpdatePurchaseRequestDto dto, Set<PurchaseItem> purchaseItems) {

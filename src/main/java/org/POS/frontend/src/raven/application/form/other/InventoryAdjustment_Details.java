@@ -10,6 +10,7 @@ import org.jdatepicker.impl.UtilDateModel;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.time.LocalDate;
 import java.util.List;
@@ -27,6 +28,9 @@ public class InventoryAdjustment_Details extends javax.swing.JPanel {
     public InventoryAdjustment_Details(InventoryAdjustmentResponseDto inventoryAdjustment) {
         this.inventoryAdjustment = inventoryAdjustment;
         initComponents();
+        makeCellCenter(jTable1);
+        makeCellCenter(jTable2);
+        makeCellCenter(jTable3);
         loadUpperTable();
         loadLowerTable();
         materialTabbed1.addChangeListener(e -> {
@@ -36,6 +40,15 @@ public class InventoryAdjustment_Details extends javax.swing.JPanel {
                 loadLogs();
             }
         });
+    }
+
+    private void makeCellCenter(JTable table) {
+        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(defaultTableCellRenderer);
+        }
     }
 
     private void loadUpperTable() {

@@ -10,6 +10,7 @@ import org.POS.frontend.src.raven.cell.TableActionEvent;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
@@ -276,8 +277,17 @@ public class User_List extends javax.swing.JPanel {
         };
         table.getColumnModel().getColumn(8).setCellRenderer(new TableActionCellRender());
         table.getColumnModel().getColumn(8).setCellEditor(new TableActionCellEditor(event));
-
+        makeCellCenter(table);
         loadUsers();
+    }
+
+    private void makeCellCenter(JTable table) {
+        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(defaultTableCellRenderer);
+        }
     }
 
     private void loadUsers() {

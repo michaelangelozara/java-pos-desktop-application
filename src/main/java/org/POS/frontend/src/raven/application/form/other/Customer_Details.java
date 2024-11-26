@@ -12,6 +12,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -29,10 +30,6 @@ public class Customer_Details extends javax.swing.JPanel {
 
     private PersonResponseDto client;
 
-    private ImageIcon clientImage;
-
-    private boolean hasProfile = false;
-
     private List<Invoice> savedInvoices = new ArrayList<>();
 
     private Timer timer;
@@ -40,8 +37,9 @@ public class Customer_Details extends javax.swing.JPanel {
     public Customer_Details(PersonResponseDto client) {
         this.client = client;
         // initialize the client's image by passing base64 as argument
-        clientProfileInit(client.image());
         initComponents();
+        makeCellCenter(table);
+        makeCellCenter(table1);
         loadClientInformation();
         loadInvoices();
         jTextField2.getDocument().addDocumentListener(new DocumentListener() {
@@ -60,6 +58,15 @@ public class Customer_Details extends javax.swing.JPanel {
                 scheduleQuery();
             }
         });
+    }
+
+    private void makeCellCenter(JTable table) {
+        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(defaultTableCellRenderer);
+        }
     }
 
     private void loadClientInformation() {
@@ -93,7 +100,7 @@ public class Customer_Details extends javax.swing.JPanel {
                     var invoices = get();
                     savedInvoices = invoices;
                     SwingUtilities.invokeLater(() -> {
-                        String totalInvoice = String.valueOf(computeInvoiceTotal(invoices));
+                        String totalInvoice = String.valueOf(fcomputeInvoiceTotal(invoices));
                         jLabel17.setText("₱ " + totalInvoice);
 
                         String totalDue = String.valueOf(computeInvoiceDue(invoices));
@@ -145,18 +152,27 @@ public class Customer_Details extends javax.swing.JPanel {
             protected void done() {
                 try {
                     var invoices = get();
+                    int n = 1;
+                    for (var invoice : invoices) {
+                        model.addRow(new Object[]{
+                                n,
+                                invoice.getInvoiceNumber(),
+                                invoice.getSale().getDate(),
+                                invoice.getSale().getNetTotal(),
+                                invoice.getSale().getPayment().getPaidAmount(),
+                                invoice.getSale().getPayment().getAmountDue(),
+                                invoice.getSale().getOrder().getStatus()
+                        });
+                        n++;
+                    }
 
-//                    for (int i = 0; i < invoices.size(); i++) {
-//                        model.addRow(new Object[]{
-//                                i + 1,
-//                                invoices.get(i).getInvoiceNumber(),
-//                                invoices.get(i).getDate(),
-//                                invoices.get(i).getSale().getNetTotal(),
-//                                invoices.get(i).getSale().getAmount(),
-//                                invoices.get(i).getSale().getAmountDue(),
-//                                invoices.get(i).getStatus().name()
-//                        });
-//                    }
+                    SwingUtilities.invokeLater(() -> {
+                        String totalInvoice = String.valueOf(fcomputeInvoiceTotal(invoices));
+                        jLabel17.setText("₱ " + totalInvoice);
+
+                        String totalDue = String.valueOf(computeInvoiceDue(invoices));
+                        jLabel18.setText("₱ " + totalDue);
+                    });
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 } catch (ExecutionException e) {
@@ -167,19 +183,19 @@ public class Customer_Details extends javax.swing.JPanel {
         worker.execute();
     }
 
-    private BigDecimal computeInvoiceTotal(List<Invoice> invoices) {
+    private BigDecimal fcomputeInvoiceTotal(List<Invoice> invoices) {
         BigDecimal totalInvoice = BigDecimal.ZERO;
-//        for (var invoice : invoices) {
-//            totalInvoice = totalInvoice.add(invoice.getSale().getAmount());
-//        }
+        for (var invoice : invoices) {
+            totalInvoice = totalInvoice.add(invoice.getSale().getNetTotal());
+        }
         return totalInvoice;
     }
 
     private BigDecimal computeInvoiceDue(List<Invoice> invoices) {
         BigDecimal totalDue = BigDecimal.ZERO;
-//        for (var invoice : invoices) {
-//            totalDue = totalDue.add(invoice.getSale().getAmountDue());
-//        }
+        for (var invoice : invoices) {
+            totalDue = totalDue.add(invoice.getSale().getPayment().getAmountDue());
+        }
         return totalDue;
     }
 
@@ -187,41 +203,21 @@ public class Customer_Details extends javax.swing.JPanel {
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         model.setRowCount(0);
 
-//        for (int i = 0; i < invoices.size(); i++) {
-//            model.addRow(new Object[]{
-//                    i + 1,
-//                    invoices.get(i).getInvoiceNumber(),
-//                    invoices.get(i).getDate(),
-//                    invoices.get(i).getSale().getNetTotal(),
-//                    invoices.get(i).getSale().getAmount(),
-//                    invoices.get(i).getSale().getAmountDue(),
-//                    invoices.get(i).getStatus().name()
-//            });
-//        }
-    }
-
-    private void clientProfileInit(String imageBase64) {
-        if (imageBase64 != null) {
-            BufferedImage bufferedImage = null;
-            try {
-                byte[] imageBytes = Base64.getDecoder().decode(imageBase64);
-                bufferedImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            if (bufferedImage != null) {
-                this.clientImage = new ImageIcon(bufferedImage);
-                this.hasProfile = true;
-            }
+        int n = 1;
+        for (var invoice : invoices) {
+            model.addRow(new Object[]{
+                    n,
+                    invoice.getInvoiceNumber(),
+                    invoice.getSale().getDate(),
+                    invoice.getSale().getNetTotal(),
+                    invoice.getSale().getPayment().getPaidAmount(),
+                    invoice.getSale().getPayment().getAmountDue(),
+                    invoice.getSale().getOrder().getStatus()
+            });
+            n++;
         }
     }
 
-    private void setScaledImageIcon(JLabel label, ImageIcon icon) {
-        Image image = icon.getImage();
-        Image scaledImage = image.getScaledInstance(label.getWidth(), label.getHeight(), Image.SCALE_SMOOTH);
-        label.setIcon(new ImageIcon(scaledImage));
-    }
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -277,7 +273,6 @@ public class Customer_Details extends javax.swing.JPanel {
         jTextField1 = new javax.swing.JTextField();
         jPanel5 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
 
         setOpaque(false);
 
@@ -565,10 +560,6 @@ public class Customer_Details extends javax.swing.JPanel {
 
         table1.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
-                        {null, null, null, null, null, null, null},
-                        {null, null, null, null, null, null, null},
-                        {null, null, null, null, null, null, null},
-                        {null, null, null, null, null, null, null}
                 },
                 new String[]{
                         "#", "Date", "Particular", "Credit", "Debit", "Discount", "Balance"
@@ -620,7 +611,7 @@ public class Customer_Details extends javax.swing.JPanel {
                                 .addGap(22, 22, 22))
         );
 
-        materialTabbed2.addTab("Ledger", jPanel11);
+//        materialTabbed2.addTab("Ledger", jPanel11);
 
         javax.swing.GroupLayout jPanel10Layout = new javax.swing.GroupLayout(jPanel10);
         jPanel10.setLayout(jPanel10Layout);
@@ -692,18 +683,6 @@ public class Customer_Details extends javax.swing.JPanel {
 
         jPanel5.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
-                new Object[][]{
-                        {null, null, null, null},
-                        {null, null, null, null},
-                        {null, null, null, null},
-                        {null, null, null, null}
-                },
-                new String[]{
-                        "Title 1", "Title 2", "Title 3", "Title 4"
-                }
-        ));
-        jScrollPane1.setViewportView(jTable1);
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -764,8 +743,6 @@ public class Customer_Details extends javax.swing.JPanel {
                                 .addContainerGap()
                                 .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-
-        materialTabbed1.addTab("Activity Log", jPanel3);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -892,7 +869,6 @@ public class Customer_Details extends javax.swing.JPanel {
     private javax.swing.JSeparator jSeparator5;
     private javax.swing.JSeparator jSeparator6;
     private javax.swing.JSeparator jSeparator7;
-    private javax.swing.JTable jTable1;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField3;
@@ -938,21 +914,31 @@ public class Customer_Details extends javax.swing.JPanel {
                 try {
                     var invoices = get();
 
-//                    for (int i = 0; i < invoices.size(); i++) {
-//                        model.addRow(new Object[]{
-//                                i + 1,
-//                                invoices.get(i).getInvoiceNumber(),
-//                                invoices.get(i).getDate(),
-//                                invoices.get(i).getSale().getNetTotal(),
-//                                invoices.get(i).getSale().getAmount(),
-//                                invoices.get(i).getSale().getAmountDue(),
-//                                invoices.get(i).getStatus().name()
-//                        });
-//                    }
+                    int n = 1;
+                    for (var invoice : invoices) {
+                        model.addRow(new Object[]{
+                                n,
+                                invoice.getInvoiceNumber(),
+                                invoice.getSale().getDate(),
+                                invoice.getSale().getNetTotal(),
+                                invoice.getSale().getPayment().getPaidAmount(),
+                                invoice.getSale().getPayment().getAmountDue(),
+                                invoice.getSale().getOrder().getStatus()
+                        });
+                        n++;
+                    }
 
                     SwingUtilities.invokeLater(() -> {
                         jButton2.setText("From - To");
                         jButton2.setEnabled(true);
+                    });
+
+                    SwingUtilities.invokeLater(() -> {
+                        String totalInvoice = String.valueOf(fcomputeInvoiceTotal(invoices));
+                        jLabel17.setText("₱ " + totalInvoice);
+
+                        String totalDue = String.valueOf(computeInvoiceDue(invoices));
+                        jLabel18.setText("₱ " + totalDue);
                     });
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);

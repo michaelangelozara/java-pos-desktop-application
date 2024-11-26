@@ -12,6 +12,7 @@ import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
@@ -33,6 +34,15 @@ public class Expense_Report extends javax.swing.JPanel {
      */
     public Expense_Report() {
         initComponents();
+    }
+
+    private void makeCellCenter(JTable table) {
+        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(defaultTableCellRenderer);
+        }
     }
 
     /**
@@ -347,6 +357,7 @@ public class Expense_Report extends javax.swing.JPanel {
             if (subcategoryId != null) {
                 recentSubcategoryId = subcategoryId;
                 jLabel16.setText(jComboBox2.getSelectedItem().toString());
+                makeCellCenter(jTable1);
                 loadExpenses(subcategoryId);
             }
         });

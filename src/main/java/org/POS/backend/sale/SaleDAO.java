@@ -140,12 +140,18 @@ public class SaleDAO {
 
     public BigDecimal getTotalSales() {
         BigDecimal totalSales = BigDecimal.ZERO;
-//        try (Session session = sessionFactory.openSession()){
-//           totalSales = session.createQuery("SELECT SUM(s.amount) FROM Sale s", BigDecimal.class)
-//                    .getSingleResult();
-//        }catch (Exception e){
-//            e.printStackTrace();
-//        }
+        try (Session session = sessionFactory.openSession()){
+           totalSales = session.createQuery("SELECT SUM(s.netTotal) FROM Sale s", BigDecimal.class)
+                    .getSingleResult();
+
+           // po logs
+            totalSales = totalSales.add(
+                    session.createQuery("SELECT SUM(po.paidAmount) FROM POLog po", BigDecimal.class)
+                            .getSingleResult()
+            );
+        }catch (Exception e){
+            throw e;
+        }
         return totalSales;
     }
 }

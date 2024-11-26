@@ -11,6 +11,7 @@ import org.jdatepicker.impl.JDatePickerImpl;
 import org.jdatepicker.impl.UtilDateModel;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
@@ -29,6 +30,18 @@ public class Sales_Report extends javax.swing.JPanel {
      */
     public Sales_Report() {
         initComponents();
+        makeCellCenter(jTable1);
+        loadSales(50);
+
+    }
+
+    private void makeCellCenter(JTable table) {
+        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(defaultTableCellRenderer);
+        }
     }
 
     /**
@@ -182,8 +195,6 @@ public class Sales_Report extends javax.swing.JPanel {
                 return types[columnIndex];
             }
         });
-
-        loadSales(50);
 
         jScrollPane1.setViewportView(jTable1);
 

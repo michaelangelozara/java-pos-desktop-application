@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutionException;
 import org.POS.backend.quotation.Quotation;
 import org.POS.backend.quotation.QuotationService;
 
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 public class Quotation_Details extends javax.swing.JPanel {
@@ -17,6 +18,8 @@ public class Quotation_Details extends javax.swing.JPanel {
     public Quotation_Details(int quotationId) throws ExecutionException, InterruptedException {
         this.quotationId = quotationId;
         initComponents();
+        makeCellCenter(table);
+        makeCellCenter(table3);
         loadQuotation();
         loadProducts();
     }
@@ -109,6 +112,15 @@ public class Quotation_Details extends javax.swing.JPanel {
             }
         };
         worker.execute();
+    }
+
+    private void makeCellCenter(JTable table) {
+        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(defaultTableCellRenderer);
+        }
     }
 
     private void loadSummary(Quotation quotation) {
