@@ -120,4 +120,20 @@ public class QuotationDAO {
         }
         return quotations;
     }
+
+    public List<Quotation> getAllValidQuotationsByRange(LocalDate start, LocalDate end){
+        List<Quotation> quotations = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            quotations = session.createQuery("SELECT q FROM Quotation q WHERE q.isDeleted = FALSE AND (q.createdDate >= :start AND q.createdDate <= :end)", Quotation.class)
+                    .setParameter("start" , start)
+                    .setParameter("end", end)
+                    .getResultList();
+
+        }catch (Exception e){
+            throw e;
+        }
+
+        return quotations;
+    }
 }

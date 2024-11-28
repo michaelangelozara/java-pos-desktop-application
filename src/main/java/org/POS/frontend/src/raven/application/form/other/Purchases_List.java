@@ -86,7 +86,7 @@ public class Purchases_List extends javax.swing.JPanel {
                 panel.add(quantityLabel, gbc);
 
                 gbc.gridx = 3;
-                JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, 100, 1));  // Default to 1, max 100
+                JSpinner quantitySpinner = new JSpinner(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));  // Default to 1, max 100
                 quantitySpinner.setPreferredSize(new Dimension(120, quantitySpinner.getPreferredSize().height));  // Make the spinner wider
                 panel.add(quantitySpinner, gbc);
 
@@ -107,7 +107,7 @@ public class Purchases_List extends javax.swing.JPanel {
                         new Object[]{"#", "ID", "Product Name", "Quantity", "Action"}, 0) {
                     @Override
                     public boolean isCellEditable(int row, int column) {
-                        return false;
+                        return column == 3;
                     }
                 };
 
@@ -262,7 +262,30 @@ public class Purchases_List extends javax.swing.JPanel {
                     try {
                         Set<PurchaseItem> purchaseItemList = new HashSet<>();
 
-                        var purchaseItems = getAllRows(tableModel);
+                        List<PurchaseListedProduct> purchaseItems = new ArrayList<>();
+
+                        for (int i = 0; i < tableModel.getRowCount(); i++) {
+                            Object id = tableModel.getValueAt(i, 1);
+                            String name = (String) tableModel.getValueAt(i, 2);
+                            int quantity = Integer.parseInt(tableModel.getValueAt(i, 3).toString());
+                            // Create a new `PurchaseListedProduct` instance with the parsed values and add it to the list
+                            if (id != null) {
+                                PurchaseListedProduct purchaseListedProduct = new PurchaseListedProduct(
+                                        Integer.parseInt(String.valueOf(id)),
+                                        name,
+                                        quantity
+                                );
+                                purchaseItems.add(purchaseListedProduct);
+                            } else {
+                                PurchaseListedProduct purchaseListedProduct = new PurchaseListedProduct(
+                                        null,
+                                        name,
+                                        quantity
+                                );
+                                purchaseItems.add(purchaseListedProduct);
+                            }
+
+                        }
 
                         for (var selectedItem : purchaseItems) {
                             PurchaseItem purchaseItem = new PurchaseItem();
@@ -277,7 +300,9 @@ public class Purchases_List extends javax.swing.JPanel {
                                 noteArea.getText()
                         );
                         purchaseService.update(dto, purchaseItemList);
+                        JOptionPane.showMessageDialog(null, "Purchase Successfully Updated");
                     } catch (Exception e) {
+                        e.printStackTrace();
                         JOptionPane.showMessageDialog(null, e.getMessage());
                     }
                 }
@@ -371,17 +396,32 @@ public class Purchases_List extends javax.swing.JPanel {
                     int purchaseId = (Integer) model.getValueAt(row, 1);
                     PurchaseService purchaseService = new PurchaseService();
 
-                    SwingWorker<Void, Void> worker = new SwingWorker<>() {
+                    SwingWorker<Boolean, Void> worker = new SwingWorker<>() {
                         @Override
-                        protected Void doInBackground() throws Exception {
-                            purchaseService.delete(purchaseId);
-                            return null;
+                        protected Boolean doInBackground() {
+                            try {
+                                purchaseService.delete(purchaseId);
+                                return true;
+                            } catch (Exception e) {
+                                return false;
+                            }
                         }
 
                         @Override
                         protected void done() {
-                            JOptionPane.showMessageDialog(null, "Product Deleted Successfully",
-                                    "Deleted", JOptionPane.INFORMATION_MESSAGE);
+                            try {
+                                boolean result = get();
+                                if (result) {
+                                    JOptionPane.showMessageDialog(null, "Product Deleted Successfully",
+                                            "Deleted", JOptionPane.INFORMATION_MESSAGE);
+                                } else {
+                                    JOptionPane.showMessageDialog(null, "Deletion Error");
+                                }
+                            } catch (ExecutionException e) {
+                                throw new RuntimeException(e);
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
                             loadPurchases();
                         }
                     };
@@ -878,8 +918,13 @@ public class Purchases_List extends javax.swing.JPanel {
 
         if (result == JOptionPane.OK_OPTION) {
             int index = supplierCombo.getSelectedIndex();
-            int supplierId = supplierMap.get(index);
+            Integer supplierId = supplierMap.get(index);
             Set<PurchaseItem> purchaseItemList = new HashSet<>();
+
+            if (supplierId == null) {
+                JOptionPane.showMessageDialog(null, "Please Select Supplier");
+                return;
+            }
 
             var purchaseItems = getAllRows(tableModel);
 

@@ -30,7 +30,7 @@ public class ProductDAO {
 
             session.getTransaction().commit();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw e;
         }
     }
 
@@ -160,6 +160,11 @@ public class ProductDAO {
                     "SELECT p FROM Product p WHERE p.stock <= p.alertQuantity AND p.isDeleted = FALSE",
                     Product.class
             ).getResultList();
+
+            products.forEach(p -> {
+                Hibernate.initialize(p.getProductAttributes());
+                p.getProductAttributes().forEach(a -> Hibernate.initialize(a.getProductVariations()));
+            });
         } catch (Exception e) {
             // Consider logging the exception
             e.printStackTrace();

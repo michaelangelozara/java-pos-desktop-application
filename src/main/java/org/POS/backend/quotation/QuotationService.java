@@ -162,4 +162,8 @@ public class QuotationService {
     public List<Quotation> getAllValidQuotationsByCustomerName(String name) {
         return this.quotationDAO.getAllValidQuotationByCustomerName(name);
     }
+
+    public List<Quotation> getAllValidQuotationsByRange(LocalDate start, LocalDate end){
+        return this.quotationDAO.getAllValidQuotationsByRange(start, end);
+    }
 }

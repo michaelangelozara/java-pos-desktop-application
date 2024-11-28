@@ -801,6 +801,8 @@ public class ProductList extends javax.swing.JPanel {
                 JOptionPane.showMessageDialog(null, "Any character is not allowed");
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(null, "Please enter number only");
+            }catch (Exception e){
+                JOptionPane.showMessageDialog(null, e.getMessage());
             }
         }
     }
@@ -1573,6 +1575,8 @@ public class ProductList extends javax.swing.JPanel {
                 JOptionPane.showMessageDialog(null, "Any character is not allowed");
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(null, "Please enter number only");
+            }catch (Exception e){
+                JOptionPane.showMessageDialog(null, e.getMessage());
             }
         }
     }

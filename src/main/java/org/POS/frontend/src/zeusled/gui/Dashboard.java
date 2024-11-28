@@ -4,6 +4,7 @@ import org.POS.backend.expense.ExpenseService;
 import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.product.ProductResponseDto;
 import org.POS.backend.product.ProductService;
+import org.POS.backend.product.ProductType;
 import org.POS.backend.sale.SaleService;
 import org.POS.frontend.src.javaswingdev.card.ModelCard;
 import org.POS.frontend.src.raven.application.Application;
@@ -56,23 +57,42 @@ public class Dashboard extends JPanel {
             protected void done() {
                 try {
 
-                    var output = get();
+                    int countOfNotOutOfStockVariableProduct = 0;
+                    var products = get();
+                    for (int i = 0; i < products.size(); i++) {
+                        if(products.get(i).type().equals(ProductType.SIMPLE)){
+                            table1.addRow(new Object[]{
+                                    i + 1,
+                                    products.get(i).code(),
+                                    products.get(i).name(),
+                                    products.get(i).stock(),
+                                    products.get(i).alertQuantity()
+                            });
+                        }else{
+                            int summationOfAllQuantities = 0;
+                            for(var attribute : products.get(i).productAttributes()){
+                                for(var variation : attribute.getProductVariations()){
+                                    summationOfAllQuantities += variation.getQuantity();
+                                }
+                            }
 
-                    card2.setData(new ModelCard(null, null, null, String.valueOf(output.size()), "Items Out of Stock"));
-
-
-                    for (int i = 0; i < output.size(); i++) {
-                        table1.addRow(new Object[]{
-                                i + 1,
-                                output.get(i).code(),
-                                output.get(i).name(),
-                                output.get(i).stock(),
-                                output.get(i).alertQuantity()
-                        });
+                            if(summationOfAllQuantities <= products.get(i).alertQuantity()){
+                                table1.addRow(new Object[]{
+                                        i + 1,
+                                        products.get(i).code(),
+                                        products.get(i).name(),
+                                        summationOfAllQuantities,
+                                        products.get(i).alertQuantity()
+                                });
+                            }else{
+                                countOfNotOutOfStockVariableProduct++;
+                            }
+                        }
                     }
+
+                    card2.setData(new ModelCard(null, null, null, String.valueOf(products.size() - countOfNotOutOfStockVariableProduct), "Items Out of Stock"));
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    JOptionPane.showMessageDialog(null, "Unable to fetch the out of stock products");
+                    card2.setData(new ModelCard(null, null, null, "0", "Items Out of Stock"));
                 }
             }
         };
@@ -93,12 +113,11 @@ public class Dashboard extends JPanel {
             protected void done() {
                 try {
                     BigDecimal totalValue = get();
-
                     card3.setData(new ModelCard(null, null, null, "₱ " + totalValue, "Inventory Value"));
                 } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                    card3.setData(new ModelCard(null, null, null, "₱ 0", "Inventory Value"));
                 } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
+                    card3.setData(new ModelCard(null, null, null, "₱ 0", "Inventory Value"));
                 }
             }
         };
@@ -118,7 +137,7 @@ public class Dashboard extends JPanel {
                     BigDecimal totalExpense = get();
                     card4.setData(new ModelCard(null, null, null, "₱ " + totalExpense, "Expenses"));
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    card4.setData(new ModelCard(null, null, null, "₱ 0", "Expenses"));
                 }
             }
         };
@@ -135,11 +154,11 @@ public class Dashboard extends JPanel {
             protected void done() {
                 try {
                     BigDecimal totalSales = get();
-                    card1.setData(new ModelCard(null, null, null, "₱ " + totalSales, "Total Sales"));
+                    card1.setData(new ModelCard(null, null, null, "₱ " + (totalSales == null), "Total Sales"));
                 } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                    card1.setData(new ModelCard(null, null, null, "₱ 0", "Total Sales"));
                 } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
+                    card1.setData(new ModelCard(null, null, null, "₱ 0", "Total Sales"));
                 }
             }
         };

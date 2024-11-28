@@ -36,13 +36,15 @@ public class PurchaseDAO {
         }
     }
 
-    public void update(Purchase purchase, UserLog userLog) {
+    public void update(Purchase purchase, UserLog userLog, List<PurchaseItem> purchaseItemList) {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
 
             session.merge(purchase);
             session.persist(userLog);
+
+            purchaseItemList.forEach(s -> session.merge(s));
 
             transaction.commit();
         } catch (Exception e) {
@@ -69,7 +71,7 @@ public class PurchaseDAO {
 
             session.getTransaction().commit();
         } catch (Exception e) {
-            e.printStackTrace();
+            throw e;
         }
     }
 

@@ -14,6 +14,8 @@ import org.POS.backend.user.UserDAO;
 import org.POS.backend.user_log.UserLog;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -75,7 +77,7 @@ public class PurchaseService {
             admin.addUserLog(userLog);
 
             this.purchaseDAO.add(purchase, userLog);
-        }catch (Exception e){
+        } catch (Exception e) {
             throw e;
         }
     }
@@ -87,28 +89,55 @@ public class PurchaseService {
         if (purchase == null) throw new RuntimeException("Invalid Purchase");
 
         if (user == null) throw new RuntimeException("Invalid User");
-        CopyOnWriteArrayList<PurchaseItem> oldPurchaseItems = new CopyOnWriteArrayList<>(purchase.getPurchaseItems());
-        for (var oldPurchaseItem : oldPurchaseItems) {
-            boolean isEqualed = false;
-            for (var purchaseItem : purchaseItems) {
-                if (purchaseItem.getId() == null) {
-                    purchaseItem.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.PURCHASE_ITEM_PREFIX));
-                    purchase.addPurchaseItem(purchaseItem);
-                    continue;
-                }
 
-                if (oldPurchaseItem.getId().equals(purchaseItem.getId())) {
-                    isEqualed = true;
+        List<PurchaseItem> purchaseItemList = new ArrayList<>();
+        Set<Integer> purchaseItemIds = new HashSet<>();
+        for (var purchaseItem : purchaseItems) {
+            if (purchaseItem.getId() != null) {
+                purchaseItemIds.add(purchaseItem.getId());
+            } else {
+                PurchaseItem newPurchaseItem = new PurchaseItem();
+                newPurchaseItem.setName(purchaseItem.getName());
+                newPurchaseItem.setQuantity(purchaseItem.getQuantity());
+                newPurchaseItem.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.PURCHASE_ITEM_PREFIX));
+                purchaseItemList.add(newPurchaseItem);
+            }
+        }
+
+        // get the remaining purchase item and their new value to the fetched items
+        var fetchedPurchaseItems = this.purchaseItemDAO.getAllValidPurchaseItemByPurchaseItemIds(purchaseItemIds);
+        for (var fetchedPurchaseItem : fetchedPurchaseItems) {
+            for (var purchaseItem : purchaseItems) {
+                if (fetchedPurchaseItem.getId().equals(purchaseItem.getId())) {
+                    fetchedPurchaseItem.setQuantity(purchaseItem.getQuantity());
+                    fetchedPurchaseItem.setName(purchaseItem.getName());
+                    purchaseItemList.add(fetchedPurchaseItem);
                     break;
                 }
             }
+        }
 
-            if (!isEqualed) {
-                if (oldPurchaseItem.isDeleted())
-                    continue;
-                oldPurchaseItem.setDeleted(true);
-                oldPurchaseItem.setDeletedAt(LocalDate.now());
+        CopyOnWriteArrayList<PurchaseItem> oldPurchaseItems = new CopyOnWriteArrayList<>(purchase.getPurchaseItems());
+
+        // set the isDelete column of deleted purchase item
+        for (var purchaseItem : oldPurchaseItems) {
+            boolean isPurchaseItemDeleted = true;
+            for (var newPurchaseItem : purchaseItemList) {
+                if (newPurchaseItem.getId() != null && purchaseItem.getId().equals(newPurchaseItem.getId())) {
+
+                    isPurchaseItemDeleted = false;
+                }
             }
+
+            if (isPurchaseItemDeleted) {
+                purchaseItem.setDeletedAt(LocalDate.now());
+                purchaseItem.setDeleted(true);
+            }
+        }
+
+        for (var newPurchaseItem : purchaseItemList) {
+            if (newPurchaseItem.getId() == null)
+                purchase.addPurchaseItem(newPurchaseItem);
         }
 
         purchase.setNote(dto.note());
@@ -116,22 +145,26 @@ public class PurchaseService {
         UserLog userLog = new UserLog();
         userLog.setCode(purchase.getCode());
         userLog.setDate(LocalDate.now());
-        userLog.setAction(UserActionPrefixes.PURCHASES_ADD_ACTION_LOG_PREFIX);
+        userLog.setAction(UserActionPrefixes.PURCHASES_EDIT_ACTION_LOG_PREFIX);
         user.addUserLog(userLog);
 
-        this.purchaseDAO.update(purchase, userLog);
+        this.purchaseDAO.update(purchase, userLog, fetchedPurchaseItems);
     }
 
     public void delete(int purchaseId) {
-        var user = this.userDAO.getUserById(CurrentUser.id);
-        if (user == null)
-            throw new RuntimeException(GlobalVariable.USER_NOT_FOUND);
+        try {
+            var user = this.userDAO.getUserById(CurrentUser.id);
+            if (user == null)
+                throw new RuntimeException(GlobalVariable.USER_NOT_FOUND);
 
-        UserLog userLog = new UserLog();
-        userLog.setDate(LocalDate.now());
-        userLog.setAction(UserActionPrefixes.PURCHASES_REMOVE_ACTION_LOG_PREFIX);
-        user.addUserLog(userLog);
-        this.purchaseDAO.delete(purchaseId, userLog);
+            UserLog userLog = new UserLog();
+            userLog.setDate(LocalDate.now());
+            userLog.setAction(UserActionPrefixes.PURCHASES_REMOVE_ACTION_LOG_PREFIX);
+            user.addUserLog(userLog);
+            this.purchaseDAO.delete(purchaseId, userLog);
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
     public PurchaseResponseDto getValidPurchaseByPurchaseId(int purchaseId) {

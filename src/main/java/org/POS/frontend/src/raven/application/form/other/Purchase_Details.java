@@ -58,6 +58,7 @@ public class Purchase_Details extends JPanel {
         var purchaseItems = purchase.getPurchaseItems();
         int n = 1;
         for (var purchaseItem : purchaseItems) {
+            if(purchaseItem.isDeleted()) continue;
             model.addRow(new Object[]{
                     n,
                     purchaseItem.getCode(),

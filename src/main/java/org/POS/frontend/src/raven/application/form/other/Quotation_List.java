@@ -188,7 +188,7 @@ public class Quotation_List extends javax.swing.JPanel {
                         }
                     }
                 };
-                if(output == JOptionPane.OK_OPTION){
+                if (output == JOptionPane.OK_OPTION) {
                     worker.execute();
                 }
             }
@@ -246,6 +246,7 @@ public class Quotation_List extends javax.swing.JPanel {
                                 quotation.getPerson().getName(),
                                 quotation.getSubtotal()
                         });
+                        n++;
                     }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
@@ -310,7 +311,7 @@ public class Quotation_List extends javax.swing.JPanel {
                 new Object[][]{
                 },
                 new String[]{
-                        "#", "ID", "Quotation No", "Quotation Date", "Client","Subtotal", "Action"
+                        "#", "ID", "Quotation No", "Quotation Date", "Client", "Subtotal", "Action"
                 }
         ) {
             boolean[] canEdit = new boolean[]{
@@ -448,20 +449,17 @@ public class Quotation_List extends javax.swing.JPanel {
             protected void done() {
                 try {
                     var quotations = get();
-                    for (int i = 0; i < quotations.size(); i++) {
-//                        model.addRow(new Object[]{
-//                                i + 1,
-//                                quotations.get(i).getId(),
-//                                quotations.get(i).getCode(),
-//                                quotations.get(i).getCreatedDate(),
-//                                quotations.get(i).getPerson().getName(),
-//                                quotations.get(i).getSubtotal(),
-//                                quotations.get(i).getTransportCost(),
-//                                quotations.get(i).getDiscount(),
-//                                quotations.get(i).getTotalTax(),
-//                                quotations.get(i).getNetTotal(),
-//                                quotations.get(i).getStatus().name()
-//                        });
+                    int n = 1;
+                    for (var quotation : quotations) {
+                        model.addRow(new Object[]{
+                                n,
+                                quotation.getId(),
+                                quotation.getCode(),
+                                quotation.getCreatedDate(),
+                                quotation.getPerson().getName(),
+                                quotation.getSubtotal()
+                        });
+                        n++;
                     }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
@@ -547,7 +545,6 @@ public class Quotation_List extends javax.swing.JPanel {
         Map<Integer, Integer> productMap = new HashMap<>();
         // Populate ComboBox with product names
 
-
         SwingWorker<java.util.List<ProductResponseDto>, Void> productWorker = new SwingWorker<>() {
             @Override
             protected java.util.List<ProductResponseDto> doInBackground() throws Exception {
@@ -567,12 +564,13 @@ public class Quotation_List extends javax.swing.JPanel {
                         productsCombo.removeAllItems();
                         productsCombo.addItem("Select Product");
                         productsCombo.setSelectedItem("Select Product");
-                        productsCombo.setEnabled(true);
 
                         for (int i = 0; i < products.size(); i++) {
                             productsCombo.addItem(products.get(i).name());
                             productMap.put(i + 1, products.get(i).id());
                         }
+
+                        productsCombo.setEnabled(true);
                     });
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -616,7 +614,8 @@ public class Quotation_List extends javax.swing.JPanel {
         productsCombo.addActionListener(e -> {
             int index = productsCombo.getSelectedIndex();
             Integer id = productMap.get(index);
-
+            if(id != null)
+                JOptionPane.showMessageDialog(null, index);
             SwingWorker<ProductResponseDto, Void> worker = new SwingWorker<>() {
                 @Override
                 protected ProductResponseDto doInBackground() throws Exception {
@@ -630,7 +629,7 @@ public class Quotation_List extends javax.swing.JPanel {
                         if (product.type().equals(ProductType.SIMPLE)) {
                             // validate the duplicate selection
                             for (var selectedRow : listOfAllSelectedProducts) {
-                                if (product.id() == selectedRow.id()) {
+                                if (selectedRow.type().equals(ProductType.SIMPLE) && product.id() == selectedRow.id()) {
                                     JOptionPane.showMessageDialog(null, "The " + product.name() + " is already selected");
                                     return;
                                 }
@@ -716,12 +715,7 @@ public class Quotation_List extends javax.swing.JPanel {
 
         // Highlight editable cells
         productsTable.getColumnModel().getColumn(4).setCellEditor(new DefaultCellEditor(new JTextField())); // Quantity as JTextField
-//        productsTable.getColumnModel().getColumn(5).setCellEditor(new DefaultCellEditor(new JTextField())); // Purchase Price as JTextField
-//        productsTable.getColumnModel().getColumn(6).setCellEditor(new DefaultCellEditor(new JTextField())); // Selling Price as JTextField
         productsTable.getColumnModel().getColumn(4).setCellRenderer(new EditableCellRenderer()); // Custom renderer for Quantity
-//        productsTable.getColumnModel().getColumn(5).setCellRenderer(new EditableCellRenderer()); // Custom renderer for Purchase Price
-//        productsTable.getColumnModel().getColumn(6).setCellRenderer(new EditableCellRenderer()); // Custom renderer for Selling Price
-
         productsTable.getColumnModel().getColumn(9).setCellRenderer(new ButtonRenderer());
 
         // Add JScrollPane around the table
@@ -1044,25 +1038,38 @@ public class Quotation_List extends javax.swing.JPanel {
     // End of variables declaration//GEN-END:variables
 
     private void filterTableByDateRange(LocalDate fromDate, LocalDate toDate) {
-        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>((DefaultTableModel) table.getModel());
-        table.setRowSorter(sorter);
-
-        sorter.setRowFilter(new RowFilter<>() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0);
+        QuotationService quotationService = new QuotationService();
+        SwingWorker<List<Quotation>, Void> worker = new SwingWorker<List<Quotation>, Void>() {
             @Override
-            public boolean include(Entry<? extends DefaultTableModel, ? extends Integer> entry) {
-                // Assuming the createdAt is in the 3rd column (index 2), change as per your table
-                String dateStr = (String) entry.getValue(2);
-                try {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                    LocalDate rowDate = LocalDate.parse(dateStr, formatter);
+            protected List<Quotation> doInBackground() throws Exception {
+                return quotationService.getAllValidQuotationsByRange(fromDate, toDate);
+            }
 
-                    // Return true if the createdAt is within the selected range
-                    return !rowDate.isBefore(fromDate) && !rowDate.isAfter(toDate);
-                } catch (Exception e) {
-                    // Skip rows with invalid dates
-                    return false;
+            @Override
+            protected void done() {
+                try {
+                    var quotations = get();
+                    int n = 1;
+                    for (var quotation : quotations) {
+                        model.addRow(new Object[]{
+                                n,
+                                quotation.getId(),
+                                quotation.getCode(),
+                                quotation.getCreatedDate(),
+                                quotation.getPerson().getName(),
+                                quotation.getSubtotal()
+                        });
+                        n++;
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
                 }
             }
-        });
+        };
+        worker.execute();
     }
 }

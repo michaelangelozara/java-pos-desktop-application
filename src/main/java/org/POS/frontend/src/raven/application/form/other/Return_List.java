@@ -71,9 +71,9 @@ public class Return_List extends javax.swing.JPanel {
                 Application.showForm(new ReturnOrder_Details(returnId));
             }
         };
+        makeCellCenter(table);
         table.getColumnModel().getColumn(7).setCellRenderer(new TableActionCellRender());
         table.getColumnModel().getColumn(7).setCellEditor(new TableActionCellEditor(event));
-        makeCellCenter(table);
         loadReturnList();
         jTextField1.getDocument().addDocumentListener(new DocumentListener() {
             @Override
