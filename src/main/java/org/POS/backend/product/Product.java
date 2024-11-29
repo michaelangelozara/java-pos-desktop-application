@@ -7,7 +7,6 @@ import lombok.Setter;
 import org.POS.backend.inventory_adjustment.InventoryAdjustment;
 import org.POS.backend.product_attribute.ProductAttribute;
 import org.POS.backend.product_category.ProductCategory;
-import org.POS.backend.purchased_item.PurchaseItem;
 import org.POS.backend.quoted_item.QuotedItem;
 import org.POS.backend.sale_product.SaleProduct;
 import org.POS.backend.stock.Stock;
@@ -44,7 +43,7 @@ public class Product {
     @Column(name = "product_type")
     private ProductType productType;
 
-    @Column(columnDefinition = "VARCHAR(50) NOT NULL")
+    @Column(name = "product_code", columnDefinition = "VARCHAR(50) NOT NULL")
     private String productCode;
 
     @Column(name = "purchase_price", precision = 10, scale = 2)

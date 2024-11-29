@@ -92,6 +92,30 @@ public class ProductList extends javax.swing.JPanel {
 
             @Override
             public void onView(int row) {
+                DefaultTableModel model = (DefaultTableModel) table.getModel();
+                Integer id = (Integer) model.getValueAt(row, 1);
+                ProductService productService = new ProductService();
+                SwingWorker<ProductResponseDto, Void> worker = new SwingWorker<>() {
+                    @Override
+                    protected ProductResponseDto doInBackground() throws Exception {
+                        return productService.getValidProductById(id);
+                    }
+
+                    @Override
+                    protected void done() {
+                        try {
+                            var product = get();
+                            Application.showForm(new Product_Details(product));
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        } catch (ExecutionException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                };
+                if(id != null){
+                    worker.execute();
+                }
             }
         };
         makeCellCenter(table);
