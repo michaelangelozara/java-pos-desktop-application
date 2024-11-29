@@ -513,6 +513,10 @@ public class Order_List extends javax.swing.JPanel {
                 if (result == JOptionPane.OK_OPTION) {
                     try {
                         String reason = JOptionPane.showInputDialog(null, "Reason :");
+                        if(reason == null){
+                            JOptionPane.showMessageDialog(null, "Returning Product Canceled");
+                            return;
+                        }
                         // Handle user inputs
                         String note = noteArea.getText();
                         BigDecimal amount = new BigDecimal(amountField.getText());
@@ -853,7 +857,7 @@ public class Order_List extends javax.swing.JPanel {
                                 orders.get(i).getSale().getPerson().getName(),
                                 orders.get(i).getSale().getPayment().getTransactionType().name(),
                                 orders.get(i).getSale().getNetTotal(),
-                                orders.get(i).getSale().getPayment().getAmountDue(),
+                                orders.get(i).getSale().getPayment().getAmountDue().compareTo(BigDecimal.ZERO) <= 0 ? BigDecimal.ZERO : orders.get(i).getSale().getPayment().getAmountDue(),
                                 orders.get(i).getStatus().name()
                         });
                     }

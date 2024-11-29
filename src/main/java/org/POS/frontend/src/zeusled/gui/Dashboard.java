@@ -154,7 +154,7 @@ public class Dashboard extends JPanel {
             protected void done() {
                 try {
                     BigDecimal totalSales = get();
-                    card1.setData(new ModelCard(null, null, null, "₱ " + (totalSales == null), "Total Sales"));
+                    card1.setData(new ModelCard(null, null, null, "₱ " + totalSales, "Total Sales"));
                 } catch (InterruptedException e) {
                     card1.setData(new ModelCard(null, null, null, "₱ 0", "Total Sales"));
                 } catch (ExecutionException e) {

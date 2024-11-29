@@ -614,8 +614,6 @@ public class Quotation_List extends javax.swing.JPanel {
         productsCombo.addActionListener(e -> {
             int index = productsCombo.getSelectedIndex();
             Integer id = productMap.get(index);
-            if(id != null)
-                JOptionPane.showMessageDialog(null, index);
             SwingWorker<ProductResponseDto, Void> worker = new SwingWorker<>() {
                 @Override
                 protected ProductResponseDto doInBackground() throws Exception {

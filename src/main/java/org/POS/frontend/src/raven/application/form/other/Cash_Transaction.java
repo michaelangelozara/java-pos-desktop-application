@@ -134,7 +134,7 @@ public class Cash_Transaction extends javax.swing.JPanel {
                 new Object[][]{
                 },
                 new String[]{
-                        "#", "Transaction ID", "Reference", "Cash IN", "Cash OUT", "Payment Method", "User", "Date & Time"
+                        "#", "Transaction ID", "Reference", "Cash IN", "Cash OUT", "Payment Method", "User", "Date"
                 }
         ) {
             boolean[] canEdit = new boolean[]{
