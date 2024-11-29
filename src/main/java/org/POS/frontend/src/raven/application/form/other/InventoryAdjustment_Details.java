@@ -72,9 +72,8 @@ public class InventoryAdjustment_Details extends javax.swing.JPanel {
         model.addRow(new Object[]{
                 product.getProductCode(),
                 product.getName(),
-                product.getPurchasePrice(),
+                product.getProductType().name(),
                 inventoryAdjustment.quantity(),
-                inventoryAdjustment.type().name()
         });
     }
 
@@ -377,7 +376,7 @@ public class InventoryAdjustment_Details extends javax.swing.JPanel {
                 new Object[][]{
                 },
                 new String[]{
-                        "Code", "Name", "Purchase Price", "Quantity"
+                        "Code", "Name", "Product Type", "Quantity"
                 }
         ) {
             boolean[] canEdit = new boolean[]{

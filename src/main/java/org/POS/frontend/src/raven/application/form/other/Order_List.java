@@ -22,6 +22,7 @@ import org.jdatepicker.impl.UtilDateModel;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
@@ -48,6 +49,8 @@ public class Order_List extends javax.swing.JPanel {
 
             List<RemovedItem> removedItems;
             Set<SaleProduct> saleProducts;
+            Integer oldQuantity = null;
+            Map<Integer, Integer> idAndQuantityMap;
 
             @Override
             public void onEdit(int row) {
@@ -57,6 +60,7 @@ public class Order_List extends javax.swing.JPanel {
 
                 removedItems = new ArrayList<>();
                 saleProducts = new HashSet<>();
+                idAndQuantityMap = new HashMap<>();
 
                 JPanel panel = new JPanel(new GridBagLayout());
                 GridBagConstraints gbc = new GridBagConstraints();
@@ -135,6 +139,14 @@ public class Order_List extends javax.swing.JPanel {
                     }
                 };
 
+                table.getColumnModel().getColumn(4).setCellEditor(new DefaultCellEditor(new JTextField()) {
+                    @Override
+                    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+                        table.putClientProperty("oldValue", value); // Store the old value
+                        return super.getTableCellEditorComponent(table, value, isSelected, row, column);
+                    }
+                });
+
                 // Set column widths for a smaller table
                 int[] columnWidths = {30, 80, 150, 80, 80, 100, 60, 100, 80};
                 for (int i = 0; i < columnWidths.length; i++) {
@@ -143,6 +155,26 @@ public class Order_List extends javax.swing.JPanel {
                 }
 
                 model.setRowCount(0);
+
+                model.addTableModelListener(e -> {
+                    if (e.getType() == TableModelEvent.UPDATE) {
+                        int r = e.getFirstRow();
+                        int c = e.getColumn();
+
+                        Integer id = Integer.parseInt(String.valueOf(model.getValueAt(r, 1)));
+
+                        // Get old and new values
+                        Object oldValue = table.getClientProperty("oldValue");
+                        Integer newValue = Integer.parseInt(String.valueOf(model.getValueAt(r, 4)));
+                        oldQuantity = oldValue.toString() == null ? 0 : Integer.parseInt(String.valueOf(oldValue));
+
+                        if (idAndQuantityMap.get(id) < newValue) {
+                            oldQuantity = null;
+                            JOptionPane.showMessageDialog(null, "You can't Return Item Quantity Greater Than the Original Quantity");
+                            model.setValueAt(idAndQuantityMap.get(id), r, c);
+                        }
+                    }
+                });
 
                 // Custom quantity editor with plus/minus buttons
                 TableColumn quantityColumn = table.getColumnModel().getColumn(3);
@@ -320,10 +352,10 @@ public class Order_List extends javax.swing.JPanel {
 
                                 netTotalField.setText(String.valueOf(order.getSale().getNetTotal()));
 
-                                if(order.getSale().getPayment().getTransactionType().equals(TransactionType.PO)){
+                                if (order.getSale().getPayment().getTransactionType().equals(TransactionType.PO)) {
                                     poReferenceField.setText(order.getSale().getPayment().getReferenceNumber());
                                     referenceField.setText("");
-                                }else{
+                                } else {
                                     poReferenceField.setText("");
                                     referenceField.setText(order.getSale().getPayment().getReferenceNumber());
                                 }
@@ -351,6 +383,8 @@ public class Order_List extends javax.swing.JPanel {
                                         "Return"
                                 });
                                 i++;
+
+                                idAndQuantityMap.put(saleItem.getId(), saleItem.getQuantity());
                             }
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
@@ -519,7 +553,20 @@ public class Order_List extends javax.swing.JPanel {
                 }
             }
 
-            private void computeNetTotal(BigDecimal subtotal) {
+            private void computeNetTotal(BigDecimal subtotal, boolean isListed, DefaultTableModel model) {
+                // re-compute the net total
+                if (isListed) {
+                    BigDecimal newNetTotal = BigDecimal.ZERO;
+                    for (int i = 0; i < model.getRowCount(); i++) {
+                        int quantity = Integer.parseInt(String.valueOf(model.getValueAt(i, 4)));
+                        double sellingPrice = Double.parseDouble(String.valueOf(model.getValueAt(i, 5)));
+                        double total = quantity * sellingPrice;
+                        newNetTotal = newNetTotal.add(BigDecimal.valueOf(total));
+                    }
+                    netTotalField.setText(String.valueOf(newNetTotal.setScale(2, RoundingMode.HALF_UP)));
+                    return;
+                }
+
                 BigDecimal currentNetTotal = new BigDecimal(netTotalField.getText().isEmpty() ? "0" : netTotalField.getText());
                 SwingUtilities.invokeLater(() -> {
                     netTotalField.setText(String.valueOf(currentNetTotal.subtract(subtotal)));
@@ -613,25 +660,51 @@ public class Order_List extends javax.swing.JPanel {
                         // Remove the row when the button is clicked
                         int row = table.getSelectedRow();
                         if (row >= 0) {
-                            SwingUtilities.invokeLater(() -> {
-                                DefaultTableModel model = (DefaultTableModel) table.getModel();
-                                int removedProductId = (Integer) model.getValueAt(row, 1);
-                                int updatedQuantity = Integer.parseInt(model.getValueAt(row, 4).toString());
-                                BigDecimal removeSubtotal = (BigDecimal) model.getValueAt(row, 7);
-                                computeNetTotal(removeSubtotal);
+                            DefaultTableModel model = (DefaultTableModel) table.getModel();
+                            Integer id = Integer.parseInt(String.valueOf(model.getValueAt(row, 1)));
+                            int removedProductId = (Integer) model.getValueAt(row, 1);
+                            int updatedQuantity = Integer.parseInt(model.getValueAt(row, 4).toString());
+                            BigDecimal sellingPrice = (BigDecimal) model.getValueAt(row, 5);
+                            int deductedQuantity = (oldQuantity - updatedQuantity) < 0 ? 0 : (oldQuantity - updatedQuantity);
 
-                                RemovedItem removedItem = new RemovedItem();
-                                removedItem.setId(removedProductId);
-                                for (var saleProduct : saleProducts) {
-                                    if (saleProduct.getId().equals(removedProductId)) {
-                                        removedItem.setRemovedQuantity(saleProduct.getQuantity() - updatedQuantity);
+
+                            boolean isProductInReturnListAlready = false;
+                            for (var removedItem : removedItems) {
+                                // check if the product that returning is not listed yet
+                                if (id != null && id == removedItem.getId()) {
+                                    isProductInReturnListAlready = true;
+                                    if (idAndQuantityMap.get(id) < updatedQuantity) {
+                                        JOptionPane.showMessageDialog(null, "You can't Return Item Quantity Greater Than the Original Quantity");
+                                        break;
+                                    } else {
+                                        // reset the returned quantity in the returned list
+                                        removedItem.setRemovedQuantity(idAndQuantityMap.get(id) - updatedQuantity);
+                                        computeNetTotal((sellingPrice.multiply(BigDecimal.valueOf(deductedQuantity))), true, model);
+                                        JOptionPane.showMessageDialog(null, removedItem.getRemovedQuantity() + " Products Returned");
+                                        break;
                                     }
                                 }
-                                JOptionPane.showMessageDialog(null, removedItem.getRemovedQuantity() + " Products Returned");
-                                removedItems.add(removedItem);
-                            });
+                            }
 
-//                            SwingUtilities.invokeLater(() -> tableModel.removeRow(row));
+                            if (oldQuantity != null && !isProductInReturnListAlready) {
+                                SwingUtilities.invokeLater(() -> {
+
+                                    computeNetTotal((sellingPrice.multiply(BigDecimal.valueOf(deductedQuantity))), false, model);
+
+                                    RemovedItem removedItem = new RemovedItem();
+                                    removedItem.setId(removedProductId);
+                                    for (var saleProduct : saleProducts) {
+                                        if (saleProduct.getId().equals(removedProductId)) {
+                                            removedItem.setRemovedQuantity(saleProduct.getQuantity() - updatedQuantity);
+                                        }
+                                    }
+                                    JOptionPane.showMessageDialog(null, removedItem.getRemovedQuantity() + " Products Returned");
+                                    removedItems.add(removedItem);
+
+                                    // reset the old quantity
+                                    oldQuantity = null;
+                                });
+                            }
                         }
                     }
                     isPushed = false;

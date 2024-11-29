@@ -6,11 +6,14 @@ import org.POS.backend.product_attribute.ProductAttribute;
 import org.POS.backend.product_attribute.ProductVariation;
 import org.POS.backend.product_category.ProductCategoryResponseDto;
 import org.POS.backend.product_category.ProductCategoryService;
+import org.POS.frontend.src.raven.application.Application;
 import org.POS.frontend.src.raven.cell.TableActionCellEditor;
 import org.POS.frontend.src.raven.cell.TableActionCellRender;
 import org.POS.frontend.src.raven.cell.TableActionEvent;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -89,13 +92,28 @@ public class ProductList extends javax.swing.JPanel {
 
             @Override
             public void onView(int row) {
-
             }
         };
         makeCellCenter(table);
         table.getColumnModel().getColumn(9).setCellRenderer(new TableActionCellRender());
         table.getColumnModel().getColumn(9).setCellEditor(new TableActionCellEditor(event));
         loadProducts();
+        jTextField1.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                scheduleQuery();
+            }
+        });
     }
 
     private void makeCellCenter(JTable table) {
@@ -138,7 +156,7 @@ public class ProductList extends javax.swing.JPanel {
             }
         });
 
-        jTextField1.setText("Search");
+        jTextField1.setText("");
 
         table.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
@@ -801,7 +819,7 @@ public class ProductList extends javax.swing.JPanel {
                 JOptionPane.showMessageDialog(null, "Any character is not allowed");
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(null, "Please enter number only");
-            }catch (Exception e){
+            } catch (Exception e) {
                 JOptionPane.showMessageDialog(null, e.getMessage());
             }
         }
@@ -1089,7 +1107,7 @@ public class ProductList extends javax.swing.JPanel {
 
                 List<JPanel> variationRows = new ArrayList<>();
 
-                for(var variation : attribute.getProductVariations()){
+                for (var variation : attribute.getProductVariations()) {
                     variationMap.put(variation.getVariation(), variation.getId());
 
                     JPanel variationRow = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -1245,16 +1263,16 @@ public class ProductList extends javax.swing.JPanel {
 
             // set existing ids
             // set attribute id
-            for(var productVariable : productVariables){
-                if(attributeMap.containsKey(productVariable.getName())){
+            for (var productVariable : productVariables) {
+                if (attributeMap.containsKey(productVariable.getName())) {
                     productVariable.setId(attributeMap.get(productVariable.getName()));
                 }
             }
 
             // set variation id
-            for(var productVariable : productVariables){
-                for(var variation : productVariable.getProductVariations()){
-                    if(variationMap.containsKey(variation.getVariation())){
+            for (var productVariable : productVariables) {
+                for (var variation : productVariable.getProductVariations()) {
+                    if (variationMap.containsKey(variation.getVariation())) {
                         variation.setId(variationMap.get(variation.getVariation()));
                     }
                 }
@@ -1575,7 +1593,7 @@ public class ProductList extends javax.swing.JPanel {
                 JOptionPane.showMessageDialog(null, "Any character is not allowed");
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(null, "Please enter number only");
-            }catch (Exception e){
+            } catch (Exception e) {
                 JOptionPane.showMessageDialog(null, e.getMessage());
             }
         }

@@ -1,2 +1,1 @@
-stock alert for variable products
-stock recent total quantity
+net total JLabel in edit order

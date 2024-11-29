@@ -71,6 +71,7 @@ public class ProductDAO {
             Hibernate.initialize(product.getInventoryAdjustments());
             Hibernate.initialize(product.getProductAttributes());
             product.getProductAttributes().forEach(p -> Hibernate.initialize(p.getProductVariations()));
+            Hibernate.initialize(product.getStocks());
             session.getTransaction().commit();
             return product;
         } catch (Exception e) {

@@ -35,7 +35,7 @@ public class Inventory extends javax.swing.JPanel {
         TableActionEvent event = new TableActionEvent() {
             @Override
             public void onEdit(int row) {
-
+                JOptionPane.showMessageDialog(null, "You can't Perform this Action");
             }
 
             @Override
@@ -46,18 +46,6 @@ public class Inventory extends javax.swing.JPanel {
                 String title = "Unable to Delete Product";
                 String message = "Please go to the Product Section if you want to delete this";
                 JOptionPane.showMessageDialog(null, message, title, JOptionPane.PLAIN_MESSAGE);
-
-//                // Confirm before deleting
-//                int confirmation = JOptionPane.showConfirmDialog(null,
-//                        "Are you sure you want to delete this Product?",
-//                        "Confirm Delete", JOptionPane.YES_NO_OPTION);
-//
-//                if (confirmation == JOptionPane.YES_OPTION) {
-//                    DefaultTableModel model = (DefaultTableModel) table.getModel();
-//                    model.removeRow(row);
-//                    JOptionPane.showMessageDialog(null, "Product Deleted Successfully",
-//                            "Deleted", JOptionPane.INFORMATION_MESSAGE);
-//                }
             }
 
             @Override

@@ -1,11 +1,15 @@
 package org.POS.backend.inventory_adjustment;
 
+import org.POS.backend.code_generator.CodeGeneratorService;
 import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.global_variable.UserActionPrefixes;
 import org.POS.backend.product.ProductDAO;
+import org.POS.backend.stock.Stock;
+import org.POS.backend.stock.StockType;
 import org.POS.backend.user.UserDAO;
 import org.POS.backend.user_log.UserLog;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -19,11 +23,14 @@ public class InventoryAdjustmentService {
 
     private InventoryAdjustmentMapper inventoryAdjustmentMapper;
 
+    private CodeGeneratorService codeGeneratorService;
+
     public InventoryAdjustmentService() {
         this.inventoryAdjustmentDAO = new InventoryAdjustmentDAO();
         this.userDAO = new UserDAO();
         this.productDAO = new ProductDAO();
         this.inventoryAdjustmentMapper = new InventoryAdjustmentMapper();
+        this.codeGeneratorService = new CodeGeneratorService();
     }
 
     public void addSimpleProduct(AddInventoryAdjustmentDtoForSimpleProduct dto) {
@@ -35,13 +42,25 @@ public class InventoryAdjustmentService {
             user.addInventoryAdjustment(inventoryAdjustment);
             product.addInventoryAdjustment(inventoryAdjustment);
 
+            Stock stock = new Stock();
+            product.addStock(stock);
+            stock.setRecentQuantity(product.getStock());
+            stock.setUser(user);
+            stock.setDate(LocalDate.now());
+            stock.setStockInOrOut(dto.quantity());
+            stock.setRecentQuantity(product.getStock());
+            stock.setCode(product.getProductCode());
+
             if (dto.type().equals(InventoryAdjustmentType.INCREMENT)) {
                 product.setStock(product.getStock() + dto.quantity());
                 inventoryAdjustment.setType(InventoryAdjustmentType.INCREMENT);
+                stock.setPrice(product.getSellingPrice().multiply(BigDecimal.valueOf(dto.quantity())));
+                stock.setType(StockType.IN);
             } else {
                 product.setStock(product.getStock() - dto.quantity());
                 inventoryAdjustment.setType(InventoryAdjustmentType.DECREMENT);
-
+                stock.setPrice(product.getSellingPrice().multiply(BigDecimal.valueOf(dto.quantity())));
+                stock.setType(StockType.OUT);
             }
 
             UserLog userLog = new UserLog();
@@ -65,7 +84,23 @@ public class InventoryAdjustmentService {
 
             UserLog userLog = new UserLog();
 
+            Stock stock = new Stock();
+            product.addStock(stock);
+            stock.setUser(user);
+            stock.setDate(LocalDate.now());
+            stock.setCode(product.getProductCode());
+
+            // get the recent product's quantity
+            int recentQuantity = 0;
+            for(var attribute : product.getProductAttributes()){
+                for(var variation : attribute.getProductVariations()){
+                    recentQuantity += variation.getQuantity();
+                }
+            }
+            stock.setRecentQuantity(recentQuantity);
+
             int quantityUpdated = 0;
+            BigDecimal addedOrDeductedPrice = BigDecimal.ZERO;
             if (dto.type().equals(InventoryAdjustmentType.INCREMENT)) {
                 inventoryAdjustment.setType(InventoryAdjustmentType.INCREMENT);
                 userLog.setAction(UserActionPrefixes.INVENTORY_ADJUSTMENT_ADD_ACTION_LOG_PREFIX);
@@ -77,8 +112,12 @@ public class InventoryAdjustmentService {
                         var tempVar = product.getProductAttributes().get(i).getProductVariations().get(j);
                         tempVar.setQuantity(tempVar.getQuantity() + variationQuantityFromDto);
                         quantityUpdated += variationQuantityFromDto;
+
+                        // price for stock record
+                        addedOrDeductedPrice = addedOrDeductedPrice.add(tempVar.getSrp().multiply(BigDecimal.valueOf(variationQuantityFromDto)));
                     }
                 }
+                stock.setType(StockType.IN);
             } else {
                 inventoryAdjustment.setType(InventoryAdjustmentType.DECREMENT);
                 userLog.setAction(UserActionPrefixes.INVENTORY_ADJUSTMENT_DEDUCT_ACTION_LOG_PREFIX);
@@ -89,11 +128,18 @@ public class InventoryAdjustmentService {
                         var tempVar = product.getProductAttributes().get(i).getProductVariations().get(j);
                         tempVar.setQuantity(tempVar.getQuantity() - variationQuantityFromDto);
                         quantityUpdated += variationQuantityFromDto;
+
+                        // price for stock record
+                        addedOrDeductedPrice = addedOrDeductedPrice.add(tempVar.getSrp().multiply(BigDecimal.valueOf(variationQuantityFromDto)));
                     }
                 }
+                stock.setType(StockType.OUT);
             }
+            stock.setPrice(addedOrDeductedPrice);
 
             inventoryAdjustment.setQuantity(quantityUpdated);
+            stock.setStockInOrOut(quantityUpdated);
+
 
             userLog.setCode(inventoryAdjustment.getCode());
             userLog.setDate(LocalDate.now());

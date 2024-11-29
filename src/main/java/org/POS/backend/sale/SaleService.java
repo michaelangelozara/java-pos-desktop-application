@@ -108,6 +108,7 @@ public class SaleService {
 
                                         Stock stock = new Stock();
                                         stock.setUser(user);
+                                        stock.setPerson(customer);
                                         stock.setStockInOrOut(saleProduct.getQuantity());
                                         stock.setPrice(saleProduct.getSubtotal());
                                         stock.setDate(LocalDate.now());
@@ -129,6 +130,7 @@ public class SaleService {
 
                             Stock stock = new Stock();
                             stock.setUser(user);
+                            stock.setPerson(customer);
                             stock.setStockInOrOut(saleProduct.getQuantity());
                             stock.setPrice(saleProduct.getSubtotal());
                             stock.setDate(LocalDate.now());
@@ -228,11 +230,11 @@ public class SaleService {
     }
 
     public List<Sale> getAllValidPOSalesWithLimit(int number) {
-        return this.saleDAO.getAllValidPOSales(number, SaleTransactionMethod.PO_PAYMENT);
+        return this.saleDAO.getAllValidPOSales(number, TransactionType.PO);
     }
 
     public List<Sale> getAllValidPOSalesWithoutLimit(LocalDate start, LocalDate end) {
-        return this.saleDAO.getAllValidPOSales(start, end, SaleTransactionMethod.PO_PAYMENT);
+        return this.saleDAO.getAllValidPOSales(start, end, TransactionType.PO);
     }
 
     public List<Sale> getAllValidSalesByRangeAndWithoutDto(LocalDate start, LocalDate end) {

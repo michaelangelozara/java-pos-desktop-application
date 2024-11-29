@@ -315,9 +315,9 @@ public class InventoryAdjustment extends javax.swing.JPanel {
                 worker.execute();
             }
         };
+        makeCellCenter(table);
         table.getColumnModel().getColumn(7).setCellRenderer(new TableActionCellRender());
         table.getColumnModel().getColumn(7).setCellEditor(new TableActionCellEditor(event));
-        makeCellCenter(table);
         loadInventoryAdjustment();
         jTextField1.getDocument().addDocumentListener(new DocumentListener() {
             @Override
@@ -777,8 +777,6 @@ public class InventoryAdjustment extends javax.swing.JPanel {
 
                         SwingUtilities.invokeLater(() -> {
                             currentStockField.setText(product.getName());
-                            currentStockField.setEnabled(true);
-
                             currentStockField.setText(String.valueOf(product.getStock()));
                         });
                     } catch (InterruptedException ex) {
@@ -820,6 +818,8 @@ public class InventoryAdjustment extends javax.swing.JPanel {
                         JOptionPane.showMessageDialog(null, "Any character is not allowed");
                     } catch (NumberFormatException e) {
                         JOptionPane.showMessageDialog(null, "Please enter number only");
+                    }finally {
+                        loadInventoryAdjustment();
                     }
                 }
             }
@@ -1079,6 +1079,7 @@ public class InventoryAdjustment extends javax.swing.JPanel {
                 }
             };
             if (id != null) {
+                mainAttributePanel.removeAll();
                 worker.execute();
             }
 
@@ -1148,6 +1149,8 @@ public class InventoryAdjustment extends javax.swing.JPanel {
                 JOptionPane.showMessageDialog(null, "Any character is not allowed");
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(null, "Please enter number only");
+            }finally {
+                loadInventoryAdjustment();
             }
         }
     }

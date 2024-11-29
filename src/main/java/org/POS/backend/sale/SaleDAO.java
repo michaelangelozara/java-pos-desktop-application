@@ -1,6 +1,7 @@
 package org.POS.backend.sale;
 
 import org.POS.backend.configuration.HibernateUtil;
+import org.POS.backend.payment.TransactionType;
 import org.POS.backend.product.Product;
 import org.POS.backend.user_log.UserLog;
 import org.hibernate.Hibernate;
@@ -105,36 +106,36 @@ public class SaleDAO {
         return sales;
     }
 
-    public List<Sale> getAllValidPOSales(int number, SaleTransactionMethod method) {
+    public List<Sale> getAllValidPOSales(int number, TransactionType method) {
         List<Sale> sales = new ArrayList<>();
-//        try (Session session = sessionFactory.openSession()){
-//
-//            sales = session.createQuery("SELECT s FROM Sale s WHERE s.transactionMethod =: method", Sale.class)
-//                    .setParameter("method", method)
-//                    .setMaxResults(number)
-//                    .getResultList();
-//
-//            sales.forEach(s -> Hibernate.initialize(s.getInvoice()));
-//        }catch (Exception e){
-//            e.printStackTrace();
-//        }
+        try (Session session = sessionFactory.openSession()){
+
+            sales = session.createQuery("SELECT s FROM Sale s WHERE s.payment.transactionType =: method", Sale.class)
+                    .setParameter("method", method)
+                    .setMaxResults(number)
+                    .getResultList();
+
+            sales.forEach(s -> Hibernate.initialize(s.getInvoice()));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         return sales;
     }
 
-    public List<Sale> getAllValidPOSales(LocalDate start, LocalDate end, SaleTransactionMethod method) {
+    public List<Sale> getAllValidPOSales(LocalDate start, LocalDate end, TransactionType method) {
         List<Sale> sales = new ArrayList<>();
-//        try (Session session = sessionFactory.openSession()){
-//
-//            sales = session.createQuery("SELECT s FROM Sale s WHERE (s.date >= :start AND s.date <= : end) AND s.transactionMethod =: method", Sale.class)
-//                    .setParameter("method", method)
-//                    .setParameter("start", start)
-//                    .setParameter("end", end)
-//                    .getResultList();
-//
-//            sales.forEach(s -> Hibernate.initialize(s.getInvoice()));
-//        }catch (Exception e){
-//            e.printStackTrace();
-//        }
+        try (Session session = sessionFactory.openSession()){
+
+            sales = session.createQuery("SELECT s FROM Sale s WHERE (s.date >= :start AND s.date <= : end) AND s.payment.transactionType =: method", Sale.class)
+                    .setParameter("method", method)
+                    .setParameter("start", start)
+                    .setParameter("end", end)
+                    .getResultList();
+
+            sales.forEach(s -> Hibernate.initialize(s.getInvoice()));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         return sales;
     }
 
