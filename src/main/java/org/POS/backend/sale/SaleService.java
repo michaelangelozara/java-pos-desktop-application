@@ -59,7 +59,7 @@ public class SaleService {
         this.userLogMapper = new UserLogMapper();
     }
 
-    public void add(
+    public int add(
             AddSaleRequestDto dto,
             List<AddSaleProductRequestDto> saleProductRequestDtoList,
             AddShippingRequestDto shippingRequestDto,
@@ -90,10 +90,10 @@ public class SaleService {
             for (var product : products) {
                 for (var saleProductDto : saleProductRequestDtoList) {
                     if (product.getId().equals(saleProductDto.productId())) {
-                        if(product.getProductType().equals(ProductType.VARIABLE)){
-                            for(var attribute : product.getProductAttributes()){
-                                for(var variation : attribute.getProductVariations()){
-                                    if(variation.getId().equals(saleProductDto.variationId())){
+                        if (product.getProductType().equals(ProductType.VARIABLE)) {
+                            for (var attribute : product.getProductAttributes()) {
+                                for (var variation : attribute.getProductVariations()) {
+                                    if (variation.getId().equals(saleProductDto.variationId())) {
                                         SaleProduct saleProduct = this.saleProductMapper.toSaleItem(saleProductDto, product);
                                         saleProduct.setPrice(variation.getSrp());
                                         saleProduct.setSubtotal(variation.getSrp().multiply(BigDecimal.valueOf(saleProduct.getQuantity())));
@@ -122,7 +122,7 @@ public class SaleService {
                                 }
 
                             }
-                        }else{
+                        } else {
                             SaleProduct saleProduct = this.saleProductMapper.toSaleItem(saleProductDto, product);
                             product.setStock(product.getStock() - saleProductDto.quantity());
                             saleProduct.setProduct(product);
@@ -190,12 +190,12 @@ public class SaleService {
                 payment.setChangeAmount(BigDecimal.ZERO);
                 payment.setReferenceNumber(this.codeGeneratorService.generateProductCode(GlobalVariable.SALE_PREFIX));
                 payment.setAmountDue(sale.getNetTotal());
-            } else if(paymentRequestDto.transactionType().equals(TransactionType.CASH)) {
+            } else if (paymentRequestDto.transactionType().equals(TransactionType.CASH)) {
                 payment.setAmountDue(BigDecimal.ZERO);
                 payment.setChangeAmount(paymentRequestDto.paidAmount().subtract(sale.getNetTotal()));
                 order.setStatus(OrderStatus.COMPLETED);
                 payment.setReferenceNumber(this.codeGeneratorService.generateProductCode(GlobalVariable.SALE_PREFIX));
-            }else{
+            } else {
                 order.setStatus(OrderStatus.COMPLETED);
                 payment.setAmountDue(BigDecimal.ZERO);
             }
@@ -207,8 +207,8 @@ public class SaleService {
             sale.setPayment(payment);
 
             userLog.setCode(sale.getSaleNumber());
-            this.saleDAO.add(sale, userLog, products);
-        }catch (Exception e){
+            return this.saleDAO.add(sale, userLog, products);
+        } catch (Exception e) {
             throw new CustomException("Error saving", e);
         }
     }

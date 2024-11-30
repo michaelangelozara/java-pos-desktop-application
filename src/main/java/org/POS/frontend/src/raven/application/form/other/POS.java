@@ -1069,7 +1069,7 @@ public class POS extends JPanel {
         saveButton.setForeground(Color.WHITE);
         saveButton.setFont(new Font("Arial", Font.BOLD, 18));
         saveButton.addActionListener(e -> {
-            if(paymentType.equals("Online") && referenceField.getText().isEmpty()){
+            if (paymentType.equals("Online") && referenceField.getText().isEmpty()) {
                 JOptionPane.showMessageDialog(null, "Please Enter the Reference Number");
                 return;
             }
@@ -1133,11 +1133,11 @@ public class POS extends JPanel {
                 additionalFees.add(additionalFee);
             }
 
-            SwingWorker<Void, Void> worker = new SwingWorker<>() {
+            SwingWorker<Integer, Void> worker = new SwingWorker<>() {
                 @Override
-                protected Void doInBackground() {
+                protected Integer doInBackground() {
                     try {
-                        saleService.add(
+                        return saleService.add(
                                 dto,
                                 saleProductDtoList,
                                 shippingDto,
@@ -1153,11 +1153,13 @@ public class POS extends JPanel {
                 @Override
                 protected void done() {
                     try {
-                        JOptionPane.showMessageDialog(paymentDialog, "Payment successful!\n\nCash In : " + totalAmount + "\nDate: " + LocalDate.now(), "Success", JOptionPane.INFORMATION_MESSAGE);
-                        reset();
-                        paymentDialog.dispose();
+                        Integer result = get();
+                        if (result != null) {
+                            JOptionPane.showMessageDialog(paymentDialog, "Payment successful!\n\nCash In : " + totalAmount + "\nDate: " + LocalDate.now(), "Success", JOptionPane.INFORMATION_MESSAGE);
+                            reset();
+                            paymentDialog.dispose();
+                        }
                     } catch (Exception e) {
-                        e.printStackTrace();
                         JOptionPane.showMessageDialog(paymentDialog, "An error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 }
@@ -1176,7 +1178,7 @@ public class POS extends JPanel {
         gbc.gridwidth = 2; // Span across two columns
         paymentModal.add(totalLabel, gbc);
 
-        if(paymentType.equals("Online")){
+        if (paymentType.equals("Online")) {
             gbc.gridx = 0;
             gbc.gridy = 1;
             gbc.gridwidth = 1; // Reset to single column
@@ -1434,11 +1436,11 @@ public class POS extends JPanel {
                     additionalFees.add(additionalFee);
                 }
 
-                SwingWorker<Void, Void> worker = new SwingWorker<>() {
+                SwingWorker<Integer, Void> worker = new SwingWorker<>() {
                     @Override
-                    protected Void doInBackground() {
+                    protected Integer doInBackground() {
                         try {
-                            saleService.add(
+                            return saleService.add(
                                     dto,
                                     saleProductDtoList,
                                     shippingDto,
@@ -1454,6 +1456,8 @@ public class POS extends JPanel {
                     @Override
                     protected void done() {
                         try {
+                            Integer result = get();
+                            JOptionPane.showMessageDialog(null, "Persisted ID : " + result);
                             JOptionPane.showMessageDialog(paymentDialog, "Payment successful!\n\nCash In : " + finalSummationOfTotal + "\nChange : " + change + "\nDate: " + LocalDate.now(), "Success", JOptionPane.INFORMATION_MESSAGE);
                             reset();
                             paymentDialog.dispose();
@@ -1493,7 +1497,6 @@ public class POS extends JPanel {
     }
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        // Create a JPanel with GridBagLayout to hold the custom form (2 columns)
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -1636,9 +1639,51 @@ public class POS extends JPanel {
                     status.equals("Active") ? PersonStatus.ACTIVE : PersonStatus.INACTIVE
             );
 
-            personService.add(dto);
-            JOptionPane.showMessageDialog(null, "Client added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-//            loadClients(personService);
+            SwingWorker<Void, Void> categoryWorker = new SwingWorker<>() {
+                @Override
+                protected Void doInBackground() throws Exception {
+                    jComboBox1.addItem("Loading...");
+                    jComboBox1.setSelectedItem("Loading...");
+                    jComboBox1.setEnabled(false);
+                    loadClientForComboBox(jComboBox1, clientMap);
+                    return null;
+                }
+
+                @Override
+                protected void done() {
+                    jComboBox1.setEnabled(true);
+                }
+            };
+
+            SwingWorker<Boolean, Void> worker = new SwingWorker<>() {
+                @Override
+                protected Boolean doInBackground() throws Exception {
+                    try {
+                        personService.add(dto);
+                        return true;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        boolean result = get();
+                        if (result) {
+                            JOptionPane.showMessageDialog(null, "Client added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                            categoryWorker.execute();
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Unable to Create a Client", "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    } catch (ExecutionException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            };
+            worker.execute();
         }
     }//GEN-LAST:event_jButton3ActionPerformed
 
@@ -2215,37 +2260,6 @@ public class POS extends JPanel {
         private double amount;
     }
 
-    //
-//    private void loadNetTotal() {
-//        List<PurchaseListedProduct> products = getAllRows();
-//
-//        BigDecimal summation = BigDecimal.ZERO;
-//
-//        for (int i = 0; i < products.size(); i++) {
-//            summation = summation.add(products.get(i).getSubtotal());
-//        }
-//
-//        BigDecimal transportCost = new BigDecimal(jTextField2.getText());
-//        BigDecimal fixDiscount = new BigDecimal(jTextField3.getText());
-//        double percentageDiscount = Double.parseDouble(jTextField3.getText());
-//
-//        String discountType = (String) jComboBox4.getSelectedItem();
-//
-//        assert discountType != null;
-//        if (discountType.equals("Fixed")) {
-//            BigDecimal tempVar = transportCost.add(summation).subtract(fixDiscount);
-//            jLabel7.setText(String.valueOf(tempVar.setScale(2, RoundingMode.HALF_UP)));
-//        } else if (discountType.equals("Percentage %")) {
-//            double percentage = percentageDiscount / 100;
-//            BigDecimal tempVar = ((transportCost.add(summation)).multiply(BigDecimal.valueOf(percentage))).setScale(2, RoundingMode.HALF_UP);
-//            jLabel7.setText(String.valueOf(tempVar));
-//        } else {
-//            BigDecimal tempVar = (transportCost.add(summation));
-//            jLabel7.setText(String.valueOf(tempVar.setScale(2, RoundingMode.HALF_UP)));
-//        }
-//        computeTotalTax();
-//    }
-//
     static class ButtonRenderer extends JButton implements TableCellRenderer {
         public ButtonRenderer() {
             setOpaque(true);

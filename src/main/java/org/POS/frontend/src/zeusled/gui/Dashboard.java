@@ -90,9 +90,9 @@ public class Dashboard extends JPanel {
                         }
                     }
 
-                    card2.setData(new ModelCard(null, null, null, String.valueOf(products.size() - countOfNotOutOfStockVariableProduct), "Items Out of Stock"));
+                    card2.setData(new ModelCard(null, null, null, String.valueOf(products.size() - countOfNotOutOfStockVariableProduct), "Items in Alert Stock"));
                 } catch (Exception e) {
-                    card2.setData(new ModelCard(null, null, null, "0", "Items Out of Stock"));
+                    card2.setData(new ModelCard(null, null, null, "0", "Items in Alert Stock"));
                 }
             }
         };

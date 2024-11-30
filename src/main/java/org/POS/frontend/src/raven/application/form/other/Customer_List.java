@@ -653,11 +653,37 @@ public class Customer_List extends JPanel {
                     status.equals("Active") ? PersonStatus.ACTIVE : PersonStatus.INACTIVE
             );
 
-            personService.add(dto);
-            JOptionPane.showMessageDialog(null, "Client added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            loadClients();
-            // Handle the image upload if needed
-            // selectedFile would be processed here after image upload
+            SwingWorker<Boolean, Void> worker = new SwingWorker<>() {
+                @Override
+                protected Boolean doInBackground(){
+                    try {
+                        personService.add(dto);
+                        return true;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        boolean result = get();
+                        if(result){
+                            JOptionPane.showMessageDialog(null, "Client added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                        }else{
+                            JOptionPane.showMessageDialog(null, "Unable to Create a New Client!", "Error", JOptionPane.INFORMATION_MESSAGE);
+
+                        }
+                        loadClients();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    } catch (ExecutionException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            };
+            worker.execute();
         }
     }
 

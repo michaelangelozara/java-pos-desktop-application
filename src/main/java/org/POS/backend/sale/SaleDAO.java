@@ -19,7 +19,7 @@ public class SaleDAO {
 
     private SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
 
-    public void add(
+    public int add(
             Sale sale,
             UserLog userLog,
             Set<Product> products
@@ -32,6 +32,7 @@ public class SaleDAO {
             session.persist(sale);
             session.persist(userLog);
             transaction.commit();
+            return sale.getId();
         } catch (Exception e) {
             if (transaction != null) {
                 transaction.rollback();
@@ -140,7 +141,7 @@ public class SaleDAO {
     }
 
     public BigDecimal getTotalSales() {
-        BigDecimal totalSales = BigDecimal.ZERO;
+        BigDecimal totalSales;
         try (Session session = sessionFactory.openSession()){
            totalSales = session.createQuery("SELECT SUM(s.netTotal) FROM Sale s", BigDecimal.class)
                     .getSingleResult();
