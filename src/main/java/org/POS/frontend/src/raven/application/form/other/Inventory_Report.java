@@ -347,9 +347,7 @@ public class Inventory_Report extends javax.swing.JPanel {
         jButton3.setText("From - To");
 
         jButton3.addActionListener(e -> {
-            if (recentCategoryId != null) {
-                createDatePickerPanel();
-            }
+            createDatePickerPanel();
         });
 
         ProductCategoryService productCategoryService = new ProductCategoryService();
