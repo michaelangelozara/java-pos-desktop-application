@@ -547,7 +547,6 @@ public class Order_List extends javax.swing.JPanel {
                             @Override
                             protected void done() {
                                 JOptionPane.showMessageDialog(null, "Product Returned");
-                                loadOrders();
                             }
                         };
                         worker1.execute();
@@ -555,6 +554,7 @@ public class Order_List extends javax.swing.JPanel {
                         e.printStackTrace();
                     }
                 }
+                loadOrders();
             }
 
             private void computeNetTotal(BigDecimal subtotal, boolean isListed, DefaultTableModel model) {

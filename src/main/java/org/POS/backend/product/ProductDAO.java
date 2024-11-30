@@ -333,4 +333,26 @@ public class ProductDAO {
         }
         return products;
     }
+
+    public int getProductTotalQuantity(){
+        int[] totalQuantity = new int[1];
+        try(Session session = sessionFactory.openSession()){
+            List<Product> products = session.createQuery("SELECT p FROM Product p", Product.class)
+                    .getResultList();
+            products.forEach(p -> {
+                if(p.getProductType().equals(ProductType.SIMPLE)){
+                    totalQuantity[0] += p.getStock();
+                }else{
+                    for(var attribute : p.getProductAttributes()){
+                        for(var variation : attribute.getProductVariations()){
+                            totalQuantity[0] += variation.getQuantity();
+                        }
+                    }
+                }
+            });
+        }catch (Exception e){
+            throw e;
+        }
+        return totalQuantity[0];
+    }
 }

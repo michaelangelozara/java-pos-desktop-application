@@ -5,10 +5,13 @@ import net.miginfocom.swing.MigLayout;
 import org.POS.backend.global_variable.CurrentUser;
 import org.POS.backend.global_variable.GlobalVariable;
 import org.POS.backend.user.LoginRequestDto;
+import org.POS.backend.user.UserRole;
 import org.POS.backend.user.UserService;
 import org.POS.frontend.src.raven.application.Application;
+import org.POS.frontend.src.raven.menu.Menu;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
@@ -133,6 +136,7 @@ public class LoginForm extends javax.swing.JPanel {
                     if (isAuthenticate) {
                         JOptionPane.showMessageDialog(null, GlobalVariable.USER_LOGGED_IN, "Login Successful", JOptionPane.PLAIN_MESSAGE);
                         Application.login();
+                        disableButtonsByRole();
                     } else {
                         JOptionPane.showMessageDialog(null, GlobalVariable.USER_INVALID_CREDENTIAL, "Login Error", JOptionPane.WARNING_MESSAGE);
                     }
@@ -147,6 +151,38 @@ public class LoginForm extends javax.swing.JPanel {
 
         worker.execute();
     }//GEN-LAST:event_cmdLoginActionPerformed
+
+    private void disableButtonsByRole() {
+        if(CurrentUser.role == null) return;
+
+        if(!CurrentUser.role.equals(UserRole.ADMIN) && !CurrentUser.role.equals(UserRole.SUPER_ADMIN)){
+            // disable all buttons
+            for (var button : Menu.buttons) {
+                if(button.getText().equals("Logout")) continue;
+
+                button.setEnabled(false);
+                button.setVisible(false);
+            }
+
+            // hide all sidebar's labels
+            for(var label : Menu.labels){
+                label.setVisible(false);
+            }
+        }else{
+            // enable all buttons
+            for (var button : Menu.buttons) {
+                if(button.getText().equals("Logout")) continue;
+
+                button.setEnabled(true);
+                button.setVisible(true);
+            }
+
+            // show all sidebar's labels
+            for(var label : Menu.labels){
+                label.setVisible(true);
+            }
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cmdLogin;

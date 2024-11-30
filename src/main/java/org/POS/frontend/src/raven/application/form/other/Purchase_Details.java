@@ -47,7 +47,6 @@ public class Purchase_Details extends JPanel {
                 purchase.getCode(),
                 purchase.getCreatedDate(),
                 purchase.getNote(),
-                purchase.getCreatedDate(),
                 purchase.getUser().getName()
         });
     }
@@ -121,11 +120,11 @@ public class Purchase_Details extends JPanel {
             new Object [][] {
             },
             new String [] {
-                "Purchase No	", "Purchase Date", "Note	", "Status	", "Created By "
+                "Purchase No	", "Purchase Date", "Note	", "Created By "
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false
+                false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -139,7 +138,6 @@ public class Purchase_Details extends JPanel {
             table4.getColumnModel().getColumn(1).setResizable(false);
             table4.getColumnModel().getColumn(2).setResizable(false);
             table4.getColumnModel().getColumn(3).setResizable(false);
-            table4.getColumnModel().getColumn(4).setResizable(false);
         }
 
         GroupLayout jPanel8Layout = new GroupLayout(jPanel8);

@@ -1,26 +1,18 @@
 package org.POS.frontend.src.raven.menu;
 
-import raven.menu.mode.LightDarkMode;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.ui.FlatUIUtils;
 import com.formdev.flatlaf.util.UIScale;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Insets;
-import java.awt.LayoutManager;
+import org.POS.frontend.src.raven.menu.mode.ToolBarAccentColor;
+import raven.menu.mode.LightDarkMode;
+
+import javax.swing.*;
+import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import org.POS.frontend.src.raven.menu.mode.ToolBarAccentColor;
 
 /**
- *
  * @author Raven
  */
 public class Menu extends JPanel {
@@ -31,13 +23,13 @@ public class Menu extends JPanel {
             {"~ACTIVITIES~"},
             {"Expenses", "Categories", "Sub Categories", "Expense List"},
             {"Purchases", "Purchase List"},
-            {"Sales", "Quotation List", "Invoices List","Order List", "Returned Order List", "Cash Transaction","POS",},
+            {"Sales", "Quotation List", "Invoices List", "Order List", "Returned Order List", "Cash Transaction", "POS",},
             {"~PEOPLE~"},
             {"Clients"},
             {"Suppliers"},
             {"User Management"},
             {"~INVENTORY~"},
-            {"Products", "Categories","Product List"},
+            {"Products", "Categories", "Product List"},
             {"Inventory", "View Inventory", "Inventory Adjustment"},
             {"~REPORTS~"},
             {"Sales Report"},
@@ -83,7 +75,12 @@ public class Menu extends JPanel {
     protected final int menuMinWidth = 60;
     protected final int headerFullHgap = 5;
 
+    public static List<JButton> buttons;
+    public static List<JLabel> labels;
+
     public Menu() {
+        buttons = new ArrayList<>();
+        labels = new ArrayList<>();
         init();
     }
 
@@ -132,9 +129,11 @@ public class Menu extends JPanel {
         for (int i = 0; i < menuItems.length; i++) {
             String menuName = menuItems[i][0];
             if (menuName.startsWith("~") && menuName.endsWith("~")) {
-                panelMenu.add(createTitle(menuName));
+                var title = createTitle(menuName);
+                panelMenu.add(title);
+                labels.add(title);
             } else {
-                MenuItem menuItem = new MenuItem(this, menuItems[i], index++, events);
+                MenuItem menuItem = new MenuItem(this, menuItems[i], index++, events, buttons);
                 panelMenu.add(menuItem);
             }
         }
@@ -256,7 +255,7 @@ public class Menu extends JPanel {
                 int hgap = menuFull ? sheaderFullHgap : 0;
                 int accentColorHeight = 0;
                 if (toolBarAccentColor.isVisible()) {
-                    accentColorHeight = toolBarAccentColor.getPreferredSize().height+gap;
+                    accentColorHeight = toolBarAccentColor.getPreferredSize().height + gap;
                 }
 
                 header.setBounds(x + hgap, y, iconWidth - (hgap * 2), iconHeight);
@@ -264,7 +263,7 @@ public class Menu extends JPanel {
                 int ldWidth = width - ldgap * 2;
                 int ldHeight = lightDarkMode.getPreferredSize().height;
                 int ldx = x + ldgap;
-                int ldy = y + height - ldHeight - ldgap  - accentColorHeight;
+                int ldy = y + height - ldHeight - ldgap - accentColorHeight;
 
                 int menux = x;
                 int menuy = y + iconHeight + gap;

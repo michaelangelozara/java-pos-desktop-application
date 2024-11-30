@@ -101,6 +101,7 @@ public class Order_Details extends JPanel {
                     saleItem.getProduct().getProductCode(),
                     saleItem.getProduct().getName(),
                     saleItem.getQuantity(),
+                    saleItem.getProductVariation() != null ? saleItem.getProductVariation().getVariation() : "No Variation",
                     saleItem.getPrice(),
                     saleItem.getPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(0.12), RoundingMode.HALF_UP),
                     saleItem.getPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP),
@@ -366,16 +367,13 @@ public class Order_Details extends JPanel {
 
         table.setModel(new DefaultTableModel(
                 new Object[][]{
-                        {null, null, null, null, null, null, null, null},
-                        {null, null, null, null, null, null, null, null},
-                        {null, null, null, null, null, null, null, null}
                 },
                 new String[]{
-                        "#", "Code", "Product Name	", "Invoice Quantity	", "Unit Price", "Unit Tax", "Unit Cost", "Total"
+                        "#", "Code", "Product Name	", "Product Quantity	", "Variation", "Unit Price", "Unit Tax", "Unit Cost", "Total"
                 }
         ) {
             boolean[] canEdit = new boolean[]{
-                    false, false, false, false, false, false, false, false
+                    false, false, false, false, false, false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {

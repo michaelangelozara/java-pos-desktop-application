@@ -96,6 +96,7 @@ public class UserService {
             CurrentUser.id = user.getId();
             CurrentUser.employeeId = user.getEmployeeId();
             CurrentUser.username = user.getUsername();
+            CurrentUser.role = user.getRole();
             return true;
         } catch (Exception e) {
             e.printStackTrace();

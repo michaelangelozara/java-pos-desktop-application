@@ -100,15 +100,25 @@ public class Invoice_Details extends JPanel {
 
         var payment = fetchedInvoice.getSale().getPayment();
         int n = 1;
-        for(var po : payment.getPoLogs()){
+        if(!fetchedInvoice.getSale().getPayment().getTransactionType().equals(TransactionType.PO)){
             model.addRow(new Object[]{
                     n,
-                    po.getDate(),
-                    po.getPaidAmount(),
-                    po.getRecentAmountDue(),
+                    payment.getDate(),
+                    payment.getPaidAmount(),
+                    payment.getAmountDue(),
                     payment.getTransactionType().name()
             });
-            n++;
+        }else{
+            for(var po : payment.getPoLogs()){
+                model.addRow(new Object[]{
+                        n,
+                        po.getDate(),
+                        po.getPaidAmount(),
+                        po.getRecentAmountDue(),
+                        payment.getTransactionType().name()
+                });
+                n++;
+            }
         }
     }
 
@@ -398,12 +408,9 @@ public class Invoice_Details extends JPanel {
 
         table5.setModel(new DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null}
             },
             new String [] {
-                "#", "Payment Date	", "Paid Amount	", "Account	", "Status "
+                "#", "Payment Date	", "Paid Amount	", "Amount Due	", "Payment Type "
             }
         ) {
             boolean[] canEdit = new boolean [] {
@@ -483,9 +490,6 @@ public class Invoice_Details extends JPanel {
 
         table4.setModel(new DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null}
             },
             new String [] {
                 "Invoice No	", "Invoice Date", "Reference	", "PO Reference	", "Delivery Place	", "Note	", "Status	", "Created By "

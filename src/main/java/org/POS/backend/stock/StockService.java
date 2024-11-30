@@ -3,6 +3,7 @@ package org.POS.backend.stock;
 import org.POS.backend.global_variable.GlobalVariable;
 import org.POS.backend.person.PersonDAO;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class StockService {
@@ -43,5 +44,9 @@ public class StockService {
 
     public List<Stock> getAllValidStockByProductCategoryId(int id){
         return this.stockDAO.getAllStocksByProductCategoryId(id);
+    }
+
+    public List<Stock> getAllValidStocksByRange(LocalDate start, LocalDate end){
+        return this.stockDAO.getAllValidStocksByRange(start, end);
     }
 }

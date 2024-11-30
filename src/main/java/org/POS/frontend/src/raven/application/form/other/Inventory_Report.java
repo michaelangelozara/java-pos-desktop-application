@@ -4,6 +4,7 @@
  */
 package org.POS.frontend.src.raven.application.form.other;
 
+import org.POS.backend.product.Product;
 import org.POS.backend.product.ProductService;
 import org.POS.backend.product.ProductType;
 import org.POS.backend.product_category.ProductCategoryService;
@@ -36,7 +37,9 @@ public class Inventory_Report extends javax.swing.JPanel {
      */
     public Inventory_Report() {
         initComponents();
+        makeCellCenter(jTable1);
         loadInventoryReports();
+        computeTotalAvailableStock();
     }
 
     private void loadInventoryReports() {
@@ -71,7 +74,7 @@ public class Inventory_Report extends javax.swing.JPanel {
                                         stock.getRecentQuantity(),
                                         stock.getStockInOrOut(),
                                         0,
-                                        product.getStock()
+                                        stock.getRecentQuantity() + stock.getStockInOrOut()
                                 });
                                 stockInSummation += stock.getStockInOrOut();
                             } else {
@@ -83,17 +86,11 @@ public class Inventory_Report extends javax.swing.JPanel {
                                         stock.getRecentQuantity(),
                                         0,
                                         stock.getStockInOrOut(),
-                                        product.getStock()
+                                        stock.getRecentQuantity() - stock.getStockInOrOut()
                                 });
                                 stockOutSummation += stock.getStockInOrOut();
                             }
                         } else {
-                            int totalQuantity = 0;
-                            for (var attribute : product.getProductAttributes()) {
-                                for (var variation : attribute.getProductVariations()) {
-                                    totalQuantity += variation.getQuantity();
-                                }
-                            }
 
                             if (stock.getType().equals(StockType.IN)) {
                                 model.addRow(new Object[]{
@@ -104,7 +101,7 @@ public class Inventory_Report extends javax.swing.JPanel {
                                         stock.getRecentQuantity(),
                                         stock.getStockInOrOut(),
                                         0,
-                                        totalQuantity
+                                        stock.getRecentQuantity() + stock.getStockInOrOut()
                                 });
                                 stockInSummation += stock.getStockInOrOut();
                             } else {
@@ -116,7 +113,7 @@ public class Inventory_Report extends javax.swing.JPanel {
                                         stock.getRecentQuantity(),
                                         0,
                                         stock.getStockInOrOut(),
-                                        totalQuantity
+                                        stock.getRecentQuantity() - stock.getStockInOrOut()
                                 });
                                 stockOutSummation += stock.getStockInOrOut();
                             }
@@ -124,10 +121,8 @@ public class Inventory_Report extends javax.swing.JPanel {
                         n++;
                     }
 
-                    int availableStock = (stockInSummation - stockOutSummation) < 0 ? 0 : (stockInSummation - stockOutSummation);
                     jLabel20.setText(String.valueOf(stockInSummation));
                     jLabel21.setText(String.valueOf(stockOutSummation));
-                    jLabel22.setText(String.valueOf(availableStock));
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 } catch (ExecutionException e) {
@@ -566,59 +561,91 @@ public class Inventory_Report extends javax.swing.JPanel {
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         model.setRowCount(0);
 
-        ProductService productService = new ProductService();
-        var products = productService.getAllValidProductsByRangeAndCategoryId(fromDate, toDate, recentCategoryId);
-        int i = 1;
-        int stockInSummation = 0;
-        int stockOutSummation = 0;
-        for (var product : products) {
-            int stockIn = 0;
-            int stockOut = 0;
-            for (var stock : product.getStocks()) {
-                if (stock.getType().equals(StockType.IN)) {
-                    stockIn = stock.getStockInOrOut();
-                } else {
-                    stockOut = stock.getStockInOrOut();
-                }
+        StockService stockService = new StockService();
+        SwingWorker<List<Stock>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<Stock> doInBackground() throws Exception {
+                return stockService.getAllValidStocksByRange(fromDate, toDate);
             }
 
-            if (product.getProductType().equals(ProductType.SIMPLE)) {
-                model.addRow(new Object[]{
-                        i,
-                        product.getProductCode(),
-                        product.getDate(),
-                        product.getName(),
-                        stockIn,
-                        stockOut,
-                        product.getStock()
-                });
-            } else {
-                int totalQuantity = 0;
-                for (var attribute : product.getProductAttributes()) {
-                    for (var variation : attribute.getProductVariations()) {
-                        totalQuantity += variation.getQuantity();
+            @Override
+            protected void done() {
+                try {
+                    int stockInSummation = 0;
+                    int stockOutSummation = 0;
+                    var stocks = get();
+
+                    int n = 1;
+                    for (var stock : stocks) {
+                        var product = stock.getProduct();
+
+                        if (product.getProductType().equals(ProductType.SIMPLE)) {
+                            if (stock.getType().equals(StockType.IN)) {
+                                model.addRow(new Object[]{
+                                        n,
+                                        product.getProductCode(),
+                                        stock.getDate(),
+                                        product.getName(),
+                                        stock.getRecentQuantity(),
+                                        stock.getStockInOrOut(),
+                                        0,
+                                        stock.getRecentQuantity() + stock.getStockInOrOut()
+                                });
+                                stockInSummation += stock.getStockInOrOut();
+                            } else {
+                                model.addRow(new Object[]{
+                                        n,
+                                        product.getProductCode(),
+                                        stock.getDate(),
+                                        product.getName(),
+                                        stock.getRecentQuantity(),
+                                        0,
+                                        stock.getStockInOrOut(),
+                                        stock.getRecentQuantity() - stock.getStockInOrOut()
+                                });
+                                stockOutSummation += stock.getStockInOrOut();
+                            }
+                        } else {
+
+                            if (stock.getType().equals(StockType.IN)) {
+                                model.addRow(new Object[]{
+                                        n,
+                                        product.getProductCode(),
+                                        stock.getDate(),
+                                        product.getName(),
+                                        stock.getRecentQuantity(),
+                                        stock.getStockInOrOut(),
+                                        0,
+                                        stock.getRecentQuantity() + stock.getStockInOrOut()
+                                });
+                                stockInSummation += stock.getStockInOrOut();
+                            } else {
+                                model.addRow(new Object[]{
+                                        n,
+                                        product.getProductCode(),
+                                        stock.getDate(),
+                                        product.getName(),
+                                        stock.getRecentQuantity(),
+                                        0,
+                                        stock.getStockInOrOut(),
+                                        stock.getRecentQuantity() - stock.getStockInOrOut()
+                                });
+                                stockOutSummation += stock.getStockInOrOut();
+                            }
+                        }
+                        n++;
                     }
+
+                    jLabel20.setText(String.valueOf(stockInSummation));
+                    jLabel21.setText(String.valueOf(stockOutSummation));
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
                 }
-
-                model.addRow(new Object[]{
-                        i,
-                        product.getProductCode(),
-                        product.getDate(),
-                        product.getName(),
-                        stockIn,
-                        stockOut,
-                        totalQuantity
-                });
             }
-
-            i++;
-            stockInSummation += stockIn;
-            stockOutSummation += stockOut;
-        }
-        int availableStock = (stockInSummation - stockOutSummation) < 0 ? 0 : (stockInSummation - stockOutSummation);
-        jLabel20.setText(String.valueOf(stockInSummation));
-        jLabel21.setText(String.valueOf(stockOutSummation));
-        jLabel22.setText(String.valueOf(availableStock));
+        };
+        worker.execute();
     }
 
     private void loadInventories(int subcategoryId) {
@@ -653,7 +680,7 @@ public class Inventory_Report extends javax.swing.JPanel {
                                         stock.getRecentQuantity(),
                                         stock.getStockInOrOut(),
                                         0,
-                                        product.getStock()
+                                        stock.getRecentQuantity() + stock.getStockInOrOut()
                                 });
                                 stockInSummation += stock.getStockInOrOut();
                             } else {
@@ -665,17 +692,11 @@ public class Inventory_Report extends javax.swing.JPanel {
                                         stock.getRecentQuantity(),
                                         0,
                                         stock.getStockInOrOut(),
-                                        product.getStock()
+                                        stock.getRecentQuantity() - stock.getStockInOrOut()
                                 });
                                 stockOutSummation += stock.getStockInOrOut();
                             }
                         } else {
-                            int totalQuantity = 0;
-                            for (var attribute : product.getProductAttributes()) {
-                                for (var variation : attribute.getProductVariations()) {
-                                    totalQuantity += variation.getQuantity();
-                                }
-                            }
 
                             if (stock.getType().equals(StockType.IN)) {
                                 model.addRow(new Object[]{
@@ -686,7 +707,7 @@ public class Inventory_Report extends javax.swing.JPanel {
                                         stock.getRecentQuantity(),
                                         stock.getStockInOrOut(),
                                         0,
-                                        totalQuantity
+                                        stock.getRecentQuantity() + stock.getStockInOrOut()
                                 });
                                 stockInSummation += stock.getStockInOrOut();
                             } else {
@@ -698,7 +719,7 @@ public class Inventory_Report extends javax.swing.JPanel {
                                         stock.getRecentQuantity(),
                                         0,
                                         stock.getStockInOrOut(),
-                                        totalQuantity
+                                        stock.getRecentQuantity() - stock.getStockInOrOut()
                                 });
                                 stockOutSummation += stock.getStockInOrOut();
                             }
@@ -706,14 +727,42 @@ public class Inventory_Report extends javax.swing.JPanel {
                         n++;
                     }
 
-                    int availableStock = (stockInSummation - stockOutSummation) < 0 ? 0 : (stockInSummation - stockOutSummation);
                     jLabel20.setText(String.valueOf(stockInSummation));
                     jLabel21.setText(String.valueOf(stockOutSummation));
-                    jLabel22.setText(String.valueOf(availableStock));
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 } catch (ExecutionException e) {
                     throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
+    }
+
+    private void computeTotalAvailableStock(){
+        ProductService productService = new ProductService();
+        SwingWorker<Integer, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Integer doInBackground() {
+                try{
+                    jLabel22.setText("Loading...");
+                    return productService.getProductTotalQuantity();
+                }catch (Exception e){
+                    throw e;
+                }
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    int totalQuantity = get();
+                    jLabel22.setText(String.valueOf(totalQuantity));
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }catch (Exception e){
+                    JOptionPane.showMessageDialog(null, "Unexpected Error");
                 }
             }
         };

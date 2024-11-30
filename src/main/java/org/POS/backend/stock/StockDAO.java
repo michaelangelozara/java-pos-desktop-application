@@ -5,6 +5,7 @@ import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,6 +71,21 @@ public class StockDAO {
                 s.getProduct().getProductAttributes().forEach(pa -> Hibernate.initialize(pa.getProductVariations()));
             });
         } catch (Exception e) {
+            throw e;
+        }
+        return stocks;
+    }
+
+    public List<Stock> getAllValidStocksByRange(LocalDate start, LocalDate end){
+        List<Stock> stocks = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()){
+
+            stocks = session.createQuery("SELECT s FROM Stock s WHERE s.date >= :start AND s.date <= :end", Stock.class)
+                    .setParameter("start", start)
+                    .setParameter("end", end)
+                    .getResultList();
+
+        }catch (Exception e){
             throw e;
         }
         return stocks;

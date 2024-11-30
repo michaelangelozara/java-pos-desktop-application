@@ -225,4 +225,8 @@ public class ProductService {
     public Product getValidProductByIdWithoutDto(int id){
         return this.productDAO.getValidProductById(id);
     }
+
+    public int getProductTotalQuantity(){
+        return this.productDAO.getProductTotalQuantity();
+    }
 }
