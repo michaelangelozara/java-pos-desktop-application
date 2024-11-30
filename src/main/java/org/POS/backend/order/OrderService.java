@@ -130,12 +130,25 @@ public class OrderService {
                             returnItem.setReturnedDate(LocalDate.now());
                             returnItem.setReturnedQuantity(returnItemDto.returnedQuantity());
 
+                            // setup the stock recent quantity before updating
+                            Stock stock = new Stock();
+
                             saleProduct.setQuantity(saleProduct.getQuantity() - returnItemDto.returnedQuantity());
                             saleProduct.setSubtotal(saleProduct.getSubtotal().subtract(saleProduct.getPrice().multiply(BigDecimal.valueOf(returnItem.getReturnedQuantity()))));
                             var product = saleProduct.getProduct();
 
                             if (product.getProductType().equals(ProductType.VARIABLE)) {
                                 var tempVariation = saleProduct.getProductVariation();
+
+                                // loop all the attribute and variation to compute recent quantity
+                                int recentQuantity = 0;
+                                for(var attribute : product.getProductAttributes()){
+                                    for(var variation : attribute.getProductVariations()){
+                                        recentQuantity += variation.getQuantity();
+                                    }
+                                }
+                                stock.setRecentQuantity(recentQuantity);
+
                                 tempVariation.setQuantity(tempVariation.getQuantity() + returnItemDto.returnedQuantity());
 
                                 // check if this variation's quantity is equal zero
@@ -143,10 +156,11 @@ public class OrderService {
                                     order.setStatus(OrderStatus.RETURNED);
 
                             } else {
+                                stock.setRecentQuantity(product.getStock());
                                 product.setStock(product.getStock() + returnItemDto.returnedQuantity());
                             }
 
-                            Stock stock = new Stock();
+
                             stock.setDate(LocalDate.now());
                             stock.setStockInOrOut(returnItem.getReturnedQuantity());
                             stock.setPrice(saleProduct.getPrice().multiply(BigDecimal.valueOf(returnItemDto.returnedQuantity())));

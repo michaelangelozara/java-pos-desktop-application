@@ -167,8 +167,22 @@ public class ExpenseDAO {
                     .getResultList();
 
         }catch (Exception e){
-            e.printStackTrace();
+            throw e;
         }
+        return expenses;
+    }
+
+    public List<Expense> getAllValidExpensesWithoutLimit(){
+        List<Expense> expenses = new ArrayList<>();
+        try(Session session = sessionFactory.openSession()){
+
+            expenses = session.createQuery("SELECT e FROM Expense e", Expense.class)
+                    .getResultList();
+
+        }catch (Exception e){
+            throw e;
+        }
+
         return expenses;
     }
 

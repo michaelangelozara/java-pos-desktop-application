@@ -98,6 +98,18 @@ public class SaleService {
                                         saleProduct.setPrice(variation.getSrp());
                                         saleProduct.setSubtotal(variation.getSrp().multiply(BigDecimal.valueOf(saleProduct.getQuantity())));
 
+                                        Stock stock = new Stock();
+                                        // re loop the attribute and variation to get the summation
+                                        // of the recent quantity
+                                        int totalRecentQuantity = 0;
+                                        for(var tempAttribute : product.getProductAttributes()){
+                                            for(var tempVariation : tempAttribute.getProductVariations()){
+                                                totalRecentQuantity += tempVariation.getQuantity();
+                                            }
+                                        }
+                                        stock.setRecentQuantity(totalRecentQuantity);
+
+
                                         // add the sale product to the variation
                                         variation.addSaleProduct(saleProduct);
 
@@ -106,8 +118,8 @@ public class SaleService {
                                         saleProduct.setProduct(product);
                                         sale.addSaleProduct(saleProduct);
 
-                                        Stock stock = new Stock();
-                                        stock.setUser(user);
+
+                                        user.addStock(stock);
                                         stock.setPerson(customer);
                                         stock.setStockInOrOut(saleProduct.getQuantity());
                                         stock.setPrice(saleProduct.getSubtotal());
@@ -123,13 +135,16 @@ public class SaleService {
 
                             }
                         } else {
+                            Stock stock = new Stock();
+
                             SaleProduct saleProduct = this.saleProductMapper.toSaleItem(saleProductDto, product);
+                            stock.setRecentQuantity(product.getStock());
+
                             product.setStock(product.getStock() - saleProductDto.quantity());
                             saleProduct.setProduct(product);
                             sale.addSaleProduct(saleProduct);
 
-                            Stock stock = new Stock();
-                            stock.setUser(user);
+                            user.addStock(stock);
                             stock.setPerson(customer);
                             stock.setStockInOrOut(saleProduct.getQuantity());
                             stock.setPrice(saleProduct.getSubtotal());
@@ -213,24 +228,24 @@ public class SaleService {
         }
     }
 
-    public List<SaleResponseDto> getAllValidSales(int numberOfSales) {
-        return this.saleMapper.toSaleResponseDtoList(this.saleDAO.getAllValidSales(numberOfSales));
+    public List<SaleResponseDto> getAllValidSales() {
+        return this.saleMapper.toSaleResponseDtoList(this.saleDAO.getAllValidSales());
     }
 
     public List<SaleResponseDto> getAllValidSalesByRange(LocalDate start, LocalDate end) {
         return this.saleMapper.toSaleResponseDtoList(this.saleDAO.getAllValidSalesByRange(start, end));
     }
 
-    public List<Sale> getAllValidSalesWithoutDto(int numberOfSales) {
-        return this.saleDAO.getAllValidSales(numberOfSales);
+    public List<Sale> getAllValidSalesWithoutDto() {
+        return this.saleDAO.getAllValidSales();
     }
 
     public List<Sale> getAllValidCashSales() {
         return this.saleDAO.getAllCashSales();
     }
 
-    public List<Sale> getAllValidPOSalesWithLimit(int number) {
-        return this.saleDAO.getAllValidPOSales(number, TransactionType.PO);
+    public List<Sale> getAllValidPOSalesWithLimit() {
+        return this.saleDAO.getAllValidPOSales(TransactionType.PO);
     }
 
     public List<Sale> getAllValidPOSalesWithoutLimit(LocalDate start, LocalDate end) {

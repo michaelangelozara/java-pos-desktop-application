@@ -34,6 +34,30 @@ public class Expense_Report extends javax.swing.JPanel {
      */
     public Expense_Report() {
         initComponents();
+        makeCellCenter(jTable1);
+        loadExpenses();
+    }
+
+    private void loadExpenses(){
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        model.setRowCount(0);
+
+        ExpenseService expenseService = new ExpenseService();
+        var expenses = expenseService.getAllValidExpensesWithoutLimit();
+
+        for (int i = 0; i < expenses.size(); i++) {
+            model.addRow(new Object[]{
+                    i + 1,
+                    expenses.get(i).createdAt(),
+                    expenses.get(i).expenseReason(),
+                    expenses.get(i).category(),
+                    expenses.get(i).subcategory(),
+                    expenses.get(i).amount(),
+                    expenses.get(i).account(),
+                    expenses.get(i).status().name(),
+                    expenses.get(i).createdBy()
+            });
+        }
     }
 
     private void makeCellCenter(JTable table) {

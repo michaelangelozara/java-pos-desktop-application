@@ -14,7 +14,6 @@ import org.POS.backend.user_log.UserLog;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -183,7 +182,7 @@ public class ProductService {
     }
 
     public List<ProductResponseDto> getAllValidProductsWithLimit() {
-        var products = this.productDAO.getAllValidProductsWithLimit();
+        var products = this.productDAO.getAllValidProductsWithoutLimit();
         return this.productMapper.productResponseDtoList(products);
     }
 

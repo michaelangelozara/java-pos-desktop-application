@@ -40,4 +40,8 @@ public class StockService {
     public List<Stock> getAllValidStocks(){
         return this.stockDAO.getAllValidStocks();
     }
+
+    public List<Stock> getAllValidStockByProductCategoryId(int id){
+        return this.stockDAO.getAllStocksByProductCategoryId(id);
+    }
 }

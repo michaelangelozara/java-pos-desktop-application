@@ -4,6 +4,7 @@
  */
 package org.POS.frontend.src.raven.application.form.other;
 
+import org.POS.backend.product.Product;
 import org.POS.backend.product.ProductDAO;
 import org.POS.backend.stock.StockType;
 import org.jdatepicker.impl.JDatePanelImpl;
@@ -17,7 +18,9 @@ import java.awt.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author CJ
@@ -31,8 +34,29 @@ public class CurrentValueandStock_Report extends JPanel {
         initComponents();
         makeCellCenter(jTable3);
         makeCellCenter(jTable2);
-        loadStockControl();
-        loadValueOfStock();
+
+        ProductDAO productDAO = new ProductDAO();
+
+        SwingWorker<List<Product>, Void> worker = new SwingWorker<>() {
+            @Override
+            protected List<Product> doInBackground() throws Exception {
+                return productDAO.getAllValidProductsWithoutLimit();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    var products = get();
+                    loadStockControl(products);
+                    loadValueOfStock(products);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        worker.execute();
     }
 
     private void makeCellCenter(JTable table) {
@@ -634,12 +658,11 @@ public class CurrentValueandStock_Report extends JPanel {
     }
 
 
-    private void loadStockControl() {
+    private void loadStockControl(List<Product> products) {
         DefaultTableModel model = (DefaultTableModel) jTable2.getModel();
         model.setRowCount(0);
 
-        ProductDAO productDAO = new ProductDAO();
-        var products = productDAO.getAllValidProductsWithLimit();
+
         int i = 1;
         int stockInSummation = 0;
         int stockOutSummation = 0;
@@ -674,12 +697,9 @@ public class CurrentValueandStock_Report extends JPanel {
         jLabel27.setText(String.valueOf(summationStockInHand));
     }
 
-    private void loadValueOfStock() {
+    private void loadValueOfStock(List<Product> products) {
         DefaultTableModel model = (DefaultTableModel) jTable3.getModel();
         model.setRowCount(0);
-
-        ProductDAO productDAO = new ProductDAO();
-        var products = productDAO.getAllValidProductsWithLimit();
 
         int i = 1;
         BigDecimal totalValue = BigDecimal.ZERO;

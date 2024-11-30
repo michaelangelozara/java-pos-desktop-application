@@ -81,13 +81,12 @@ public class ProductDAO {
         return null;
     }
 
-    public List<Product> getAllValidProductsWithLimit() {
+    public List<Product> getAllValidProductsWithoutLimit() {
         List<Product> products = new ArrayList<>();
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
 
             products = session.createQuery("SELECT p FROM Product p WHERE p.isDeleted = FALSE", Product.class)
-                    .setMaxResults(50)
                     .getResultList();
 
             for(var product : products){
@@ -96,11 +95,9 @@ public class ProductDAO {
                 product.getProductAttributes().forEach(p -> Hibernate.initialize(p.getProductVariations()));
             }
             session.getTransaction().commit();
-            return products;
         } catch (Exception e) {
-            e.printStackTrace();
+            throw e;
         }
-
         return products;
     }
 

@@ -43,12 +43,11 @@ public class SaleDAO {
         }
     }
 
-    public List<Sale> getAllValidSales(int number) {
+    public List<Sale> getAllValidSales() {
         List<Sale> sales = new ArrayList<>();
         try (Session session = sessionFactory.openSession()) {
 
             sales = session.createQuery("SELECT s FROM Sale s", Sale.class)
-                    .setMaxResults(number)
                     .getResultList();
 
             sales.forEach(s -> Hibernate.initialize(s.getSaleProducts()));
@@ -107,13 +106,12 @@ public class SaleDAO {
         return sales;
     }
 
-    public List<Sale> getAllValidPOSales(int number, TransactionType method) {
+    public List<Sale> getAllValidPOSales(TransactionType method) {
         List<Sale> sales = new ArrayList<>();
         try (Session session = sessionFactory.openSession()){
 
             sales = session.createQuery("SELECT s FROM Sale s WHERE s.payment.transactionType =: method", Sale.class)
                     .setParameter("method", method)
-                    .setMaxResults(number)
                     .getResultList();
 
             sales.forEach(s -> Hibernate.initialize(s.getInvoice()));

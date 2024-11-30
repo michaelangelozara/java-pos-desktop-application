@@ -28,6 +28,8 @@ public class SaleProductDAO {
             saleProducts.forEach(s -> {
                 Hibernate.initialize(s.getProduct().getStocks());
                 Hibernate.initialize(s.getProduct().getSaleProducts());
+                Hibernate.initialize(s.getProduct().getProductAttributes());
+                s.getProduct().getProductAttributes().forEach(pa -> Hibernate.initialize(pa.getProductVariations()));
             });
         }catch (Exception e){
             e.printStackTrace();

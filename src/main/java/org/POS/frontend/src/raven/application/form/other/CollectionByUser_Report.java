@@ -146,7 +146,7 @@ public class CollectionByUser_Report extends javax.swing.JPanel {
         SwingWorker<List<Sale>, Void> worker = new SwingWorker<>() {
             @Override
             protected List<Sale> doInBackground() {
-                return saleService.getAllValidPOSalesWithLimit(50);
+                return saleService.getAllValidPOSalesWithLimit();
             }
 
             @Override

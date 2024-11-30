@@ -107,4 +107,8 @@ public class ExpenseService {
     public List<ExpenseResponseDto> getAllValidExpenseByRangeAndSubcategoryId(LocalDate start, LocalDate end, int subcategoryId){
         return this.expenseMapper.expenseResponseDtoList(this.expenseDAO.getAllValidExpenseByRangeAndSubcategoryId(start, end, subcategoryId));
     }
+
+    public List<ExpenseResponseDto> getAllValidExpensesWithoutLimit(){
+        return this.expenseMapper.expenseResponseDtoList(this.expenseDAO.getAllValidExpensesWithoutLimit());
+    }
 }

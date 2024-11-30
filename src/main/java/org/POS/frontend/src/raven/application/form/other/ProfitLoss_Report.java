@@ -484,7 +484,7 @@ public class ProfitLoss_Report extends javax.swing.JPanel {
         SwingWorker<List<Sale>, Void> worker = new SwingWorker<>() {
             @Override
             protected List<Sale> doInBackground() throws Exception {
-                return saleService.getAllValidSalesWithoutDto(50);
+                return saleService.getAllValidSalesWithoutDto();
             }
 
             @Override

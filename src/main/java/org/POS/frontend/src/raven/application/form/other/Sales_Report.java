@@ -31,7 +31,7 @@ public class Sales_Report extends JPanel {
     public Sales_Report() {
         initComponents();
         makeCellCenter(jTable1);
-        loadSales(50);
+        loadSales();
         jButton3.addActionListener(e -> {
             createDatePickerPanel();
         });
@@ -266,12 +266,12 @@ public class Sales_Report extends JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void loadSales(int number) {
+    private void loadSales() {
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         model.setRowCount(0);
 
         SaleService saleService = new SaleService();
-        var sales = saleService.getAllValidSales(number);
+        var sales = saleService.getAllValidSales();
 
         for (int i = 0; i < sales.size(); i++) {
             model.addRow(new Object[]{
