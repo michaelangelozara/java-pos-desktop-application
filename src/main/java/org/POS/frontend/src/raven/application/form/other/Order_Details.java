@@ -313,12 +313,9 @@ public class Order_Details extends JPanel {
 
         table4.setModel(new DefaultTableModel(
                 new Object[][]{
-                        {null, null, null, null, null, null, null, null},
-                        {null, null, null, null, null, null, null, null},
-                        {null, null, null, null, null, null, null, null}
                 },
                 new String[]{
-                        "Invoice No	", "Invoice Date", "Reference	", "PO Reference	", "Payment Terms	", "Delivery Place	", "Status	", "Created By "
+                        "Order No	", "Order Date", "Reference	", "PO Reference	", "Payment Terms	", "Delivery Place	", "Status	", "Created By "
                 }
         ) {
             boolean[] canEdit = new boolean[]{
