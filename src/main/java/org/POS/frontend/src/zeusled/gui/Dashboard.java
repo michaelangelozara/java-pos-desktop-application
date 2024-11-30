@@ -166,7 +166,7 @@ public class Dashboard extends JPanel {
 
         //  init card data
         card1.setData(new ModelCard(null, null, null, "₱ Loading", "Total Sales"));
-        card2.setData(new ModelCard(null, null, null, "₱ Loading...", "Items Out of Stock"));
+        card2.setData(new ModelCard(null, null, null, "₱ Loading...", "Items in Alert Stock"));
         card3.setData(new ModelCard(null, null, null, "₱ Loading...", "Inventory Value"));
         card4.setData(new ModelCard(null, null, null, "₱ Loading...", "Expenses"));
     }
