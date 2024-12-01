@@ -6,6 +6,7 @@ package org.POS.frontend.src.raven.application.form.other;
 
 import org.POS.backend.product.Product;
 import org.POS.backend.product.ProductDAO;
+import org.POS.backend.product.ProductType;
 import org.POS.backend.stock.StockType;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
@@ -678,7 +679,16 @@ public class CurrentValueandStock_Report extends JPanel {
             }
             stockInSummation += stockIn;
             stockOutSummation += stockOut;
-            int stockInHand = (stockIn - stockOut) < 0 ? 0 : (stockIn - stockOut);
+            int stockInHand = 0;
+            if(product.getProductType().equals(ProductType.SIMPLE)){
+                stockInHand += product.getStock();
+            }else{
+                for(var attribute : product.getProductAttributes()){
+                    for(var variation : attribute.getProductVariations()){
+                        stockInHand += variation.getQuantity();
+                    }
+                }
+            }
             model.addRow(new Object[]{
                     i,
                     product.getProductCode(),
@@ -704,16 +714,37 @@ public class CurrentValueandStock_Report extends JPanel {
         int i = 1;
         BigDecimal totalValue = BigDecimal.ZERO;
         for (var product : products) {
-            totalValue = totalValue.add(BigDecimal.valueOf(product.getStock()).multiply(product.getSellingPrice()));
-            model.addRow(new Object[]{
-                    i,
-                    product.getProductCode(),
-                    product.getName(),
-                    product.getStock(),
-                    product.getPurchasePrice(),
-                    product.getSellingPrice(),
-                    product.getStatus()
-            });
+
+            if(product.getProductType().equals(ProductType.SIMPLE)){
+                totalValue = totalValue.add(BigDecimal.valueOf(product.getStock()).multiply(product.getSellingPrice()));
+                model.addRow(new Object[]{
+                        i,
+                        product.getProductCode(),
+                        product.getName(),
+                        product.getStock(),
+                        product.getPurchasePrice(),
+                        product.getSellingPrice(),
+                        product.getStatus()
+                });
+            }else{
+                int totalVariationStock = 0;
+                for(var attribute : product.getProductAttributes()){
+                    for(var variation : attribute.getProductVariations()){
+                        totalValue = totalValue.add(variation.getSrp().multiply(BigDecimal.valueOf(variation.getQuantity())));
+                        totalVariationStock += variation.getQuantity();
+                    }
+                }
+                model.addRow(new Object[]{
+                        i,
+                        product.getProductCode(),
+                        product.getName(),
+                        totalVariationStock,
+                        product.getPurchasePrice(),
+                        product.getSellingPrice(),
+                        product.getStatus()
+                });
+            }
+
             i++;
         }
         jLabel32.setText(String.valueOf(totalValue));

@@ -102,31 +102,30 @@ public class OrderDAO {
     }
 
     public List<Order> getAllValidOrdersByCode(String code) {
-        List<Order> orders = new ArrayList<>();
-//        try (Session session = sessionFactory.openSession()){
-//            String query = "SELECT o FROM Order o WHERE (o.code LIKE : code) OR (o.person.name LIKE : code) OR (STR(o.status) LIKE : code) OR (STR(o.sale.transactionMethod) LIKE : code)";
-//            orders = session.createQuery(query, Order.class)
-//                    .setParameter("code", "%" + code + "%")
-//                    .getResultList();
-//
-//        }catch (Exception e){
-//            e.printStackTrace();
-//        }
-        return orders;
+        List<Order> orders;
+        try (Session session = sessionFactory.openSession()){
+            String query = "SELECT o FROM Order o WHERE (o.orderNumber LIKE : code) OR (o.sale.person.name LIKE : code) OR (STR(o.status) LIKE : code) OR (STR(o.sale.payment.transactionType) LIKE : code)";
+            orders = session.createQuery(query, Order.class)
+                    .setParameter("code", "%" + code + "%")
+                    .getResultList();
+            return orders;
+        }catch (Exception e){
+            throw e;
+        }
     }
 
     public List<Order> getAllValidOrdersByRange(LocalDate start, LocalDate end) {
         List<Order> orders = new ArrayList<>();
-//        try (Session session = sessionFactory.openSession()){
-//            String query = "SELECT o FROM Order o WHERE o.orderDate >= :start AND o.orderDate <= : end";
-//            orders = session.createQuery(query, Order.class)
-//                    .setParameter("start", start)
-//                    .setParameter("end", end)
-//                    .getResultList();
-//
-//        }catch (Exception e){
-//            e.printStackTrace();
-//        }
+        try (Session session = sessionFactory.openSession()){
+            String query = "SELECT o FROM Order o WHERE o.sale.date >= :start AND o.sale.date <= : end";
+            orders = session.createQuery(query, Order.class)
+                    .setParameter("start", start)
+                    .setParameter("end", end)
+                    .getResultList();
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         return orders;
     }
 }

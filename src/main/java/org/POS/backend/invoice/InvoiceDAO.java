@@ -102,6 +102,7 @@ public class InvoiceDAO {
 
             invoices.forEach(i -> {
                 Hibernate.initialize(i.getSale());
+                Hibernate.initialize(i.getSale().getSaleProducts());
             });
         } catch (Exception e){
             e.printStackTrace();

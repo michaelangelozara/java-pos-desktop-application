@@ -136,9 +136,8 @@ public class Invoice_Details extends JPanel {
                     saleItem.getProduct().getProductCode(),
                     saleItem.getProduct().getName(),
                     saleItem.getQuantity(),
-                    saleItem.getPrice(),
-                    saleItem.getPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP),
-                    saleItem.getPrice().multiply(BigDecimal.valueOf(saleItem.getQuantity())).setScale(2, RoundingMode.HALF_UP),
+                    saleItem.getProduct().getPurchasePrice(),
+                    saleItem.getProduct().getSellingPrice(),
                     saleItem.getPrice().multiply(BigDecimal.valueOf(saleItem.getQuantity()))
             });
             subtotal = subtotal.add(saleItem.getPrice().multiply(BigDecimal.valueOf(saleItem.getQuantity())));
@@ -349,16 +348,13 @@ public class Invoice_Details extends JPanel {
 
         table.setModel(new DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "#", "Code", "Product Name	", "Invoice Quantity	", "Unit Price", "Unit Tax", "Unit Cost", "Total"
+                "#", "Code", "Product Name	", "Invoice Quantity	", "Unit Cost", "Unit Price", "Total"
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false, false
+                false, false, false, false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -375,7 +371,6 @@ public class Invoice_Details extends JPanel {
             table.getColumnModel().getColumn(4).setResizable(false);
             table.getColumnModel().getColumn(5).setResizable(false);
             table.getColumnModel().getColumn(6).setResizable(false);
-            table.getColumnModel().getColumn(7).setResizable(false);
         }
 
         jLabel25.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N

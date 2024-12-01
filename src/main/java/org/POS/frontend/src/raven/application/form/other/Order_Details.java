@@ -102,9 +102,8 @@ public class Order_Details extends JPanel {
                     saleItem.getProduct().getName(),
                     saleItem.getQuantity(),
                     saleItem.getProductVariation() != null ? saleItem.getProductVariation().getVariation() : "No Variation",
+                    saleItem.getProduct().getPurchasePrice(),
                     saleItem.getPrice(),
-                    saleItem.getPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(0.12), RoundingMode.HALF_UP),
-                    saleItem.getPrice().multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP),
                     saleItem.getPrice().multiply(BigDecimal.valueOf(saleItem.getQuantity()))
             });
             i++;
@@ -366,11 +365,11 @@ public class Order_Details extends JPanel {
                 new Object[][]{
                 },
                 new String[]{
-                        "#", "Code", "Product Name	", "Product Quantity	", "Variation", "Unit Price", "Unit Tax", "Unit Cost", "Total"
+                        "#", "Code", "Product Name	", "Product Quantity", "Variation",  "Unit Cost", "Unit Price", "Total"
                 }
         ) {
             boolean[] canEdit = new boolean[]{
-                    false, false, false, false, false, false, false, false, false
+                    false, false, false, false, false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -387,7 +386,6 @@ public class Order_Details extends JPanel {
             table.getColumnModel().getColumn(4).setResizable(false);
             table.getColumnModel().getColumn(5).setResizable(false);
             table.getColumnModel().getColumn(6).setResizable(false);
-            table.getColumnModel().getColumn(7).setResizable(false);
         }
 
         jLabel25.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N

@@ -94,6 +94,11 @@ public class SaleService {
                             for (var attribute : product.getProductAttributes()) {
                                 for (var variation : attribute.getProductVariations()) {
                                     if (variation.getId().equals(saleProductDto.variationId())) {
+
+                                        // check if the product's quantity is sufficient
+                                        if(saleProductDto.quantity() > variation.getQuantity())
+                                            throw new RuntimeException(product.getName() + " is out of Stock\nRemaining Stock : " + variation.getQuantity());
+
                                         SaleProduct saleProduct = this.saleProductMapper.toSaleItem(saleProductDto, product);
                                         saleProduct.setPrice(variation.getSrp());
                                         saleProduct.setSubtotal(variation.getSrp().multiply(BigDecimal.valueOf(saleProduct.getQuantity())));
@@ -135,6 +140,10 @@ public class SaleService {
 
                             }
                         } else {
+                            // check if the product's quantity is sufficient
+                            if(saleProductDto.quantity() > product.getStock())
+                                throw new RuntimeException(product.getName() + " is out of Stock \nRemaining Stock : " + product.getStock());
+
                             Stock stock = new Stock();
 
                             SaleProduct saleProduct = this.saleProductMapper.toSaleItem(saleProductDto, product);
@@ -223,7 +232,9 @@ public class SaleService {
 
             userLog.setCode(sale.getSaleNumber());
             return this.saleDAO.add(sale, userLog, products);
-        } catch (Exception e) {
+        }catch (RuntimeException e){
+            throw e;
+        }catch (Exception e) {
             throw new CustomException("Error saving", e);
         }
     }

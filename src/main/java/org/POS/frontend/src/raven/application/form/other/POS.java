@@ -322,6 +322,7 @@ public class POS extends JPanel {
 
                     if (isBreak) {
                         itemData.setQuantity(remainingStock);
+                        itemData.setVariableTotalQuantity(remainingStock);
                         JOptionPane.showMessageDialog(null, "Stock Remaining : " + remainingStock, "Insufficient Stock", JOptionPane.ERROR_MESSAGE);
                         break;
                     }
@@ -513,6 +514,7 @@ public class POS extends JPanel {
                         }
                     }
 
+                    int originalVariationQuantity = itemData.getQuantity();
                     if (itemData.getType().equals(ProductType.VARIABLE)) {
                         ModelItem updatedItem = openModalForVariableProducts(itemData);
                         if (updatedItem != null) {
@@ -538,7 +540,6 @@ public class POS extends JPanel {
 
                         }
                     } else {
-
                         selectedProductSet.add(new SelectedProduct(
                                 data.getItemID(),
                                 data.getItemName(),
@@ -820,7 +821,7 @@ public class POS extends JPanel {
                 }
         ) {
             boolean[] canEdit = new boolean[]{
-                    false, false, true, false, true
+                    false, false, true, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -1145,7 +1146,7 @@ public class POS extends JPanel {
                                 additionalFees
                         );
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                     }
                     return null;
                 }
@@ -1157,8 +1158,8 @@ public class POS extends JPanel {
                         if (result != null) {
                             JOptionPane.showMessageDialog(paymentDialog, "Payment successful!\n\nCash In : " + totalAmount + "\nDate: " + LocalDate.now(), "Success", JOptionPane.INFORMATION_MESSAGE);
                             reset();
-                            paymentDialog.dispose();
                         }
+                        paymentDialog.dispose();
                     } catch (Exception e) {
                         JOptionPane.showMessageDialog(paymentDialog, "An error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                     }
@@ -1448,7 +1449,7 @@ public class POS extends JPanel {
                                     additionalFees
                             );
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                         }
                         return null;
                     }
@@ -1457,12 +1458,12 @@ public class POS extends JPanel {
                     protected void done() {
                         try {
                             Integer result = get();
-                            JOptionPane.showMessageDialog(null, "Persisted ID : " + result);
-                            JOptionPane.showMessageDialog(paymentDialog, "Payment successful!\n\nCash In : " + finalSummationOfTotal + "\nChange : " + change + "\nDate: " + LocalDate.now(), "Success", JOptionPane.INFORMATION_MESSAGE);
-                            reset();
+                            if (result != null) {
+                                JOptionPane.showMessageDialog(paymentDialog, "Payment successful!\n\nCash In : " + finalSummationOfTotal + "\nChange : " + change + "\nDate: " + LocalDate.now(), "Success", JOptionPane.INFORMATION_MESSAGE);
+                                reset();
+                            }
                             paymentDialog.dispose();
                         } catch (Exception e) {
-                            e.printStackTrace();
                             JOptionPane.showMessageDialog(paymentDialog, "An error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                         }
                     }
@@ -2185,14 +2186,6 @@ public class POS extends JPanel {
         worker.execute();
     }
 
-    //
-//    private void computeTotalTax() {
-//        BigDecimal netTotal = new BigDecimal(jLabel7.getText());
-//        String totalValue = String.valueOf((netTotal.multiply(BigDecimal.valueOf(0.12)).divide(BigDecimal.valueOf(1.12), RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP));
-//        jComboBox5.addItem(totalValue);
-//        jComboBox5.setSelectedItem(totalValue);
-//    }
-//
     private List<SelectedProduct> getAllRows() {
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         List<SelectedProduct> rows = new ArrayList<>();
