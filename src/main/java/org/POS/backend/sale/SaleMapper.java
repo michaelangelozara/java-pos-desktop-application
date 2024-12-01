@@ -11,7 +11,8 @@ public class SaleMapper {
                 sale.getSaleNumber(),
                 sale.getPerson().getName(),
                 sale.getNetTotal(),
-                sale.getDate()
+                sale.getDate(),
+                sale.getInvoice()
         );
     }
 

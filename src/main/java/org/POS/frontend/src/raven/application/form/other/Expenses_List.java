@@ -1,6 +1,5 @@
 package org.POS.frontend.src.raven.application.form.other;
 
-import org.POS.backend.cryptography.Base64Converter;
 import org.POS.backend.expense.*;
 import org.POS.backend.expense_category.ExpenseCategoryService;
 import org.POS.backend.expense_subcategory.ExpenseSubcategoryService;
@@ -16,14 +15,13 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
 import java.util.List;
 import java.util.Timer;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 public class Expenses_List extends javax.swing.JPanel {
 
@@ -204,14 +202,13 @@ public class Expenses_List extends javax.swing.JPanel {
                             subcategoryId,
                             expensesReason,
                             amt,
-                            acct,
                             stats.equals("Active") ? ExpenseStatus.ACTIVE : ExpenseStatus.INACTIVE,
                             expenseId
                     );
 
                     expenseService.update(dto);
                     JOptionPane.showMessageDialog(null, "Expense updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                    loadExpenses(50);
+                    loadExpenses();
                 }
             }
 
@@ -236,7 +233,7 @@ public class Expenses_List extends javax.swing.JPanel {
 
                     JOptionPane.showMessageDialog(null, "Product Deleted Successfully",
                             "Deleted", JOptionPane.INFORMATION_MESSAGE);
-                    loadExpenses(50);
+                    loadExpenses();
                 }
             }
 
@@ -249,9 +246,8 @@ public class Expenses_List extends javax.swing.JPanel {
                 String categoryName = (String) model.getValueAt(row, 3);
                 String subCategory = (String) model.getValueAt(row, 4);
                 BigDecimal amount = (BigDecimal) model.getValueAt(row, 5);
-                String account = (String) model.getValueAt(row, 6);
-                LocalDate date = (LocalDate) model.getValueAt(row, 7);
-                ExpenseStatus status = (ExpenseStatus) model.getValueAt(row, 8);
+                LocalDate date = (LocalDate) model.getValueAt(row, 6);
+                ExpenseStatus status = (ExpenseStatus) model.getValueAt(row, 7);
 
                 // Create the panel and set the layout to GridBagLayout
                 JPanel panel = new JPanel(new GridBagLayout());
@@ -320,20 +316,6 @@ public class Expenses_List extends javax.swing.JPanel {
                 amountField.setEditable(false);  // Make it non-editable
                 panel.add(amountField, gbc);
 
-                // Account
-                gbc.gridx = 0;
-                gbc.gridy = 4;
-                JLabel accountLabel = new JLabel("Account");
-                accountLabel.setFont(boldFont);
-                panel.add(accountLabel, gbc);
-
-                gbc.gridx = 1;
-                JTextField accountField = new JTextField(15);
-                accountField.setFont(regularFont);
-                accountField.setText(account); // Prefill with existing value
-                accountField.setEditable(false); // Make it non-editable
-                panel.add(accountField, gbc);
-
                 // Date
                 gbc.gridx = 0;
                 gbc.gridy = 5;
@@ -368,9 +350,9 @@ public class Expenses_List extends javax.swing.JPanel {
 
         };
         makeCellCenter(table);
-        table.getColumnModel().getColumn(9).setCellRenderer(new TableActionCellRender());
-        table.getColumnModel().getColumn(9).setCellEditor(new TableActionCellEditor(event));
-        loadExpenses(50);
+        table.getColumnModel().getColumn(8).setCellRenderer(new TableActionCellRender());
+        table.getColumnModel().getColumn(8).setCellEditor(new TableActionCellEditor(event));
+        loadExpenses();
     }
 
     private void makeCellCenter(JTable table) {
@@ -382,7 +364,7 @@ public class Expenses_List extends javax.swing.JPanel {
         }
     }
 
-    private void loadExpenses(int number) {
+    private void loadExpenses() {
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         // clear existing table
         model.setRowCount(0);
@@ -391,7 +373,7 @@ public class Expenses_List extends javax.swing.JPanel {
         SwingWorker<List<ExpenseResponseDto>, Void> worker = new SwingWorker<List<ExpenseResponseDto>, Void>() {
             @Override
             protected List<ExpenseResponseDto> doInBackground() throws Exception {
-                var expenses = expenseService.getAllValidExpenses(number);
+                var expenses = expenseService.getAllValidExpenses();
                 return expenses;
             }
 
@@ -408,7 +390,6 @@ public class Expenses_List extends javax.swing.JPanel {
                                 expenses.get(i).category(),
                                 expenses.get(i).subcategory(),
                                 expenses.get(i).amount(),
-                                expenses.get(i).account(),
                                 expenses.get(i).createdAt(),
                                 expenses.get(i).status()
                         });
@@ -474,14 +455,14 @@ public class Expenses_List extends javax.swing.JPanel {
 
                 },
                 new String[]{
-                        "#", "ID", "Expense Reason", "Category", "Sub Category", "Amount	", "Account	", "Date	", "Status", "Action"
+                        "#", "ID", "Expense Reason", "Category", "Sub Category", "Amount	", "Date	", "Status", "Action"
                 }
         ) {
             Class[] types = new Class[]{
                     java.lang.Object.class, java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
             };
             boolean[] canEdit = new boolean[]{
-                    false, true, false, false, false, false, false, false, false, true
+                    false, true, false, false, false, false, false, false, true
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -501,7 +482,6 @@ public class Expenses_List extends javax.swing.JPanel {
             table.getColumnModel().getColumn(4).setResizable(false);
             table.getColumnModel().getColumn(5).setResizable(false);
             table.getColumnModel().getColumn(6).setResizable(false);
-            table.getColumnModel().getColumn(7).setResizable(false);
         }
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -588,7 +568,7 @@ public class Expenses_List extends javax.swing.JPanel {
         String reason = jTextField1.getText();
 
         if (reason.isEmpty()) {
-            loadExpenses(50);
+            loadExpenses();
             return;
         }
 
@@ -613,7 +593,6 @@ public class Expenses_List extends javax.swing.JPanel {
                                 expenses.get(i).category(),
                                 expenses.get(i).subcategory(),
                                 expenses.get(i).amount(),
-                                expenses.get(i).account(),
                                 expenses.get(i).createdAt(),
                                 expenses.get(i).status().name()
                         });
@@ -628,30 +607,21 @@ public class Expenses_List extends javax.swing.JPanel {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         JPanel panel = new JPanel();
-        panel.setLayout(new GridBagLayout()); // Use GridBagLayout for a more flexible layout
+        panel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10); // Add padding
+        gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.WEST;
 
-        // Create a bold and larger font for the labels
         Font boldFont = new Font("Arial", Font.BOLD, 14);
         Font regularFont = new Font("Arial", Font.PLAIN, 14);
 
-        // Expense Reason *
-        gbc.gridx = 2;
-        gbc.gridy = 0;
-
-        JLabel subCategoryLabel = new JLabel("Sub Category *");
-        subCategoryLabel.setFont(boldFont);
-        panel.add(subCategoryLabel, gbc);
-
         // Category Name *
         gbc.gridx = 0;
+        gbc.gridy = 0;
         JLabel categoryNameLabel = new JLabel("Category Name *");
         categoryNameLabel.setFont(boldFont);
         panel.add(categoryNameLabel, gbc);
-
 
         ExpenseCategoryService expenseCategoryService = new ExpenseCategoryService();
         var categories = expenseCategoryService.getAllValidExpenseCategories();
@@ -669,6 +639,11 @@ public class Expenses_List extends javax.swing.JPanel {
         categoryCombo.setFont(regularFont);
         panel.add(categoryCombo, gbc);
 
+        // Sub Category *
+        gbc.gridx = 2;
+        JLabel subCategoryLabel = new JLabel("Sub Category *");
+        subCategoryLabel.setFont(boldFont);
+        panel.add(subCategoryLabel, gbc);
 
         ExpenseSubcategoryService expenseSubcategoryService = new ExpenseSubcategoryService();
         Vector<String> subcategoryNames = new Vector<>();
@@ -676,7 +651,6 @@ public class Expenses_List extends javax.swing.JPanel {
         JComboBox<String> subCategoryCombo = new JComboBox<>(subcategoryNames);
         Map<Integer, Integer> subcategoryMap = new HashMap<>();
 
-        // category combobox listener
         categoryCombo.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -686,7 +660,6 @@ public class Expenses_List extends javax.swing.JPanel {
                 if (categoryId != null) {
                     var subcategories = expenseSubcategoryService.getAllValidExpenseSubcategoriesByExpenseCategoryId(categoryId);
 
-                    // clear all subcategories
                     subCategoryCombo.removeAllItems();
                     subCategoryCombo.addItem("Select a subcategory");
                     for (int i = 1; i < subcategories.size() + 1; i++) {
@@ -700,6 +673,7 @@ public class Expenses_List extends javax.swing.JPanel {
         subCategoryCombo.setFont(regularFont);
         panel.add(subCategoryCombo, gbc);
 
+        // Expense Reason * and Amount * (side by side)
         gbc.gridx = 0;
         gbc.gridy = 1;
         JLabel expenseReasonLabel = new JLabel("Expense Reason *");
@@ -707,25 +681,10 @@ public class Expenses_List extends javax.swing.JPanel {
         panel.add(expenseReasonLabel, gbc);
 
         gbc.gridx = 1;
-        gbc.gridwidth = 3; // Span across columns 1, 2, and 3
         JTextField expenseReasonField = new JTextField(15);
         expenseReasonField.setFont(regularFont);
         panel.add(expenseReasonField, gbc);
-        gbc.gridwidth = 1;
 
-        // Account *
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        JLabel accountLabel = new JLabel("Account *");
-        accountLabel.setFont(boldFont);
-        panel.add(accountLabel, gbc);
-
-        gbc.gridx = 1;
-        JTextField accountField = new JTextField(15);
-        accountField.setFont(regularFont);
-        panel.add(accountField, gbc);
-
-        // Amount *
         gbc.gridx = 2;
         JLabel amountLabel = new JLabel("Amount *");
         amountLabel.setFont(boldFont);
@@ -736,32 +695,9 @@ public class Expenses_List extends javax.swing.JPanel {
         amountField.setFont(regularFont);
         panel.add(amountField, gbc);
 
-        // Cheque No
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        JLabel chequeNoLabel = new JLabel("Cheque No");
-        chequeNoLabel.setFont(boldFont);
-        panel.add(chequeNoLabel, gbc);
-
-        gbc.gridx = 1;
-        JTextField chequeNoField = new JTextField(15);
-        chequeNoField.setFont(regularFont);
-        panel.add(chequeNoField, gbc);
-
-        // Voucher No
-        gbc.gridx = 2;
-        JLabel voucherNoLabel = new JLabel("Voucher No");
-        voucherNoLabel.setFont(boldFont);
-        panel.add(voucherNoLabel, gbc);
-
-        gbc.gridx = 3;
-        JTextField voucherNoField = new JTextField(15);
-        voucherNoField.setFont(regularFont);
-        panel.add(voucherNoField, gbc);
-
         // Note
         gbc.gridx = 0;
-        gbc.gridy = 4;
+        gbc.gridy = 2;
         JLabel noteLabel = new JLabel("Note");
         noteLabel.setFont(boldFont);
         panel.add(noteLabel, gbc);
@@ -774,20 +710,19 @@ public class Expenses_List extends javax.swing.JPanel {
         panel.add(noteScrollPane, gbc);
         gbc.gridwidth = 1;
 
-        // Date (Current Date, Non-Editable)
+        // Date
         gbc.gridx = 0;
-        gbc.gridy = 5;
+        gbc.gridy = 3;
         JLabel dateLabel = new JLabel("Date");
         dateLabel.setFont(boldFont);
         panel.add(dateLabel, gbc);
 
         gbc.gridx = 1;
-        // Get the current createdAt
         LocalDate currentDate = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         JTextField dateField = new JTextField(currentDate.format(formatter), 15);
         dateField.setFont(regularFont);
-        dateField.setEditable(false);  // Make the createdAt field non-editable
+        dateField.setEditable(false);
         panel.add(dateField, gbc);
 
         // Status
@@ -801,72 +736,69 @@ public class Expenses_List extends javax.swing.JPanel {
         statusCombo.setFont(regularFont);
         panel.add(statusCombo, gbc);
 
-        // Image - Modify to use JFileChooser for file upload
-        gbc.gridx = 0;
-        gbc.gridy = 6;
-        JLabel imageLabel = new JLabel("Image");
-        imageLabel.setFont(boldFont);
-        panel.add(imageLabel, gbc);
+        SwingUtilities.invokeLater(() -> {
+            int result = JOptionPane.showConfirmDialog(null, panel, "Create Expense", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-        gbc.gridx = 1;
-        JButton imageButton = new JButton("Choose File");
-        imageButton.setFont(regularFont);
-
-        Base64Converter converter = new Base64Converter();
-
-        JFileChooser fileChooser = new JFileChooser();
-        // Add action listener for the imageButton to open file explorer
-        imageButton.addActionListener(e -> {
-            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            int returnValue = fileChooser.showOpenDialog(null);
-            if (returnValue == JFileChooser.APPROVE_OPTION) {
-                File selectedFile = fileChooser.getSelectedFile();
+            if (result == JOptionPane.OK_OPTION) {
                 try {
-                    converter.setConvertFileToBase64(selectedFile);
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
+                    int subcategorySelectedIndex = subCategoryCombo.getSelectedIndex();
+                    Integer subcategoryId = subcategoryMap.get(subcategorySelectedIndex);
+
+                    String expenseReason = expenseReasonField.getText();
+                    String amount = amountField.getText();
+                    String note = noteArea.getText();
+                    String status = (String) statusCombo.getSelectedItem();
+
+                    if (amount.length() > 8)
+                        throw new RuntimeException("Please Enter a Valid Amount not more than 8 Digits");
+
+                    ExpenseService expenseService = new ExpenseService();
+
+                    assert status != null;
+                    AddExpenseRequestDto dto = new AddExpenseRequestDto(
+                            subcategoryId,
+                            expenseReason,
+                            BigDecimal.valueOf(Double.parseDouble(amount)),
+                            note,
+                            status.equals("Active") ? ExpenseStatus.ACTIVE : ExpenseStatus.INACTIVE
+                    );
+                    SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
+                        @Override
+                        protected Boolean doInBackground() throws Exception {
+                            try {
+                                expenseService.add(dto);
+                                return true;
+                            } catch (Exception e) {
+                                throw e;
+                            }
+                        }
+
+                        @Override
+                        protected void done() {
+                            try {
+                                boolean result = get();
+                                if (result)
+                                    JOptionPane.showMessageDialog(null, "New Expense Added", "Added Successful", JOptionPane.INFORMATION_MESSAGE);
+                                else
+                                    JOptionPane.showMessageDialog(null, "Unable to Add Expense", "Failed", JOptionPane.ERROR_MESSAGE);
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            } catch (ExecutionException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    };
+                    worker.execute();
+                } catch (NullPointerException e) {
+                    JOptionPane.showMessageDialog(null, "Please Choose Subcategory");
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(null, "Make Sure to Input Number only for the Amount");
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null, e.getMessage());
                 }
-                JOptionPane.showMessageDialog(null, "Selected Image: " + selectedFile.getName());
             }
         });
-        panel.add(imageButton, gbc);
-
-        // Display the form in a dialog
-        int result = JOptionPane.showConfirmDialog(null, panel, "Create Expense", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-        // If the user clicks OK, process the input
-        if (result == JOptionPane.OK_OPTION) {
-            int subcategorySelectedIndex = subCategoryCombo.getSelectedIndex();
-            int subcategoryId = subcategoryMap.get(subcategorySelectedIndex);
-
-            String expenseReason = expenseReasonField.getText();
-            String amount = amountField.getText();
-            String account = accountField.getText();
-            String cheque = chequeNoField.getText();
-            String voucherNo = voucherNoField.getText();
-            String note = noteArea.getText();
-            String status = (String) statusCombo.getSelectedItem();
-            String image = converter.getBase64();
-
-            ExpenseService expenseService = new ExpenseService();
-
-            assert status != null;
-            AddExpenseRequestDto dto = new AddExpenseRequestDto(
-                    subcategoryId,
-                    expenseReason,
-                    BigDecimal.valueOf(Double.parseDouble(amount)),
-                    account,
-                    cheque,
-                    voucherNo,
-                    note,
-                    status.equals("Active") ? ExpenseStatus.ACTIVE : ExpenseStatus.INACTIVE,
-                    image
-            );
-
-            expenseService.add(dto);
-            JOptionPane.showMessageDialog(null, "New expense added", "Added Successful", JOptionPane.INFORMATION_MESSAGE);
-            loadExpenses(50);
-        }
+        loadExpenses();
 
     }//GEN-LAST:event_jButton1ActionPerformed
 

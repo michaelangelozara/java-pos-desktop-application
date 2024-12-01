@@ -88,8 +88,8 @@ public class ExpenseService {
         return this.expenseMapper.expenseResponseDto(this.expenseDAO.getValidExpenseById(expenseId));
     }
 
-    public List<ExpenseResponseDto> getAllValidExpenses(int number){
-        return this.expenseMapper.expenseResponseDtoList(this.expenseDAO.getAllValidExpenses(number));
+    public List<ExpenseResponseDto> getAllValidExpenses(){
+        return this.expenseMapper.expenseResponseDtoList(this.expenseDAO.getAllValidExpenses());
     }
 
     public List<ExpenseResponseDto> getAllValidExpenseByExpenseSubcategoryId(int number, int expenseSubcategoryId){

@@ -97,13 +97,12 @@ public class ExpenseDAO {
         }
     }
 
-    public List<Expense> getAllValidExpenses(int number){
+    public List<Expense> getAllValidExpenses(){
         List<Expense> expenses = new ArrayList<>();
         try (Session session = this.sessionFactory.openSession()){
             session.beginTransaction();
 
             expenses = session.createQuery("SELECT e FROM Expense e WHERE e.isDeleted = FALSE ", Expense.class)
-                    .setMaxResults(number)
                     .getResultList();
 
             session.getTransaction().commit();

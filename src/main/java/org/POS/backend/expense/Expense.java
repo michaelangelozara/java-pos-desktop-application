@@ -37,21 +37,10 @@ public class Expense {
     @Column(name = "created_at")
     private LocalDate createdAt;
 
-    private String account;
-
-    @Column(name = "cheque_no")
-    private String chequeNo;
-
-    @Column(name = "voucher_no")
-    private String voucherNo;
-
     private String note;
 
     @Enumerated(EnumType.STRING)
     private ExpenseStatus status;
-
-    @Column(columnDefinition = "LONGTEXT")
-    private String image;
 
     @ManyToOne
     @JoinColumn(name = "subcategory_id")

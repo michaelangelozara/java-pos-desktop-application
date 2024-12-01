@@ -24,12 +24,8 @@ public class ExpenseMapper {
         expense.setExpenseSubcategory(expenseSubcategory);
         expense.setExpenseReason(dto.expenseReason());
         expense.setAmount(dto.amount());
-        expense.setChequeNo(dto.chequeNo());
-        expense.setVoucherNo(dto.voucherNo());
         expense.setNote(dto.note());
-        expense.setAccount(dto.account());
         expense.setStatus(dto.status());
-        expense.setImage(dto.image());
         expense.setCreatedAt(LocalDate.now());
         expense.setCode(this.codeGeneratorService.generateProductCode(GlobalVariable.EXPENSE_CATEGORY_PREFIX));
         return expense;
@@ -39,7 +35,6 @@ public class ExpenseMapper {
         expense.setExpenseSubcategory(expenseSubcategory);
         expense.setExpenseReason(dto.expenseReason());
         expense.setAmount(dto.amount());
-        expense.setAccount(dto.account());
         expense.setStatus(dto.status());
         return expense;
     }
@@ -52,7 +47,6 @@ public class ExpenseMapper {
                 expense.getExpenseSubcategory().getExpenseCategory().getName(),
                 expense.getExpenseSubcategory().getName(),
                 expense.getAmount(),
-                expense.getAccount(),
                 expense.getStatus(),
                 expense.getUser().getName()
         );

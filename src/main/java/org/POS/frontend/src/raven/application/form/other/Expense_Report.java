@@ -53,7 +53,6 @@ public class Expense_Report extends javax.swing.JPanel {
                     expenses.get(i).category(),
                     expenses.get(i).subcategory(),
                     expenses.get(i).amount(),
-                    expenses.get(i).account(),
                     expenses.get(i).status().name(),
                     expenses.get(i).createdBy()
             });
@@ -273,17 +272,13 @@ public class Expense_Report extends javax.swing.JPanel {
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
-                        {null, null, null, null, null, null, null, null, null},
-                        {null, null, null, null, null, null, null, null, null},
-                        {null, null, null, null, null, null, null, null, null},
-                        {null, null, null, null, null, null, null, null, null}
                 },
                 new String[]{
-                        "#	", "Date", "Expense Reason	", "Category", "Sub Category	", "Amount	", "Account	", "Status", "Created By"
+                        "#	", "Date", "Expense Reason	", "Category", "Sub Category	", "Amount	", "Status", "Created By"
                 }
         ) {
             boolean[] canEdit = new boolean[]{
-                    false, false, false, false, false, false, false, false, false
+                    false, false, false, false, false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -532,7 +527,6 @@ public class Expense_Report extends javax.swing.JPanel {
                     expenses.get(i).category(),
                     expenses.get(i).subcategory(),
                     expenses.get(i).amount(),
-                    expenses.get(i).account(),
                     expenses.get(i).status().name(),
                     expenses.get(i).createdBy()
             });
@@ -554,7 +548,6 @@ public class Expense_Report extends javax.swing.JPanel {
                     expenses.get(i).category(),
                     expenses.get(i).subcategory(),
                     expenses.get(i).amount(),
-                    expenses.get(i).account(),
                     expenses.get(i).status().name(),
                     expenses.get(i).createdBy()
             });

@@ -10,7 +10,6 @@ public record ExpenseResponseDto(
         String category,
         String subcategory,
         BigDecimal amount,
-        String account,
         ExpenseStatus status,
         String createdBy
 ) {
