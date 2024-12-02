@@ -118,6 +118,9 @@ public class OrderService {
 
                 List<Product> updatedProducts = new ArrayList<>();
 
+                // list of the ids of the sale product that the quantity is equal to 0
+                List<Integer> ids = new ArrayList<>();
+
                 BigDecimal costOfReturnedProducts = BigDecimal.ZERO;
                 for (var saleProduct : saleItems) {
                     boolean isValid = false;
@@ -130,12 +133,17 @@ public class OrderService {
                             returnItem.setReturnedDate(LocalDate.now());
                             returnItem.setReturnedQuantity(returnItemDto.returnedQuantity());
 
-                            // setup the stock recent quantity before updating
+                            // set up the stock recent quantity before updating
                             Stock stock = new Stock();
 
                             saleProduct.setQuantity(saleProduct.getQuantity() - returnItemDto.returnedQuantity());
                             saleProduct.setSubtotal(saleProduct.getSubtotal().subtract(saleProduct.getPrice().multiply(BigDecimal.valueOf(returnItem.getReturnedQuantity()))));
                             var product = saleProduct.getProduct();
+
+                            // check if the sale product is zero quantity
+                            if(saleProduct.getQuantity() <= 0)
+                                ids.add(saleProduct.getId());
+
 
                             if (product.getProductType().equals(ProductType.VARIABLE)) {
                                 var tempVariation = saleProduct.getProductVariation();
@@ -183,7 +191,17 @@ public class OrderService {
 
                 // check if all the products' quantity under the current order are 0
                 boolean areQuantitiesZero = true;
-                for(var saleProduct : saleItems){
+                for(var saleProduct : order.getSale().getSaleProducts()){
+                    // check if the sale product's id is in the list of zero quantity
+                    boolean isTempIdEqualed = false;
+                    for(var tempId : ids){
+                        if(tempId.equals(saleProduct.getId())){
+                            isTempIdEqualed = true;
+                        }
+                    }
+
+                    if(isTempIdEqualed) continue;
+
                     if(saleProduct.getQuantity() > 0){
                         areQuantitiesZero = false;
                         break;

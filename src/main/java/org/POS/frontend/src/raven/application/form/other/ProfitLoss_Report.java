@@ -4,6 +4,7 @@
  */
 package org.POS.frontend.src.raven.application.form.other;
 
+import org.POS.backend.product.ProductType;
 import org.POS.backend.sale.Sale;
 import org.POS.backend.sale.SaleService;
 import org.jdatepicker.impl.JDatePanelImpl;
@@ -492,7 +493,7 @@ public class ProfitLoss_Report extends javax.swing.JPanel {
                 try {
                     var sales = get();
 
-                    int rowNumber = 1;
+                    int n = 1;
 
                     BigDecimal totalCostOfGoodsSummation = BigDecimal.ZERO;
                     BigDecimal totalSalesSummation = BigDecimal.ZERO;
@@ -500,25 +501,44 @@ public class ProfitLoss_Report extends javax.swing.JPanel {
 
                     for (int i = 0; i < sales.size(); i++) {
                         for (var saleItem : sales.get(i).getSaleProducts()) {
-                            BigDecimal totalCostOfGoods = BigDecimal.valueOf(saleItem.getQuantity()).multiply(saleItem.getProduct().getPurchasePrice()).setScale(2, RoundingMode.HALF_UP);
-                            BigDecimal totalSales = BigDecimal.valueOf(saleItem.getQuantity()).multiply(saleItem.getProduct().getSellingPrice()).setScale(2, RoundingMode.HALF_UP);
+                            BigDecimal totalCostOfGoodsSimple = BigDecimal.valueOf(saleItem.getQuantity()).multiply(saleItem.getProduct().getPurchasePrice()).setScale(2, RoundingMode.HALF_UP);
+                            BigDecimal totalSalesSimple = BigDecimal.valueOf(saleItem.getQuantity()).multiply(saleItem.getProduct().getSellingPrice()).setScale(2, RoundingMode.HALF_UP);
 
-                            model.addRow(new Object[]{
-                                    rowNumber,
-                                    sales.get(i).getSaleNumber(),
-                                    sales.get(i).getDate(),
-                                    saleItem.getProduct().getName(),
-                                    saleItem.getQuantity(),
-                                    saleItem.getProduct().getPurchasePrice(),
-                                    saleItem.getProduct().getSellingPrice(),
-                                    totalCostOfGoods,
-                                    totalSales
-                            });
+                            if(saleItem.getProduct().getProductType().equals(ProductType.SIMPLE)){
+                                model.addRow(new Object[]{
+                                        n,
+                                        sales.get(i).getSaleNumber(),
+                                        sales.get(i).getDate(),
+                                        saleItem.getProduct().getName(),
+                                        saleItem.getQuantity(),
+                                        saleItem.getProduct().getPurchasePrice(),
+                                        saleItem.getProduct().getSellingPrice(),
+                                        totalCostOfGoodsSimple,
+                                        totalSalesSimple
+                                });
 
-                            totalCostOfGoodsSummation = totalCostOfGoodsSummation.add(totalCostOfGoods);
-                            totalSalesSummation = totalSalesSummation.add(totalSales);
+                                totalCostOfGoodsSummation = totalCostOfGoodsSummation.add(totalCostOfGoodsSimple);
+                                totalSalesSummation = totalSalesSummation.add(totalSalesSimple);
+                            }else{
+                                BigDecimal totalCostOfGoodsVariation = saleItem.getProductVariation().getPurchasePrice().multiply(BigDecimal.valueOf(saleItem.getQuantity()));
+                                BigDecimal totalSalesVariation = saleItem.getProductVariation().getSrp().multiply(BigDecimal.valueOf(saleItem.getQuantity()));
 
-                            rowNumber++;
+                                model.addRow(new Object[]{
+                                        n,
+                                        sales.get(i).getSaleNumber(),
+                                        sales.get(i).getDate(),
+                                        saleItem.getProduct().getName(),
+                                        saleItem.getQuantity(),
+                                        saleItem.getProductVariation().getPurchasePrice(),
+                                        saleItem.getProductVariation().getSrp(),
+                                        totalCostOfGoodsVariation,
+                                        totalSalesVariation
+                                });
+
+                                totalCostOfGoodsSummation = totalCostOfGoodsSummation.add(totalCostOfGoodsVariation);
+                                totalSalesSummation = totalSalesSummation.add(totalSalesVariation);
+                            }
+                            n++;
                         }
                     }
                     loadSummations(totalCostOfGoodsSummation, totalSalesSummation);

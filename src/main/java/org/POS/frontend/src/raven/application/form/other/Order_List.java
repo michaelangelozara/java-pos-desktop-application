@@ -537,16 +537,32 @@ public class Order_List extends javax.swing.JPanel {
                                 reason
                         );
 
-                        SwingWorker<Void, Void> worker1 = new SwingWorker<>() {
+                        SwingWorker<Boolean, Void> worker1 = new SwingWorker<>() {
                             @Override
-                            protected Void doInBackground() {
-                                orderService.update(dto);
-                                return null;
+                            protected Boolean doInBackground() {
+                                try{
+                                    orderService.update(dto);
+                                    return true;
+                                }catch (Exception e){
+                                    return false;
+                                }
                             }
 
                             @Override
                             protected void done() {
-                                JOptionPane.showMessageDialog(null, "Product Returned");
+                                try {
+                                    boolean result = get();
+                                    if(result){
+                                        JOptionPane.showMessageDialog(null, "Product Returned");
+                                    }else{
+                                        JOptionPane.showMessageDialog(null, "Unable Return");
+                                    }
+                                    loadOrders();
+                                } catch (InterruptedException e) {
+                                    throw new RuntimeException(e);
+                                } catch (ExecutionException e) {
+                                    throw new RuntimeException(e);
+                                }
                             }
                         };
                         worker1.execute();
@@ -554,7 +570,6 @@ public class Order_List extends javax.swing.JPanel {
                         e.printStackTrace();
                     }
                 }
-                loadOrders();
             }
 
             private void computeNetTotal(BigDecimal subtotal, boolean isListed, DefaultTableModel model) {
@@ -857,7 +872,7 @@ public class Order_List extends javax.swing.JPanel {
                                 orders.get(i).getSale().getPerson().getName(),
                                 orders.get(i).getSale().getPayment().getTransactionType().name(),
                                 orders.get(i).getSale().getNetTotal(),
-                                orders.get(i).getSale().getPayment().getAmountDue().compareTo(BigDecimal.ZERO) <= 0 ? BigDecimal.ZERO : orders.get(i).getSale().getPayment().getAmountDue(),
+                                orders.get(i).getSale().getPayment().getAmountDue().compareTo(BigDecimal.ZERO) <= 0 ? BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP) : orders.get(i).getSale().getPayment().getAmountDue(),
                                 orders.get(i).getStatus().name()
                         });
                     }

@@ -77,9 +77,7 @@ public class ProductService {
                     }
 
                     product.addProductAttribute(productAttribute);
-
                     for (var variation : productAttribute.getProductVariations()) {
-
                         var tempVariationList = new ArrayList<>(productAttribute.getProductVariations());
                         for(int i = 0; i < tempVariationList.size(); i++){
                             String currentVariation = tempVariationList.get(i).getVariation();
@@ -111,6 +109,7 @@ public class ProductService {
 
             this.productDAO.add(product, userLog);
         }catch (PersistenceException e){
+            e.printStackTrace();
             throw new RuntimeException("Duplicate Product Name is not Allowed");
         }catch (RuntimeException e){
             throw new RuntimeException(e.getMessage());

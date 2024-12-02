@@ -736,70 +736,67 @@ public class Expenses_List extends javax.swing.JPanel {
         statusCombo.setFont(regularFont);
         panel.add(statusCombo, gbc);
 
-        SwingUtilities.invokeLater(() -> {
-            int result = JOptionPane.showConfirmDialog(null, panel, "Create Expense", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        int result = JOptionPane.showConfirmDialog(null, panel, "Create Expense", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-            if (result == JOptionPane.OK_OPTION) {
-                try {
-                    int subcategorySelectedIndex = subCategoryCombo.getSelectedIndex();
-                    Integer subcategoryId = subcategoryMap.get(subcategorySelectedIndex);
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                int subcategorySelectedIndex = subCategoryCombo.getSelectedIndex();
+                Integer subcategoryId = subcategoryMap.get(subcategorySelectedIndex);
 
-                    String expenseReason = expenseReasonField.getText();
-                    String amount = amountField.getText();
-                    String note = noteArea.getText();
-                    String status = (String) statusCombo.getSelectedItem();
+                String expenseReason = expenseReasonField.getText();
+                String amount = amountField.getText();
+                String note = noteArea.getText();
+                String status = (String) statusCombo.getSelectedItem();
 
-                    if (amount.length() > 8)
-                        throw new RuntimeException("Please Enter a Valid Amount not more than 8 Digits");
+                ExpenseService expenseService = new ExpenseService();
 
-                    ExpenseService expenseService = new ExpenseService();
+                assert status != null;
+                AddExpenseRequestDto dto = new AddExpenseRequestDto(
+                        subcategoryId,
+                        expenseReason,
+                        BigDecimal.valueOf(Double.parseDouble(amount)),
+                        note,
+                        status.equals("Active") ? ExpenseStatus.ACTIVE : ExpenseStatus.INACTIVE
+                );
 
-                    assert status != null;
-                    AddExpenseRequestDto dto = new AddExpenseRequestDto(
-                            subcategoryId,
-                            expenseReason,
-                            BigDecimal.valueOf(Double.parseDouble(amount)),
-                            note,
-                            status.equals("Active") ? ExpenseStatus.ACTIVE : ExpenseStatus.INACTIVE
-                    );
-                    SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
-                        @Override
-                        protected Boolean doInBackground() throws Exception {
-                            try {
-                                expenseService.add(dto);
-                                return true;
-                            } catch (Exception e) {
-                                throw e;
-                            }
+                if (amount.length() > 8)
+                    throw new RuntimeException("Please Enter a Valid Amount not more than 8 Digits");
+
+                SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean, Void>() {
+                    @Override
+                    protected Boolean doInBackground() throws Exception {
+                        try {
+                            expenseService.add(dto);
+                            return true;
+                        } catch (Exception e) {
+                            throw e;
                         }
+                    }
 
-                        @Override
-                        protected void done() {
-                            try {
-                                boolean result = get();
-                                if (result)
-                                    JOptionPane.showMessageDialog(null, "New Expense Added", "Added Successful", JOptionPane.INFORMATION_MESSAGE);
-                                else
-                                    JOptionPane.showMessageDialog(null, "Unable to Add Expense", "Failed", JOptionPane.ERROR_MESSAGE);
-                            } catch (InterruptedException e) {
-                                throw new RuntimeException(e);
-                            } catch (ExecutionException e) {
-                                throw new RuntimeException(e);
-                            }
+                    @Override
+                    protected void done() {
+                        try {
+                            boolean result = get();
+                            if (result)
+                                JOptionPane.showMessageDialog(null, "New Expense Added", "Added Successful", JOptionPane.INFORMATION_MESSAGE);
+                            else
+                                JOptionPane.showMessageDialog(null, "Unable to Add Expense", "Failed", JOptionPane.ERROR_MESSAGE);
+                        } catch (InterruptedException | ExecutionException e) {
+                            throw new RuntimeException(e);
+                        } finally {
+                            loadExpenses();
                         }
-                    };
-                    worker.execute();
-                } catch (NullPointerException e) {
-                    JOptionPane.showMessageDialog(null, "Please Choose Subcategory");
-                } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(null, "Make Sure to Input Number only for the Amount");
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(null, e.getMessage());
-                }
+                    }
+                };
+                worker.execute();
+            } catch (NullPointerException e) {
+                JOptionPane.showMessageDialog(null, "Please Choose Subcategory");
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(null, "Make Sure to Input Number only for the Amount");
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, e.getMessage());
             }
-        });
-        loadExpenses();
-
+        }
     }//GEN-LAST:event_jButton1ActionPerformed
 
 

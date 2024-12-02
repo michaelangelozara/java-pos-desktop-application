@@ -65,6 +65,13 @@ public class POS extends JPanel {
 
     private Discount discount;
 
+    private Map<Integer, TypeOfProduct> idType;
+
+    // this only uses for cart table
+    enum TypeOfProduct {
+        SIMPLE,
+        VARIABLE
+    }
 
     public POS() {
         this.categoryMap = new HashMap<>();
@@ -72,6 +79,7 @@ public class POS extends JPanel {
         this.selectedProductSet = new CopyOnWriteArrayList<>();
         this.selectedProductList = new ArrayList<>();
         this.addFees = new ArrayList<>();
+        this.idType = new HashMap<>();
 
         this.shipping = new Shipping();
         this.discount = new Discount();
@@ -150,17 +158,68 @@ public class POS extends JPanel {
                 int column = jTable1.columnAtPoint(e.getPoint());
                 int row = jTable1.rowAtPoint(e.getPoint());
 
-                if (column == 4) {
+                if (column == 5) {
+                    // Fetch the ID and Type values from the selected row
                     Integer id = (Integer) model.getValueAt(row, 0);
-                    model.removeRow(row);
-                    // remove the item from the list
-                    for (var selectedItem : selectedProductSet) {
-                        if (id != null && id.equals(selectedItem.getId())) {
-                            selectedProductSet.remove(selectedItem);
-                            reloadProductTable();
+                    String typeStr = (String) model.getValueAt(row, 4);
+                    if (id == null || typeStr == null) {
+                        JOptionPane.showMessageDialog(null, "Invalid product data!");
+                        return;
+                    }
+
+                    // Convert the type string to enum (or keep as string if enums aren't used)
+                    ProductType type;
+                    try {
+                        type = ProductType.valueOf(typeStr.toUpperCase());
+                    } catch (IllegalArgumentException ex) {
+                        JOptionPane.showMessageDialog(null, "Unknown product type!");
+                        return;
+                    }
+
+                    // Find and remove the matching product
+                    SelectedProduct productToRemove = null;
+                    for (SelectedProduct product : selectedProductSet) {
+                        if (product.getType().equals(ProductType.SIMPLE) && product.getId().equals(id) && product.getType() == type) {
+                            productToRemove = product;
+                            break;
+                        }
+
+                        if (product.getType().equals(ProductType.VARIABLE) && product.getVariationId().equals(id) && product.getType() == type) {
+                            productToRemove = product;
+                            break;
                         }
                     }
 
+                    if (productToRemove != null) {
+                        // Remove product from the set and update the table
+                        selectedProductSet.remove(productToRemove);
+                        model.removeRow(row); // Remove row from JTable
+                        JOptionPane.showMessageDialog(null, "Removed " + type + " product with ID: " + id);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Product not found in selection!");
+                    }
+
+
+//                    Integer id = (Integer) model.getValueAt(row, 0);
+//                    String type = (String) model.getValueAt(row, 4);
+//                    // remove the item from the list
+//                    for (var selectedItem : selectedProductSet) {
+////                        if (id != null && id.equals(selectedItem.getId())) {
+////                            selectedProductSet.remove(selectedItem);
+////                            reloadProductTable();
+////                        }
+//                        if(type.equals("VARIABLE") && idType.get(id).equals(TypeOfProduct.VARIABLE)
+//                                && selectedItem.getType().equals(ProductType.VARIABLE)){
+//                            JOptionPane.showMessageDialog(null, "Variable");
+//                            break;
+//                        }else if(type.equals("SIMPLE") && idType.get(id).equals(TypeOfProduct.SIMPLE)
+//                                && selectedItem.getType().equals(ProductType.SIMPLE)){
+//                            JOptionPane.showMessageDialog(null, "Simple");
+//                            break;
+//                        }
+//                    }
+//                    reloadProductTable();
+//                    model.removeRow(row);
                 }
             }
         });
@@ -508,16 +567,25 @@ public class POS extends JPanel {
                     ModelItem itemData = clickedItem.getData();
 
                     for (var purchaseProduct : selectedProductSet) {
-                        if (purchaseProduct.getId() == itemData.getItemID()) {
+                        if (purchaseProduct.getType().equals(ProductType.SIMPLE) && purchaseProduct.getId() == itemData.getItemID()) {
                             JOptionPane.showMessageDialog(null, purchaseProduct.getName() + " is already added");
                             return;
                         }
                     }
 
-                    int originalVariationQuantity = itemData.getQuantity();
                     if (itemData.getType().equals(ProductType.VARIABLE)) {
                         ModelItem updatedItem = openModalForVariableProducts(itemData);
                         if (updatedItem != null) {
+
+                            // validate if this variation is not exist in the table yet
+                            for (var rowInTheTable : selectedProductSet) {
+                                if (rowInTheTable.getType().equals(ProductType.VARIABLE) && rowInTheTable.getVariationId().equals(updatedItem.getVariationId())) {
+                                    JOptionPane.showMessageDialog(null, rowInTheTable.getName() + " is already added");
+                                    return;
+                                }
+                            }
+
+                            idType.put(updatedItem.getVariationId(), TypeOfProduct.VARIABLE);
                             selectedProductSet.add(new SelectedProduct(
                                     updatedItem.getItemID(),
                                     updatedItem.getItemName(),
@@ -540,6 +608,7 @@ public class POS extends JPanel {
 
                         }
                     } else {
+                        idType.put(data.getItemID(), TypeOfProduct.SIMPLE);
                         selectedProductSet.add(new SelectedProduct(
                                 data.getItemID(),
                                 data.getItemName(),
@@ -571,26 +640,28 @@ public class POS extends JPanel {
 
     private void reloadProductTable() {
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        var productRows = getAllRows();
-
+        model.setRowCount(0);
         for (var selectedProduct : selectedProductSet) {
-            boolean isEqualed = false;
-            for (var row : productRows) {
-                if (selectedProduct.getId().equals(row.getId())) {
-                    isEqualed = true;
-                    break;
-                }
-            }
-
-            if (!isEqualed) {
+            if (selectedProduct.getType().equals(ProductType.SIMPLE)) {
                 model.addRow(new Object[]{
                         selectedProduct.getId(),
                         selectedProduct.getName(),
                         selectedProduct.getQuantity(),
                         selectedProduct.getPrice(),
+                        selectedProduct.getType().name(),
+                        "Remove"
+                });
+            } else {
+                model.addRow(new Object[]{
+                        selectedProduct.getVariationId(),
+                        selectedProduct.getName(),
+                        selectedProduct.getQuantity(),
+                        selectedProduct.getPrice(),
+                        selectedProduct.getType().name(),
                         "Remove"
                 });
             }
+
         }
         updateSubtotal();
     }
@@ -817,11 +888,11 @@ public class POS extends JPanel {
 
                 },
                 new String[]{
-                        "ID", "Product", "Quantity", "Price", "Action"
+                        "ID", "Product", "Quantity", "Price", "Type", "Action"
                 }
         ) {
             boolean[] canEdit = new boolean[]{
-                    false, false, true, false, false
+                    false, false, true, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -834,6 +905,7 @@ public class POS extends JPanel {
             jTable1.getColumnModel().getColumn(1).setResizable(false);
             jTable1.getColumnModel().getColumn(2).setResizable(false);
             jTable1.getColumnModel().getColumn(3).setResizable(false);
+            jTable1.getColumnModel().getColumn(4).setResizable(false);
         }
 
         jTable1.getColumn("Action").setCellRenderer(new ButtonRenderer());
@@ -1085,31 +1157,34 @@ public class POS extends JPanel {
             );
 
             List<AddSaleProductRequestDto> saleProductDtoList = new ArrayList<>();
-            for (var saleProduct : selectedProductSet) {
-                for (var row : getAllRows()) {
-                    if (row.getId().equals(saleProduct.getId()) && saleProduct.getType().equals(ProductType.SIMPLE)) {
-                        AddSaleProductRequestDto saleDto = new AddSaleProductRequestDto(
-                                saleProduct.getId(),
-                                saleProduct.getPrice(),
-                                row.getQuantity(),
-                                saleProduct.getVariationId()
-                        );
-                        saleProductDtoList.add(saleDto);
-                        break;
-                    }
+            var rows = getAllRows();
+            for (var row : rows) {
+                if (row.getType().equals(ProductType.SIMPLE)) {
+                    AddSaleProductRequestDto saleDto = new AddSaleProductRequestDto(
+                            row.getId(),
+                            row.getPrice(),
+                            row.getQuantity(),
+                            null
+                    );
+                    saleProductDtoList.add(saleDto);
+                } else {
+                    for (var selectedProduct : selectedProductSet) {
+                        if(selectedProduct.getVariationId() == null) continue;
 
-                    if (row.getId().equals(saleProduct.getId()) && saleProduct.getType().equals(ProductType.VARIABLE)) {
-                        AddSaleProductRequestDto saleDto = new AddSaleProductRequestDto(
-                                saleProduct.getId(),
-                                saleProduct.getPrice(),
-                                row.getQuantity(),
-                                saleProduct.getVariationId()
-                        );
-                        saleProductDtoList.add(saleDto);
-                        break;
+                        if (selectedProduct.getVariationId().equals(row.getId()) && selectedProduct.getType().equals(ProductType.VARIABLE)) {
+                            AddSaleProductRequestDto saleDto = new AddSaleProductRequestDto(
+                                    selectedProduct.getId(),
+                                    row.getPrice(),
+                                    row.getQuantity(),
+                                    selectedProduct.getVariationId()
+                            );
+                            saleProductDtoList.add(saleDto);
+                            break;
+                        }
                     }
                 }
             }
+
             AddShippingRequestDto shippingDto = new AddShippingRequestDto(
                     shipping.getName(),
                     shipping.getPhoneNumber(),
@@ -1388,31 +1463,34 @@ public class POS extends JPanel {
                 );
 
                 List<AddSaleProductRequestDto> saleProductDtoList = new ArrayList<>();
-                for (var saleProduct : selectedProductSet) {
-                    for (var row : getAllRows()) {
-                        if (row.getId().equals(saleProduct.getId()) && saleProduct.getType().equals(ProductType.SIMPLE)) {
-                            AddSaleProductRequestDto saleDto = new AddSaleProductRequestDto(
-                                    saleProduct.getId(),
-                                    saleProduct.getPrice(),
-                                    row.getQuantity(),
-                                    saleProduct.getVariationId()
-                            );
-                            saleProductDtoList.add(saleDto);
-                            break;
-                        }
+                var rows = getAllRows();
+                for (var row : rows) {
+                    if (row.getType().equals(ProductType.SIMPLE)) {
+                        AddSaleProductRequestDto saleDto = new AddSaleProductRequestDto(
+                                row.getId(),
+                                row.getPrice(),
+                                row.getQuantity(),
+                                null
+                        );
+                        saleProductDtoList.add(saleDto);
+                    } else {
+                        for (var selectedProduct : selectedProductSet) {
+                            if(selectedProduct.getVariationId() == null) continue;
 
-                        if (row.getId().equals(saleProduct.getId()) && saleProduct.getType().equals(ProductType.VARIABLE)) {
-                            AddSaleProductRequestDto saleDto = new AddSaleProductRequestDto(
-                                    saleProduct.getId(),
-                                    saleProduct.getPrice(),
-                                    row.getQuantity(),
-                                    saleProduct.getVariationId()
-                            );
-                            saleProductDtoList.add(saleDto);
-                            break;
+                            if (selectedProduct.getVariationId().equals(row.getId()) && selectedProduct.getType().equals(ProductType.VARIABLE)) {
+                                AddSaleProductRequestDto saleDto = new AddSaleProductRequestDto(
+                                        selectedProduct.getId(),
+                                        row.getPrice(),
+                                        row.getQuantity(),
+                                        selectedProduct.getVariationId()
+                                );
+                                saleProductDtoList.add(saleDto);
+                                break;
+                            }
                         }
                     }
                 }
+
                 AddShippingRequestDto shippingDto = new AddShippingRequestDto(
                         shipping.getName(),
                         shipping.getPhoneNumber(),
@@ -2192,6 +2270,7 @@ public class POS extends JPanel {
         for (int i = 0; i < model.getRowCount(); i++) {
             int id = (Integer) model.getValueAt(i, 0);
             String name = (String) model.getValueAt(i, 1);
+            String type = (String) model.getValueAt(i, 4);
             // Check if `quantity` and `purchasePrice` are stored as `String`; otherwise, safely convert them.
             int quantity = Integer.parseInt(model.getValueAt(i, 2).toString());
             BigDecimal purchasePrice = (BigDecimal) model.getValueAt(i, 3);
@@ -2201,6 +2280,7 @@ public class POS extends JPanel {
             purchaseListedProduct.setId(id);
             purchaseListedProduct.setQuantity(quantity);
             purchaseListedProduct.setName(name);
+            purchaseListedProduct.setType(type.equals("SIMPLE") ? ProductType.SIMPLE : ProductType.VARIABLE);
             purchaseListedProduct.setPrice(purchasePrice);
             rows.add(purchaseListedProduct);
         }

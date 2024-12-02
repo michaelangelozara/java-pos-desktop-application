@@ -44,7 +44,6 @@ public class StockDAO {
         List<Stock> stocks = new ArrayList<>();
         try (Session session = sessionFactory.openSession()) {
             stocks = session.createQuery("SELECT s FROM Stock s", Stock.class)
-                    .setMaxResults(50)
                     .getResultList();
             stocks.forEach(s -> {
                 Hibernate.initialize(s.getProduct());
@@ -85,6 +84,24 @@ public class StockDAO {
                     .setParameter("end", end)
                     .getResultList();
 
+        }catch (Exception e){
+            throw e;
+        }
+        return stocks;
+    }
+
+    public List<Stock> getAllValidStocksByProductNameAndUsername(String query){
+        List<Stock> stocks = new ArrayList<>();
+        try(Session session = sessionFactory.openSession()){
+            stocks = session.createQuery("SELECT s FROM Stock s JOIN FETCH s.user u WHERE u.name LIKE :query OR s.product.name LIKE :query", Stock.class)
+                    .setParameter("query", "%" + query + "%")
+                    .getResultList();
+
+            stocks.forEach(s -> {
+                Hibernate.initialize(s.getProduct());
+                Hibernate.initialize(s.getProduct().getProductAttributes());
+                s.getProduct().getProductAttributes().forEach(pa -> Hibernate.initialize(pa.getProductVariations()));
+            });
         }catch (Exception e){
             throw e;
         }

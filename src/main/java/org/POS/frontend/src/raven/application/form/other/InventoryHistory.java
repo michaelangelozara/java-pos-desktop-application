@@ -158,7 +158,7 @@ public class InventoryHistory extends javax.swing.JPanel {
             new Object [][] {
             },
             new String [] {
-                "#", "Date", "Stock In", "Code", "Client"
+                "#", "Date", "Stock In", "Code", "Source"
             }
         ) {
             boolean[] canEdit = new boolean [] {
@@ -183,7 +183,7 @@ public class InventoryHistory extends javax.swing.JPanel {
             new Object [][] {
             },
             new String [] {
-                "#", "Date", "Stock Out", "Code", "Client"
+                "#", "Date", "Stock Out", "Code", "Source"
             }
         ) {
             boolean[] canEdit = new boolean [] {

@@ -1396,6 +1396,8 @@ public class ProductList extends javax.swing.JPanel {
 
         gbc.gridx = 1;
         JTextField stockField = new JTextField(fieldWidth);
+        stockField.setText("0");
+        stockField.setEnabled(false);
         stockField.setFont(regularFont);
         panel.add(stockField, gbc);
 

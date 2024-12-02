@@ -140,6 +140,8 @@ public class MainForm extends JLayeredPane {
                         Application.showForm(new Inventory());
                     } else if (subIndex == 2) {
                         Application.showForm(new InventoryAdjustment());
+                    } else if (subIndex == 3) {
+                        Application.showForm(new InventoryLogs());
                     } else {
                         action.cancel();
                     }

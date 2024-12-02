@@ -15,6 +15,7 @@ import org.POS.backend.payment.TransactionType;
 import org.POS.backend.person.PersonDAO;
 import org.POS.backend.product.ProductDAO;
 import org.POS.backend.product.ProductType;
+import org.POS.backend.product_attribute.ProductVariation;
 import org.POS.backend.sale_product.AddSaleProductRequestDto;
 import org.POS.backend.sale_product.SaleProduct;
 import org.POS.backend.sale_product.SaleProductMapper;
@@ -26,9 +27,11 @@ import org.POS.backend.user.UserDAO;
 import org.POS.backend.user_log.UserLog;
 import org.POS.backend.user_log.UserLogMapper;
 
+import javax.swing.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -92,11 +95,12 @@ public class SaleService {
                     if (product.getId().equals(saleProductDto.productId())) {
                         if (product.getProductType().equals(ProductType.VARIABLE)) {
                             for (var attribute : product.getProductAttributes()) {
+                                boolean isVariationBrook = false;
                                 for (var variation : attribute.getProductVariations()) {
                                     if (variation.getId().equals(saleProductDto.variationId())) {
 
                                         // check if the product's quantity is sufficient
-                                        if(saleProductDto.quantity() > variation.getQuantity())
+                                        if (saleProductDto.quantity() > variation.getQuantity())
                                             throw new RuntimeException(product.getName() + " is out of Stock\nRemaining Stock : " + variation.getQuantity());
 
                                         SaleProduct saleProduct = this.saleProductMapper.toSaleItem(saleProductDto, product);
@@ -107,8 +111,8 @@ public class SaleService {
                                         // re loop the attribute and variation to get the summation
                                         // of the recent quantity
                                         int totalRecentQuantity = 0;
-                                        for(var tempAttribute : product.getProductAttributes()){
-                                            for(var tempVariation : tempAttribute.getProductVariations()){
+                                        for (var tempAttribute : product.getProductAttributes()) {
+                                            for (var tempVariation : tempAttribute.getProductVariations()) {
                                                 totalRecentQuantity += tempVariation.getQuantity();
                                             }
                                         }
@@ -123,7 +127,6 @@ public class SaleService {
                                         saleProduct.setProduct(product);
                                         sale.addSaleProduct(saleProduct);
 
-
                                         user.addStock(stock);
                                         stock.setPerson(customer);
                                         stock.setStockInOrOut(saleProduct.getQuantity());
@@ -134,14 +137,18 @@ public class SaleService {
                                         product.addStock(stock);
 
                                         netTotal = netTotal.add(variation.getSrp().multiply(BigDecimal.valueOf(saleProductDto.quantity())));
+                                        isVariationBrook = true;
                                         break;
                                     }
                                 }
 
+                                if (isVariationBrook)
+                                    break;
+
                             }
                         } else {
                             // check if the product's quantity is sufficient
-                            if(saleProductDto.quantity() > product.getStock())
+                            if (saleProductDto.quantity() > product.getStock())
                                 throw new RuntimeException(product.getName() + " is out of Stock \nRemaining Stock : " + product.getStock());
 
                             Stock stock = new Stock();
@@ -163,9 +170,9 @@ public class SaleService {
                             product.addStock(stock);
 
                             netTotal = netTotal.add(product.getSellingPrice().multiply(BigDecimal.valueOf(saleProductDto.quantity())));
+                            break;
                         }
                     }
-
                 }
             }
 
@@ -232,9 +239,9 @@ public class SaleService {
 
             userLog.setCode(sale.getSaleNumber());
             return this.saleDAO.add(sale, userLog, products);
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             throw e;
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new CustomException("Error saving", e);
         }
     }
