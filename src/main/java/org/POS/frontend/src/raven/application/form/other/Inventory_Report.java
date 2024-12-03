@@ -4,7 +4,6 @@
  */
 package org.POS.frontend.src.raven.application.form.other;
 
-import org.POS.backend.product.Product;
 import org.POS.backend.product.ProductService;
 import org.POS.backend.product.ProductType;
 import org.POS.backend.product_category.ProductCategoryService;
@@ -558,12 +557,14 @@ public class Inventory_Report extends javax.swing.JPanel {
     private void filterTableByDateRange(LocalDate fromDate, LocalDate toDate) {
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         model.setRowCount(0);
-
+        Integer categoryId = recentCategoryId;
         StockService stockService = new StockService();
         SwingWorker<List<Stock>, Void> worker = new SwingWorker<>() {
             @Override
             protected List<Stock> doInBackground() throws Exception {
-                return stockService.getAllValidStocksByRange(fromDate, toDate);
+                return categoryId != null
+                        ? stockService.getAllValidStocksByRangeAndCategoryId(categoryId, fromDate, toDate)
+                        : stockService.getAllValidStocksByRange(fromDate, toDate);
             }
 
             @Override
@@ -571,6 +572,8 @@ public class Inventory_Report extends javax.swing.JPanel {
                 try {
                     int stockInSummation = 0;
                     int stockOutSummation = 0;
+                    int stockAvailableSummation = 0;
+
                     var stocks = get();
 
                     int n = 1;
@@ -603,7 +606,14 @@ public class Inventory_Report extends javax.swing.JPanel {
                                 });
                                 stockOutSummation += stock.getStockInOrOut();
                             }
+                            stockAvailableSummation += product.getStock();
                         } else {
+
+                            for (var attribute : product.getProductAttributes()) {
+                                for (var variation : attribute.getProductVariations()) {
+                                    stockAvailableSummation += variation.getQuantity();
+                                }
+                            }
 
                             if (stock.getType().equals(StockType.IN)) {
                                 model.addRow(new Object[]{
@@ -636,6 +646,8 @@ public class Inventory_Report extends javax.swing.JPanel {
 
                     jLabel20.setText(String.valueOf(stockInSummation));
                     jLabel21.setText(String.valueOf(stockOutSummation));
+
+                    jLabel22.setText(String.valueOf(stockAvailableSummation));
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 } catch (ExecutionException e) {
@@ -646,7 +658,7 @@ public class Inventory_Report extends javax.swing.JPanel {
         worker.execute();
     }
 
-    private void loadInventories(int subcategoryId) {
+    private void loadInventories(int categoryId) {
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         model.setRowCount(0);
 
@@ -654,7 +666,7 @@ public class Inventory_Report extends javax.swing.JPanel {
         SwingWorker<List<Stock>, Void> worker = new SwingWorker<>() {
             @Override
             protected List<Stock> doInBackground() throws Exception {
-                return stockService.getAllValidStockByProductCategoryId(subcategoryId);
+                return stockService.getAllValidStockByProductCategoryId(categoryId);
             }
 
             @Override
@@ -662,6 +674,8 @@ public class Inventory_Report extends javax.swing.JPanel {
                 try {
                     int stockInSummation = 0;
                     int stockOutSummation = 0;
+                    int stockAvailableSummation = 0;
+
                     var stocks = get();
 
                     int n = 1;
@@ -694,7 +708,14 @@ public class Inventory_Report extends javax.swing.JPanel {
                                 });
                                 stockOutSummation += stock.getStockInOrOut();
                             }
+                            stockAvailableSummation += product.getStock();
                         } else {
+
+                            for (var attribute : product.getProductAttributes()) {
+                                for (var variation : attribute.getProductVariations()) {
+                                    stockAvailableSummation += variation.getQuantity();
+                                }
+                            }
 
                             if (stock.getType().equals(StockType.IN)) {
                                 model.addRow(new Object[]{
@@ -727,6 +748,8 @@ public class Inventory_Report extends javax.swing.JPanel {
 
                     jLabel20.setText(String.valueOf(stockInSummation));
                     jLabel21.setText(String.valueOf(stockOutSummation));
+
+                    jLabel22.setText(String.valueOf(stockAvailableSummation));
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 } catch (ExecutionException e) {
@@ -737,15 +760,15 @@ public class Inventory_Report extends javax.swing.JPanel {
         worker.execute();
     }
 
-    private void computeTotalAvailableStock(){
+    private void computeTotalAvailableStock() {
         ProductService productService = new ProductService();
         SwingWorker<Integer, Void> worker = new SwingWorker<>() {
             @Override
             protected Integer doInBackground() {
-                try{
+                try {
                     jLabel22.setText("Loading...");
                     return productService.getProductTotalQuantity();
-                }catch (Exception e){
+                } catch (Exception e) {
                     throw e;
                 }
             }
@@ -759,7 +782,7 @@ public class Inventory_Report extends javax.swing.JPanel {
                     throw new RuntimeException(e);
                 } catch (ExecutionException e) {
                     throw new RuntimeException(e);
-                }catch (Exception e){
+                } catch (Exception e) {
                     JOptionPane.showMessageDialog(null, "Unexpected Error");
                 }
             }

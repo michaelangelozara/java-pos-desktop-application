@@ -109,7 +109,6 @@ public class ProductService {
 
             this.productDAO.add(product, userLog);
         }catch (PersistenceException e){
-            e.printStackTrace();
             throw new RuntimeException("Duplicate Product Name is not Allowed");
         }catch (RuntimeException e){
             throw new RuntimeException(e.getMessage());

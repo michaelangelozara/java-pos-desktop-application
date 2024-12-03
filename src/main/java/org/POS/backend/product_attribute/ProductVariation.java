@@ -21,7 +21,7 @@ public class ProductVariation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false, unique = false)
+    @Column(nullable = false)
     private String variation;
 
     private int quantity;

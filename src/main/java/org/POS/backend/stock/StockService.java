@@ -50,6 +50,10 @@ public class StockService {
         return this.stockDAO.getAllValidStocksByRange(start, end);
     }
 
+    public List<Stock> getAllValidStocksByRangeAndCategoryId(int categoryId, LocalDate start, LocalDate end){
+        return this.stockDAO.getAllValidStocksByRangeAndCategoryId(categoryId, start, end);
+    }
+
     public List<Stock> getAllValidStocksByProductNameAndUsername(String query){
         return this.stockDAO.getAllValidStocksByProductNameAndUsername(query);
     }

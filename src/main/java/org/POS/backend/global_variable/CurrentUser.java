@@ -13,4 +13,6 @@ public class CurrentUser {
     public static boolean isPosLoginSetup = false;
 
     public static UserRole role = null;
+
+    public static boolean isUserLoggedIn = false;
 }

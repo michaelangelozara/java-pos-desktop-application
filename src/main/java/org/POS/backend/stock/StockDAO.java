@@ -57,7 +57,7 @@ public class StockDAO {
     }
 
     public List<Stock> getAllStocksByProductCategoryId(int id) {
-        List<Stock> stocks = new ArrayList<>();
+        List<Stock> stocks;
         try (Session session = sessionFactory.openSession()) {
             stocks = session.createQuery("SELECT s FROM Stock s JOIN FETCH s.product p JOIN FETCH p.productCategory pc WHERE pc.id = :id", Stock.class)
                     .setParameter("id", id)
@@ -84,6 +84,32 @@ public class StockDAO {
                     .setParameter("end", end)
                     .getResultList();
 
+            stocks.forEach(s -> {
+                Hibernate.initialize(s.getProduct());
+                Hibernate.initialize(s.getProduct().getProductAttributes());
+                s.getProduct().getProductAttributes().forEach(pa -> Hibernate.initialize(pa.getProductVariations()));
+            });
+        }catch (Exception e){
+            throw e;
+        }
+        return stocks;
+    }
+
+    public List<Stock> getAllValidStocksByRangeAndCategoryId(int categoryId, LocalDate start, LocalDate end){
+        List<Stock> stocks;
+        try (Session session = sessionFactory.openSession()){
+
+            stocks = session.createQuery("SELECT s FROM Stock s JOIN FETCH s.product p WHERE (s.date >= :start AND s.date <= :end) AND p.productCategory.id = :categoryId", Stock.class)
+                    .setParameter("start", start)
+                    .setParameter("end", end)
+                    .setParameter("categoryId", categoryId)
+                    .getResultList();
+
+            stocks.forEach(s -> {
+                Hibernate.initialize(s.getProduct());
+                Hibernate.initialize(s.getProduct().getProductAttributes());
+                s.getProduct().getProductAttributes().forEach(pa -> Hibernate.initialize(pa.getProductVariations()));
+            });
         }catch (Exception e){
             throw e;
         }

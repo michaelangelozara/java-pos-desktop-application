@@ -5,12 +5,15 @@ import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
 import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
+import org.POS.backend.global_variable.CurrentUser;
 import org.POS.frontend.src.raven.application.form.LoginForm;
 import org.POS.frontend.src.raven.application.form.MainForm;
 import raven.toast.Notifications;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 
 /**
@@ -55,6 +58,7 @@ public class Application extends javax.swing.JFrame {
         app.loginForm.applyComponentOrientation(app.getComponentOrientation());
         SwingUtilities.updateComponentTreeUI(app.loginForm);
         FlatAnimatedLafChange.hideSnapshotWithAnimation();
+        CurrentUser.isUserLoggedIn = false;
     }
 
     public static void setSelectedMenu(int index, int subIndex) throws IOException {
@@ -64,8 +68,20 @@ public class Application extends javax.swing.JFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (!CurrentUser.isUserLoggedIn) {
+                    setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+                } else {
+                    // Show a message or just do nothing
+                    JOptionPane.showMessageDialog(null,
+                            "You have to Logout first before close the Application", "Confirmation", JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);

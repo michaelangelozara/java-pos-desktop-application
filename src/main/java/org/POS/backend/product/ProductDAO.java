@@ -27,7 +27,7 @@ public class ProductDAO {
             session.persist(product);
 
             session.persist(userLog);
-
+            session.flush();
             session.getTransaction().commit();
         } catch (Exception e) {
             throw e;

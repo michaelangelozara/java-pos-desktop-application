@@ -97,6 +97,7 @@ public class UserService {
             CurrentUser.employeeId = user.getEmployeeId();
             CurrentUser.username = user.getUsername();
             CurrentUser.role = user.getRole();
+            CurrentUser.isUserLoggedIn = true;
             return true;
         } catch (Exception e) {
             e.printStackTrace();

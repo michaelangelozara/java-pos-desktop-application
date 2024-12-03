@@ -137,6 +137,8 @@ public class LoginForm extends javax.swing.JPanel {
                         JOptionPane.showMessageDialog(null, GlobalVariable.USER_LOGGED_IN, "Login Successful", JOptionPane.PLAIN_MESSAGE);
                         Application.login();
                         disableButtonsByRole();
+                        txtUser.setText("");
+                        txtPass.setText("");
                     } else {
                         JOptionPane.showMessageDialog(null, GlobalVariable.USER_INVALID_CREDENTIAL, "Login Error", JOptionPane.WARNING_MESSAGE);
                     }

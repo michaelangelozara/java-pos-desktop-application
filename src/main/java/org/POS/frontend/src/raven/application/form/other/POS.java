@@ -198,28 +198,6 @@ public class POS extends JPanel {
                     } else {
                         JOptionPane.showMessageDialog(null, "Product not found in selection!");
                     }
-
-
-//                    Integer id = (Integer) model.getValueAt(row, 0);
-//                    String type = (String) model.getValueAt(row, 4);
-//                    // remove the item from the list
-//                    for (var selectedItem : selectedProductSet) {
-////                        if (id != null && id.equals(selectedItem.getId())) {
-////                            selectedProductSet.remove(selectedItem);
-////                            reloadProductTable();
-////                        }
-//                        if(type.equals("VARIABLE") && idType.get(id).equals(TypeOfProduct.VARIABLE)
-//                                && selectedItem.getType().equals(ProductType.VARIABLE)){
-//                            JOptionPane.showMessageDialog(null, "Variable");
-//                            break;
-//                        }else if(type.equals("SIMPLE") && idType.get(id).equals(TypeOfProduct.SIMPLE)
-//                                && selectedItem.getType().equals(ProductType.SIMPLE)){
-//                            JOptionPane.showMessageDialog(null, "Simple");
-//                            break;
-//                        }
-//                    }
-//                    reloadProductTable();
-//                    model.removeRow(row);
                 }
             }
         });
